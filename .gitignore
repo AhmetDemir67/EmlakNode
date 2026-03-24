@@ -1,0 +1,24 @@
+# Bağımlılıklar
+node_modules/
+
+# Ortam değişkenleri (ŞİFRE İÇERİR - asla GitHub'a yükleme!)
+.env
+
+# Log dosyaları
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+logs/
+*.log
+
+# İşletim sistemi dosyaları
+.DS_Store
+Thumbs.db
+
+# IDE / Editor
+.vscode/
+.idea/
+
+# Build çıktıları
+dist/
+build/
