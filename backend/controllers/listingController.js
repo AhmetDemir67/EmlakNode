@@ -168,4 +168,141 @@ const ilanGetir = async (req, res) => {
     });
 };
 
-module.exports = { ilanEkle, ilanlariGetir, ilanGetir };
+// ----------------------------------------------------------------
+// İLAN GÜNCELLE (Update Listing)
+// PUT /api/ilanlar/:id
+// Korumalı: Sadece ilanın sahibi dükkan veya admin güncelleyebilir
+// ----------------------------------------------------------------
+const ilanGuncelle = async (req, res) => {
+    const { id } = req.params;
+    const { rol, dukkan_id } = req.kullanici;
+
+    // --- 1. İlan var mı ve kime ait? ---
+    const mevcutIlan = await sorgu(
+        'SELECT id, dukkan_id FROM ilanlar WHERE id = $1',
+        [id]
+    );
+
+    if (mevcutIlan.rows.length === 0) {
+        return res.status(404).json({
+            basarili: false,
+            mesaj: 'İlan bulunamadı.',
+        });
+    }
+
+    // --- 2. Yetki kontrolü: Kendi dükkanının ilanı mı, yoksa admin mi? ---
+    const ilanSahibiDukkan = mevcutIlan.rows[0].dukkan_id;
+    if (rol !== 'admin' && ilanSahibiDukkan !== dukkan_id) {
+        return res.status(403).json({
+            basarili: false,
+            mesaj: 'Bu ilanı güncelleme yetkiniz yok. Sadece ilanı ekleyen ofis güncelleyebilir.',
+        });
+    }
+
+    // --- 3. Güncellenecek alanları al (sadece gönderilenleri güncelle) ---
+    const {
+        baslik,
+        aciklama,
+        fiyat,
+        metrekare,
+        oda_sayisi,
+        bina_yasi,
+        kat,
+        isinma_tipi,
+        enlem,
+        boylam,
+        ai_aciklama,
+    } = req.body;
+
+    // En az bir alan gönderilmeli
+    if (Object.keys(req.body).length === 0) {
+        return res.status(400).json({
+            basarili: false,
+            mesaj: 'Güncellenecek en az bir alan gönderilmelidir.',
+        });
+    }
+
+    // --- 4. Dinamik SET bloğu oluştur (sadece gönderilen alanlar güncellenir) ---
+    const guncellemeler = [];
+    const params        = [];
+    let   paramSayac    = 1;
+
+    const alanEkle = (isim, deger, tip = 'string') => {
+        if (deger !== undefined) {
+            guncellemeler.push(`${isim} = $${paramSayac++}`);
+            if (tip === 'float')   params.push(parseFloat(deger));
+            else if (tip === 'int') params.push(parseInt(deger));
+            else                   params.push(deger);
+        }
+    };
+
+    alanEkle('baslik',      baslik);
+    alanEkle('aciklama',    aciklama);
+    alanEkle('fiyat',       fiyat,       'float');
+    alanEkle('metrekare',   metrekare,   'float');
+    alanEkle('oda_sayisi',  oda_sayisi);
+    alanEkle('bina_yasi',   bina_yasi,   'int');
+    alanEkle('kat',         kat,         'int');
+    alanEkle('isinma_tipi', isinma_tipi);
+    alanEkle('enlem',       enlem,       'float');
+    alanEkle('boylam',      boylam,      'float');
+    alanEkle('ai_aciklama', ai_aciklama);
+
+    params.push(id); // WHERE id = $N
+
+    const guncellenenIlan = await sorgu(
+        `UPDATE ilanlar
+         SET ${guncellemeler.join(', ')}
+         WHERE id = $${paramSayac}
+         RETURNING *`,
+        params
+    );
+
+    return res.status(200).json({
+        basarili: true,
+        mesaj: 'İlan başarıyla güncellendi.',
+        ilan: guncellenenIlan.rows[0],
+    });
+};
+
+// ----------------------------------------------------------------
+// İLAN SİL (Delete Listing)
+// DELETE /api/ilanlar/:id
+// Korumalı: Sadece ilanın sahibi dükkan veya admin silebilir
+// ----------------------------------------------------------------
+const ilanSil = async (req, res) => {
+    const { id } = req.params;
+    const { rol, dukkan_id } = req.kullanici;
+
+    // --- 1. İlan var mı? ---
+    const mevcutIlan = await sorgu(
+        'SELECT id, baslik, dukkan_id FROM ilanlar WHERE id = $1',
+        [id]
+    );
+
+    if (mevcutIlan.rows.length === 0) {
+        return res.status(404).json({
+            basarili: false,
+            mesaj: 'İlan bulunamadı.',
+        });
+    }
+
+    // --- 2. Yetki kontrolü ---
+    const ilanSahibiDukkan = mevcutIlan.rows[0].dukkan_id;
+    if (rol !== 'admin' && ilanSahibiDukkan !== dukkan_id) {
+        return res.status(403).json({
+            basarili: false,
+            mesaj: 'Bu ilanı silme yetkiniz yok. Sadece ilanı ekleyen ofis silebilir.',
+        });
+    }
+
+    // --- 3. Sil ---
+    await sorgu('DELETE FROM ilanlar WHERE id = $1', [id]);
+
+    return res.status(200).json({
+        basarili: true,
+        mesaj: `"${mevcutIlan.rows[0].baslik}" ilanı başarıyla silindi.`,
+    });
+};
+
+module.exports = { ilanEkle, ilanlariGetir, ilanGetir, ilanGuncelle, ilanSil };
