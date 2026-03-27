@@ -1,0 +1,247 @@
+{
+  "info": {
+    "name": "EmlakNode API",
+    "description": "Emlak platformu için tüm API endpoint'leri. Login olduktan sonra token otomatik saklanır.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000/api",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "🔐 Auth",
+      "item": [
+        {
+          "name": "Kayıt Ol",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ad_soyad\": \"Ahmet Yılmaz\",\n  \"eposta\": \"ahmet@emlak.com\",\n  \"sifre\": \"Gizli1234\",\n  \"rol\": \"musteri\",\n  \"tc_no\": \"12345678901\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/kayit",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "kayit"]
+            },
+            "description": "Yeni kullanıcı kaydı.\n\nRoller: admin | patron | danisman | musteri\n\nEmlakçılar için dukkan_id de gönderilebilir."
+          },
+          "response": []
+        },
+        {
+          "name": "Giriş Yap",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Giriş başarılıysa token'ı otomatik olarak koleksiyon değişkenine kaydet",
+                  "const response = pm.response.json();",
+                  "if (response.basarili && response.token) {",
+                  "    pm.collectionVariables.set('token', response.token);",
+                  "    console.log('Token kaydedildi:', response.token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"eposta\": \"ahmet@emlak.com\",\n  \"sifre\": \"Gizli1234\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/giris",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "giris"]
+            },
+            "description": "Kullanıcı girişi. Başarılı olursa JWT token döner ve otomatik olarak {{token}} değişkenine kaydedilir."
+          },
+          "response": []
+        },
+        {
+          "name": "Giriş Yap - Yanlış Şifre (401 Testi)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"eposta\": \"ahmet@emlak.com\",\n  \"sifre\": \"YanlisSifre\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/giris",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "giris"]
+            },
+            "description": "401 döndürmeli: E-posta veya şifre hatalı."
+          },
+          "response": []
+        },
+        {
+          "name": "Kayıt Ol - Duplicate E-posta (409 Testi)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ad_soyad\": \"Başka Biri\",\n  \"eposta\": \"ahmet@emlak.com\",\n  \"sifre\": \"Baska1234\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/kayit",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "kayit"]
+            },
+            "description": "409 döndürmeli: Bu e-posta adresi zaten kayıtlı."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "🏠 İlanlar (Yakında)",
+      "item": [
+        {
+          "name": "Tüm İlanları Getir",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/ilanlar",
+              "host": ["{{baseUrl}}"],
+              "path": ["ilanlar"]
+            },
+            "description": "⚠️ Bu endpoint henüz aktif değil. İlanlar API'si tamamlandığında kullanılacak."
+          },
+          "response": []
+        },
+        {
+          "name": "Yeni İlan Oluştur",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"baslik\": \"Kadıköy Merkezde 3+1 Daire\",\n  \"aciklama\": \"Deniz manzaralı, ebeveyn banyolu güzel daire.\",\n  \"fiyat\": 4500000,\n  \"metrekare\": 120,\n  \"oda_sayisi\": \"3+1\",\n  \"bina_yasi\": 5,\n  \"kat\": 3,\n  \"isinma_tipi\": \"Kombi\",\n  \"enlem\": 40.9923,\n  \"boylam\": 29.0238,\n  \"dukkan_id\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/ilanlar",
+              "host": ["{{baseUrl}}"],
+              "path": ["ilanlar"]
+            },
+            "description": "⚠️ Bu endpoint henüz aktif değil. İlanlar API'si tamamlandığında kullanılacak."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "📊 Değerleme (Yakında)",
+      "item": [
+        {
+          "name": "Değerleme Talebi Oluştur",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"hedef_sehir\": \"İstanbul\",\n  \"hedef_ilce\": \"Kadıköy\",\n  \"mulk_ozellikleri\": {\n    \"oda_sayisi\": \"3+1\",\n    \"metrekare\": 120,\n    \"bina_yasi\": 5,\n    \"kat\": 3,\n    \"isinma_tipi\": \"Kombi\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/degerleme",
+              "host": ["{{baseUrl}}"],
+              "path": ["degerleme"]
+            },
+            "description": "⚠️ Bu endpoint henüz aktif değil. Değerleme API'si tamamlandığında kullanılacak."
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

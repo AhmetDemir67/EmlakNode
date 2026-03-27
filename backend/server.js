@@ -5,7 +5,8 @@ const express = require('express');
 const { baglantiTestEt } = require('./config/db');
 
 // Rotalar
-const authRoutes = require('./routes/auth');
+const authRoutes    = require('./routes/auth');
+const ilanRoutes    = require('./routes/listings');
 
 const app = express();
 
@@ -18,10 +19,10 @@ app.use(express.urlencoded({ extended: true })); // Form data parse
 // ----------------------------------------------------------------
 // API Rotaları
 // ----------------------------------------------------------------
-app.use('/api/auth', authRoutes);  // /api/auth/kayit, /api/auth/giris ...
+app.use('/api/auth',   authRoutes);   // POST /api/auth/kayit  | POST /api/auth/giris
+app.use('/api/ilanlar', ilanRoutes);  // GET  /api/ilanlar     | POST /api/ilanlar
 
 // TODO: İleride eklenecekler
-// app.use('/api/ilanlar',    ilanRoutes);
 // app.use('/api/dukkanlar',  dukkanRoutes);
 // app.use('/api/degerleme',  degerlemeRoutes);
 
@@ -47,7 +48,10 @@ const baslat = async () => {
     const PORT = process.env.PORT || 3000;
     app.listen(PORT, () => {
         console.log(`Sunucu http://localhost:${PORT} adresinde calisiyor.`);
-        console.log(`Kayit endpoint: POST http://localhost:${PORT}/api/auth/kayit`);
+        console.log(`Auth    → POST http://localhost:${PORT}/api/auth/kayit`);
+        console.log(`Auth    → POST http://localhost:${PORT}/api/auth/giris`);
+        console.log(`Ilanlar → GET  http://localhost:${PORT}/api/ilanlar`);
+        console.log(`Ilanlar → POST http://localhost:${PORT}/api/ilanlar`);
     });
 };
 
