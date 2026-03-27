@@ -1,7 +1,12 @@
 'use strict';
 
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 const { sorgu } = require('../config/db');
+
+// Token süresi .env'den alınır, yoksa varsayılan 7 gün
+const JWT_SECRET = process.env.JWT_SECRET;
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
 
 // Şifre hash'leme için kaç tur salt kullanılacak (10-12 arası önerilir)
 const SALT_ROUNDS = 10;
@@ -70,4 +75,71 @@ const kayitOl = async (req, res) => {
     });
 };
 
-module.exports = { kayitOl };
+// ----------------------------------------------------------------
+// GİRİŞ YAP (Login)
+// POST /api/auth/giris
+// ----------------------------------------------------------------
+const girisYap = async (req, res) => {
+    const { eposta, sifre } = req.body;
+
+    // --- 1. Zorunlu alan kontrolü ---
+    if (!eposta || !sifre) {
+        return res.status(400).json({
+            basarili: false,
+            mesaj: 'eposta ve sifre alanları zorunludur.',
+        });
+    }
+
+    // --- 2. Kullanıcıyı veritabanında ara ---
+    // Güvenlik: Şifre hash'i sadece burada çekiliyor, hiçbir zaman istemciye gönderilmiyor
+    const sonuc = await sorgu(
+        'SELECT id, ad_soyad, eposta, sifre, rol, dukkan_id FROM kullanicilar WHERE eposta = $1',
+        [eposta.toLowerCase().trim()]
+    );
+
+    if (sonuc.rows.length === 0) {
+        // Güvenlik: "kullanıcı bulunamadı" yerine genel mesaj (kullanıcı keşfini engeller)
+        return res.status(401).json({
+            basarili: false,
+            mesaj: 'E-posta veya şifre hatalı.',
+        });
+    }
+
+    const kullanici = sonuc.rows[0];
+
+    // --- 3. Şifre doğrulama (bcrypt.compare) ---
+    const sifreEslesiyor = await bcrypt.compare(sifre, kullanici.sifre);
+
+    if (!sifreEslesiyor) {
+        return res.status(401).json({
+            basarili: false,
+            mesaj: 'E-posta veya şifre hatalı.',
+        });
+    }
+
+    // --- 4. JWT Token üret ---
+    const tokenPayload = {
+        id:       kullanici.id,
+        ad_soyad: kullanici.ad_soyad,
+        rol:      kullanici.rol,
+        dukkan_id: kullanici.dukkan_id,
+    };
+
+    const token = jwt.sign(tokenPayload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+
+    // --- 5. Başarılı yanıt (şifre hash'i asla gönderilmez!) ---
+    return res.status(200).json({
+        basarili: true,
+        mesaj: 'Giriş başarılı.',
+        token,
+        kullanici: {
+            id:        kullanici.id,
+            ad_soyad:  kullanici.ad_soyad,
+            eposta:    kullanici.eposta,
+            rol:       kullanici.rol,
+            dukkan_id: kullanici.dukkan_id,
+        },
+    });
+};
+
+module.exports = { kayitOl, girisYap };
