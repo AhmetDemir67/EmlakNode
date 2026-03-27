@@ -2,6 +2,7 @@
 
 require('dotenv').config();
 const express = require('express');
+const cors    = require('cors');
 const { baglantiTestEt } = require('./config/db');
 
 // Rotalar
@@ -13,6 +14,13 @@ const app = express();
 // ----------------------------------------------------------------
 // Global Middleware
 // ----------------------------------------------------------------
+// CORS: Frontend'in (React) API'ye istek atmasına izin ver
+app.use(cors({
+  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
+
 app.use(express.json());             // JSON body parse
 app.use(express.urlencoded({ extended: true })); // Form data parse
 
