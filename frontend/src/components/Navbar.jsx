@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Search, Menu, X, Home, ChevronDown } from 'lucide-react';
 
 const Navbar = () => {
@@ -31,9 +32,9 @@ const Navbar = () => {
 
           {/* Sağ Butonlar */}
           <div className="hidden md:flex items-center gap-3">
-            <button className="text-gray-700 hover:text-orange-500 font-medium text-sm transition-colors px-3 py-2">
+            <Link to="/login" className="text-gray-700 hover:text-orange-500 font-medium text-sm transition-colors px-3 py-2">
               Giriş Yap
-            </button>
+            </Link>
             <button className="bg-orange-500 hover:bg-orange-600 text-white font-semibold text-sm px-5 py-2 rounded-lg transition-colors shadow-sm">
               İlan Ver
             </button>
@@ -57,7 +58,7 @@ const Navbar = () => {
           <a href="#" className="text-gray-700 font-medium py-2 border-b border-gray-50">Projeler</a>
           <a href="#" className="text-gray-700 font-medium py-2 border-b border-gray-50">Değerleme</a>
           <div className="flex gap-3 pt-2">
-            <button className="flex-1 border border-gray-300 text-gray-700 py-2 rounded-lg font-medium text-sm">Giriş Yap</button>
+            <Link to="/login" className="flex-1 border border-gray-300 text-gray-700 py-2 rounded-lg font-medium text-sm text-center">Giriş Yap</Link>
             <button className="flex-1 bg-orange-500 text-white py-2 rounded-lg font-semibold text-sm">İlan Ver</button>
           </div>
         </div>
