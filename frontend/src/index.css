@@ -1,6 +1,6 @@
 @import "tailwindcss";
-
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
 
 * {
   font-family: 'Inter', sans-serif;
@@ -12,3 +12,38 @@ body {
   background-color: #f8fafc;
   color: #1e293b;
 }
+
+/* Leaflet popup özelleştirme */
+.leaflet-popup-content-wrapper {
+  border-radius: 16px !important;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.15) !important;
+  padding: 0 !important;
+  overflow: hidden;
+}
+.leaflet-popup-content {
+  margin: 0 !important;
+  width: 220px !important;
+}
+.leaflet-popup-tip {
+  background: white !important;
+}
+
+/* Özel fiyat marker */
+.fiyat-marker {
+  background: #f97316;
+  color: white;
+  font-weight: 700;
+  font-size: 11px;
+  padding: 5px 10px;
+  border-radius: 20px;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(249,115,22,0.5);
+  border: 2px solid white;
+  cursor: pointer;
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+.fiyat-marker:hover {
+  transform: scale(1.1);
+  background: #ea580c;
+}
+
