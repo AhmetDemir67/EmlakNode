@@ -1,5 +1,6 @@
 import { Heart, MapPin, BedDouble, Square, Building2 } from 'lucide-react';
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 
 const ListingCard = ({ ilan }) => {
   const [begendim, setBegendim] = useState(false);
@@ -8,7 +9,7 @@ const ListingCard = ({ ilan }) => {
     new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', maximumFractionDigits: 0 }).format(fiyat);
 
   return (
-    <div className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 group cursor-pointer">
+    <Link to={`/ilan/${ilan.id}`} className="block bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 group cursor-pointer">
       {/* Görsel */}
       <div className="relative overflow-hidden">
         <img
@@ -86,7 +87,7 @@ const ListingCard = ({ ilan }) => {
           </button>
         </div>
       </div>
-    </div>
+    </Link>
   );
 };
 

@@ -1,6 +1,9 @@
 'use strict';
 
-require('dotenv').config();
+const path = require('path');
+// .env dosyası projenin kök dizininde (backend'in 2 üst klasörü)
+require('dotenv').config({ path: path.resolve(__dirname, '../../.env') });
+
 const { Pool } = require('pg');
 
 // ----------------------------------------------------------------
@@ -13,12 +16,12 @@ const pool = new Pool({
   port:     Number(process.env.DB_PORT) || 5432,
   database: process.env.DB_NAME,
   user:     process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
+  password: String(process.env.DB_PASSWORD), // Kesin string'e çevir
 
   // Havuz ayarları
-  max: 10,               // Maksimum eş zamanlı bağlantı sayısı
-  idleTimeoutMillis: 30000,  // Boştaki bağlantı 30sn sonra kapatılır
-  connectionTimeoutMillis: 2000, // 2sn içinde bağlanamazsa hata fırlatır
+  max: 10,                          // Maksimum eş zamanlı bağlantı sayısı
+  idleTimeoutMillis: 30000,         // Boştaki bağlantı 30sn sonra kapatılır
+  connectionTimeoutMillis: 2000,    // 2sn içinde bağlanamazsa hata fırlatır
 });
 
 // ----------------------------------------------------------------
