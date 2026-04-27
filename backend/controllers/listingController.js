@@ -24,13 +24,26 @@ const ilanEkle = async (req, res) => {
         baslik,
         aciklama,
         fiyat,
+        tip,
+        emlak_turu,
         metrekare,
         oda_sayisi,
         bina_yasi,
         kat,
+        toplam_kat,
         isinma_tipi,
+        banyo_sayisi,
+        balkon,
+        asansor,
+        otopark,
+        esyali,
+        site_icerisinde,
+        sehir,
+        ilce,
+        mahalle,
         enlem,
         boylam,
+        gorsel,
         ai_aciklama,
     } = req.body;
 
@@ -58,26 +71,39 @@ const ilanEkle = async (req, res) => {
     }
 
     // --- 5. Veritabanına kaydet ---
-    // dukkan_id token'dan otomatik alınır, kullanıcı dışarıdan geçiremez
     const yeniIlan = await sorgu(
         `INSERT INTO ilanlar
-            (baslik, aciklama, fiyat, metrekare, oda_sayisi, bina_yasi,
-             kat, isinma_tipi, enlem, boylam, ai_aciklama, dukkan_id)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+            (baslik, aciklama, fiyat, tip, emlak_turu, metrekare, oda_sayisi, bina_yasi,
+             kat, toplam_kat, isinma_tipi, banyo_sayisi, balkon, asansor, otopark,
+             esyali, site_icerisinde, sehir, ilce, mahalle, enlem, boylam, gorsel, ai_aciklama, dukkan_id)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25)
          RETURNING *`,
         [
             baslik.trim(),
-            aciklama       || null,
+            aciklama            || null,
             parseFloat(fiyat),
+            tip                 || 'Satılık',
+            emlak_turu          || 'Daire',
             parseFloat(metrekare),
-            oda_sayisi     || null,   // Örn: '3+1', '2+1'
-            bina_yasi      ? parseInt(bina_yasi)  : null,
-            kat            ? parseInt(kat)         : null,
-            isinma_tipi    || null,   // Örn: 'Kombi', 'Doğalgaz'
-            enlem          ? parseFloat(enlem)     : null,
-            boylam         ? parseFloat(boylam)    : null,
-            ai_aciklama    || null,
-            dukkan_id,                // Token'dan otomatik
+            oda_sayisi          || null,
+            bina_yasi           ? parseInt(bina_yasi)   : null,
+            kat                 ? parseInt(kat)          : null,
+            toplam_kat          ? parseInt(toplam_kat)   : null,
+            isinma_tipi         || null,
+            banyo_sayisi        ? parseInt(banyo_sayisi) : null,
+            balkon              === true || balkon === 'true' ? true : false,
+            asansor             === true || asansor === 'true' ? true : false,
+            otopark             === true || otopark === 'true' ? true : false,
+            esyali              === true || esyali === 'true' ? true : false,
+            site_icerisinde     === true || site_icerisinde === 'true' ? true : false,
+            sehir               || null,
+            ilce                || null,
+            mahalle             || null,
+            enlem               ? parseFloat(enlem)      : null,
+            boylam              ? parseFloat(boylam)     : null,
+            gorsel              || null,
+            ai_aciklama         || null,
+            dukkan_id,
         ]
     );
 
@@ -95,35 +121,36 @@ const ilanEkle = async (req, res) => {
 // Herkese açık (tokenDogrula gerekmez)
 // ----------------------------------------------------------------
 const ilanlariGetir = async (req, res) => {
-    const { sehir, min_fiyat, max_fiyat, oda_sayisi, limit = 20, sayfa = 1 } = req.query;
+    const {
+        sehir, ilce, min_fiyat, max_fiyat, oda_sayisi, tip, emlak_turu,
+        dukkan_id, min_metrekare, max_metrekare, arama, limit = 50, sayfa = 1,
+    } = req.query;
 
-    // Dinamik WHERE koşulları
     const kosullar = [];
     const params   = [];
     let   paramSayac = 1;
 
-    if (min_fiyat) {
-        kosullar.push(`fiyat >= $${paramSayac++}`);
-        params.push(parseFloat(min_fiyat));
-    }
-    if (max_fiyat) {
-        kosullar.push(`fiyat <= $${paramSayac++}`);
-        params.push(parseFloat(max_fiyat));
-    }
-    if (oda_sayisi) {
-        kosullar.push(`oda_sayisi = $${paramSayac++}`);
-        params.push(oda_sayisi);
-    }
+    if (min_fiyat)     { kosullar.push(`i.fiyat >= $${paramSayac++}`);      params.push(parseFloat(min_fiyat)); }
+    if (max_fiyat)     { kosullar.push(`i.fiyat <= $${paramSayac++}`);      params.push(parseFloat(max_fiyat)); }
+    if (min_metrekare) { kosullar.push(`i.metrekare >= $${paramSayac++}`);  params.push(parseFloat(min_metrekare)); }
+    if (max_metrekare) { kosullar.push(`i.metrekare <= $${paramSayac++}`);  params.push(parseFloat(max_metrekare)); }
+    if (oda_sayisi)    { kosullar.push(`i.oda_sayisi = $${paramSayac++}`);  params.push(oda_sayisi); }
+    if (tip)           { kosullar.push(`i.tip = $${paramSayac++}`);         params.push(tip); }
+    if (emlak_turu)    { kosullar.push(`i.emlak_turu = $${paramSayac++}`);  params.push(emlak_turu); }
+    if (sehir)         { kosullar.push(`(i.sehir ILIKE $${paramSayac} OR d.sehir ILIKE $${paramSayac})`); params.push(`%${sehir}%`); paramSayac++; }
+    if (ilce)          { kosullar.push(`i.ilce ILIKE $${paramSayac++}`);    params.push(`%${ilce}%`); }
+    if (dukkan_id)     { kosullar.push(`i.dukkan_id = $${paramSayac++}`);   params.push(parseInt(dukkan_id)); }
+    if (arama)         { kosullar.push(`(i.baslik ILIKE $${paramSayac} OR i.aciklama ILIKE $${paramSayac})`); params.push(`%${arama}%`); paramSayac++; }
 
     const whereClause = kosullar.length > 0 ? `WHERE ${kosullar.join(' AND ')}` : '';
-
-    // Sayfalama
-    const limitSayi  = Math.min(parseInt(limit), 100); // Max 100 kayıt
-    const offset     = (parseInt(sayfa) - 1) * limitSayi;
+    const limitSayi   = Math.min(parseInt(limit), 100);
+    const offset      = (parseInt(sayfa) - 1) * limitSayi;
     params.push(limitSayi, offset);
 
     const ilanlar = await sorgu(
-        `SELECT i.*, d.dukkan_adi, d.sehir, d.ilce
+        `SELECT i.*, d.dukkan_adi,
+                COALESCE(i.sehir, d.sehir) AS sehir,
+                COALESCE(i.ilce, d.ilce)   AS ilce
          FROM ilanlar i
          JOIN dukkanlar d ON i.dukkan_id = d.id
          ${whereClause}
@@ -201,17 +228,11 @@ const ilanGuncelle = async (req, res) => {
 
     // --- 3. Güncellenecek alanları al (sadece gönderilenleri güncelle) ---
     const {
-        baslik,
-        aciklama,
-        fiyat,
-        metrekare,
-        oda_sayisi,
-        bina_yasi,
-        kat,
-        isinma_tipi,
-        enlem,
-        boylam,
-        ai_aciklama,
+        baslik, aciklama, fiyat, tip, emlak_turu,
+        metrekare, oda_sayisi, bina_yasi, kat, toplam_kat,
+        isinma_tipi, banyo_sayisi, balkon, asansor, otopark,
+        esyali, site_icerisinde, sehir, ilce, mahalle,
+        enlem, boylam, gorsel, ai_aciklama,
     } = req.body;
 
     // En az bir alan gönderilmeli
@@ -236,17 +257,30 @@ const ilanGuncelle = async (req, res) => {
         }
     };
 
-    alanEkle('baslik',      baslik);
-    alanEkle('aciklama',    aciklama);
-    alanEkle('fiyat',       fiyat,       'float');
-    alanEkle('metrekare',   metrekare,   'float');
-    alanEkle('oda_sayisi',  oda_sayisi);
-    alanEkle('bina_yasi',   bina_yasi,   'int');
-    alanEkle('kat',         kat,         'int');
-    alanEkle('isinma_tipi', isinma_tipi);
-    alanEkle('enlem',       enlem,       'float');
-    alanEkle('boylam',      boylam,      'float');
-    alanEkle('ai_aciklama', ai_aciklama);
+    alanEkle('baslik',           baslik);
+    alanEkle('aciklama',         aciklama);
+    alanEkle('fiyat',            fiyat,       'float');
+    alanEkle('tip',              tip);
+    alanEkle('emlak_turu',       emlak_turu);
+    alanEkle('metrekare',        metrekare,   'float');
+    alanEkle('oda_sayisi',       oda_sayisi);
+    alanEkle('bina_yasi',        bina_yasi,   'int');
+    alanEkle('kat',              kat,         'int');
+    alanEkle('toplam_kat',       toplam_kat,  'int');
+    alanEkle('isinma_tipi',      isinma_tipi);
+    alanEkle('banyo_sayisi',     banyo_sayisi,'int');
+    alanEkle('balkon',           balkon);
+    alanEkle('asansor',          asansor);
+    alanEkle('otopark',          otopark);
+    alanEkle('esyali',           esyali);
+    alanEkle('site_icerisinde',  site_icerisinde);
+    alanEkle('sehir',            sehir);
+    alanEkle('ilce',             ilce);
+    alanEkle('mahalle',          mahalle);
+    alanEkle('enlem',            enlem,       'float');
+    alanEkle('boylam',           boylam,      'float');
+    alanEkle('gorsel',           gorsel);
+    alanEkle('ai_aciklama',      ai_aciklama);
 
     params.push(id); // WHERE id = $N
 

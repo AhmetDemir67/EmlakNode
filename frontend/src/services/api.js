@@ -37,11 +37,13 @@ api.interceptors.response.use(
 // ── API Fonksiyonları ────────────────────────────────────────────
 
 // İlanlar
-export const ilanlarGetir   = (params) => api.get('/ilanlar', { params });
-export const ilanDetayGetir = (id)     => api.get(`/ilanlar/${id}`);
-export const ilanEkle       = (data)   => api.post('/ilanlar', data);
-export const ilanGuncelle   = (id, data) => api.put(`/ilanlar/${id}`, data);
-export const ilanSil        = (id)     => api.delete(`/ilanlar/${id}`);
+export const ilanlarGetir     = (params)     => api.get('/ilanlar', { params });
+export const ilanDetayGetir   = (id)         => api.get(`/ilanlar/${id}`);
+export const ilanEkle         = (data)       => api.post('/ilanlar', data);
+export const ilanGuncelle     = (id, data)   => api.put(`/ilanlar/${id}`, data);
+export const ilanSil          = (id)         => api.delete(`/ilanlar/${id}`);
+export const benimIlanlarim   = (dukkan_id)  => api.get('/ilanlar', { params: { dukkan_id, limit: 100 } });
+export const ilanDurumGuncelle = (id, durum) => api.patch(`/ilanlar/${id}/durum`, { durum });
 
 // Auth
 export const kayitOl  = (data) => api.post('/auth/kayit', data);

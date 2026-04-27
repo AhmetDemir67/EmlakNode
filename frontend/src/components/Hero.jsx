@@ -1,103 +1,227 @@
-import { useState } from 'react';
-import { Search, MapPin } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { Search, MapPin, ChevronDown, X, Map } from 'lucide-react';
 
-const Hero = () => {
-  const [aktifTab, setAktifTab] = useState('satilik');
-  const [aramaMetni, setAramaMetni] = useState('');
+const TABS = ['Satılık', 'Kiralık', 'Projeler', 'Emlak Ofisleri', 'İlan No'];
 
-  const tabs = [
-    { id: 'satilik', label: 'Satılık' },
-    { id: 'kiralik', label: 'Kiralık' },
-    { id: 'gunluk', label: 'Günlük Kiralık' },
-  ];
+const GM_TIPLERI    = ['Konut', 'İşyeri', 'Arsa', 'Bina', 'Devremülk', 'Turistik'];
+const ODA_SECENEGI  = ['Stüdyo', '1+1', '2+1', '3+1', '4+1', '5+1', '6+1+'];
+const FIYAT_ARALIK  = [
+  { label: 'Fiyat Giriniz', min: '', max: '' },
+  { label: '0 – 1M ₺',     min: '',          max: '1000000'  },
+  { label: '1M – 3M ₺',    min: '1000000',   max: '3000000'  },
+  { label: '3M – 5M ₺',    min: '3000000',   max: '5000000'  },
+  { label: '5M – 10M ₺',   min: '5000000',   max: '10000000' },
+  { label: '10M+ ₺',       min: '10000000',  max: ''         },
+];
 
-  const populerSehirler = ['İstanbul', 'Ankara', 'İzmir', 'Antalya', 'Bursa'];
+const HERO_IMG = 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=1920&q=85';
+
+// Dropdown bileşeni
+const Dropdown = ({ label, value, items, acik, setAcik, onSec, dropRef, minWidth = 130 }) => (
+  <div className="relative flex-shrink-0" ref={dropRef}>
+    <button
+      type="button"
+      onClick={() => setAcik(!acik)}
+      style={{ minWidth }}
+      className={`h-full flex items-center gap-2 px-3 py-2 border rounded-xl text-sm font-medium transition-all whitespace-nowrap ${
+        acik
+          ? 'border-green-500 bg-green-50 text-green-700 ring-2 ring-green-100'
+          : 'border-gray-200 text-gray-600 hover:border-green-400 hover:text-green-700 bg-white'
+      }`}
+    >
+      <span className="flex-1 text-left truncate">{value || label}</span>
+      <ChevronDown size={13} className={`flex-shrink-0 transition-transform duration-200 ${acik ? 'rotate-180' : ''}`} />
+    </button>
+
+    {acik && (
+      <div className="absolute top-full left-0 mt-1.5 bg-white border border-gray-100 rounded-2xl shadow-2xl z-[200] py-1.5 overflow-hidden" style={{ minWidth: Math.max(minWidth, 160) }}>
+        {items.map((item, i) => {
+          const itemLabel = typeof item === 'string' ? item : item.label;
+          const isAktif   = typeof item === 'string' ? value === item : value === item.label;
+          return (
+            <button
+              key={i}
+              type="button"
+              onClick={() => { onSec(item); setAcik(false); }}
+              className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${
+                isAktif ? 'text-green-700 bg-green-50 font-semibold' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-800'
+              }`}
+            >
+              {itemLabel}
+            </button>
+          );
+        })}
+      </div>
+    )}
+  </div>
+);
+
+const Hero = ({ onAra, onHaritaAra }) => {
+  const [aktifTab, setAktifTab] = useState('Satılık');
+  const [konum,    setKonum]    = useState('');
+  const [gmTipi,   setGmTipi]   = useState('Konut');
+  const [oda,      setOda]      = useState('');
+  const [fiyat,    setFiyat]    = useState(FIYAT_ARALIK[0]);
+
+  const [gmAcik,    setGmAcik]    = useState(false);
+  const [odaAcik,   setOdaAcik]   = useState(false);
+  const [fiyatAcik, setFiyatAcik] = useState(false);
+
+  const gmRef    = useRef(null);
+  const odaRef   = useRef(null);
+  const fiyatRef = useRef(null);
+
+  useEffect(() => {
+    const handler = (e) => {
+      if (!gmRef.current?.contains(e.target))    setGmAcik(false);
+      if (!odaRef.current?.contains(e.target))   setOdaAcik(false);
+      if (!fiyatRef.current?.contains(e.target)) setFiyatAcik(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  const buildParams = () => ({
+    sehir:     konum.trim(),
+    tip:       aktifTab === 'Satılık' || aktifTab === 'Kiralık' ? aktifTab : '',
+    oda_sayisi: oda === 'Stüdyo' ? '1+0' : oda,
+    min_fiyat:  fiyat.min,
+    max_fiyat:  fiyat.max,
+  });
+
+  const handleAra        = () => onAra?.(buildParams());
+  const handleHaritadaAra = () => { onAra?.(buildParams()); onHaritaAra?.(); };
+
+  // İlan No tab için arama
+  const ilanNoTabAktif = aktifTab === 'İlan No';
 
   return (
-    <section className="relative min-h-[540px] flex items-center justify-center overflow-hidden">
-      {/* Arka Plan Gradient */}
-      <div className="absolute inset-0 bg-gradient-to-br from-slate-800 via-slate-700 to-orange-900" />
+    <section className="relative h-[460px] md:h-[500px] overflow-hidden">
 
-      {/* Overlay Desen */}
-      <div
-        className="absolute inset-0 opacity-10"
-        style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-        }}
+      {/* Arka plan fotoğraf */}
+      <img
+        src={HERO_IMG}
+        alt="Emlak platformu arka plan"
+        className="absolute inset-0 w-full h-full object-cover"
+        loading="eager"
       />
+      {/* Karanlık overlay */}
+      <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/50 to-black/40" />
 
-      <div className="relative z-10 w-full max-w-4xl mx-auto px-4 text-center">
+      {/* İçerik */}
+      <div className="relative z-10 h-full flex flex-col items-center justify-center px-4 text-center">
+
         {/* Başlık */}
-        <h1 className="text-4xl md:text-5xl font-bold text-white mb-3 leading-tight">
-          Hayalindeki Evi <span className="text-orange-400">Bul</span>
+        <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-white mb-1.5 leading-tight drop-shadow-lg">
+          Satılık Ev Arıyorsan Çözüm Net:
+          <span className="text-green-400"> EmlakNode</span>
         </h1>
-        <p className="text-slate-300 text-lg mb-8">
-          Türkiye'nin en büyük emlak platformunda 500.000+ ilan arasından seç
+        <p className="text-white/70 text-sm md:text-base mb-6 drop-shadow">
+          Türkiye'nin güvenilir emlak platformu · 500.000+ güncel ilan
         </p>
 
-        {/* Arama Kutusu */}
-        <div className="bg-white rounded-2xl shadow-2xl p-2 max-w-3xl mx-auto">
+        {/* Arama Kartı */}
+        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl overflow-visible">
+
           {/* Tab'lar */}
-          <div className="flex gap-1 mb-2 px-1 pt-1">
-            {tabs.map((tab) => (
+          <div className="flex border-b border-gray-100 overflow-x-auto">
+            {TABS.map(tab => (
               <button
-                key={tab.id}
-                onClick={() => setAktifTab(tab.id)}
-                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
-                  aktifTab === tab.id
-                    ? 'bg-orange-500 text-white shadow-sm'
-                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                key={tab}
+                type="button"
+                onClick={() => setAktifTab(tab)}
+                className={`flex-shrink-0 px-5 py-3.5 text-sm font-bold border-b-2 -mb-px transition-all ${
+                  aktifTab === tab
+                    ? 'text-green-600 border-green-600 bg-green-50/50'
+                    : 'text-gray-500 border-transparent hover:text-gray-700 hover:bg-gray-50/50'
                 }`}
               >
-                {tab.label}
+                {tab}
               </button>
             ))}
           </div>
 
           {/* Arama Satırı */}
-          <div className="flex gap-2 p-1">
-            <div className="flex-1 flex items-center gap-3 bg-gray-50 rounded-xl px-4 py-3 border border-gray-200 focus-within:border-orange-400 focus-within:ring-2 focus-within:ring-orange-100 transition-all">
-              <MapPin size={18} className="text-orange-400 flex-shrink-0" />
+          <div className="flex items-stretch gap-2 px-3 py-3">
+
+            {/* Gayrimenkul Tipi */}
+            <Dropdown
+              label="Gayrimenkul Tipi"
+              value={gmTipi}
+              items={GM_TIPLERI}
+              acik={gmAcik}
+              setAcik={setGmAcik}
+              onSec={v => setGmTipi(v)}
+              dropRef={gmRef}
+              minWidth={155}
+            />
+
+            {/* Konum */}
+            <div className="flex-1 flex items-center gap-2 border border-gray-200 rounded-xl px-3 focus-within:border-green-500 focus-within:ring-2 focus-within:ring-green-100 transition-all min-w-0">
+              <MapPin size={16} className="text-green-500 flex-shrink-0" />
               <input
                 type="text"
-                placeholder="Şehir, ilçe veya mahalle ara..."
-                value={aramaMetni}
-                onChange={(e) => setAramaMetni(e.target.value)}
-                className="flex-1 bg-transparent outline-none text-gray-800 text-sm placeholder-gray-400"
+                value={konum}
+                onChange={e => setKonum(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && handleAra()}
+                placeholder="İl, ilçe, mahalle, site, okul, metro..."
+                className="flex-1 outline-none text-sm text-gray-700 placeholder-gray-400 py-3 bg-transparent min-w-0"
               />
+              {konum && (
+                <button type="button" onClick={() => setKonum('')} className="flex-shrink-0">
+                  <X size={13} className="text-gray-300 hover:text-gray-500" />
+                </button>
+              )}
             </div>
-            <button className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-xl font-semibold flex items-center gap-2 transition-colors shadow-md whitespace-nowrap">
-              <Search size={18} />
-              <span className="hidden sm:inline">Ara</span>
+
+            {/* Oda Sayısı */}
+            {!ilanNoTabAktif && (
+              <Dropdown
+                label="Oda Sayısı"
+                value={oda}
+                items={['Tümü', ...ODA_SECENEGI]}
+                acik={odaAcik}
+                setAcik={setOdaAcik}
+                onSec={v => setOda(v === 'Tümü' ? '' : (v === 'Stüdyo' ? '1+0' : v))}
+                dropRef={odaRef}
+                minWidth={120}
+              />
+            )}
+
+            {/* Fiyat Bilgisi */}
+            {!ilanNoTabAktif && (
+              <Dropdown
+                label="Fiyat Bilgisi"
+                value={fiyat.min || fiyat.max ? fiyat.label : ''}
+                items={FIYAT_ARALIK}
+                acik={fiyatAcik}
+                setAcik={setFiyatAcik}
+                onSec={v => setFiyat(v)}
+                dropRef={fiyatRef}
+                minWidth={135}
+              />
+            )}
+
+            {/* Ara */}
+            <button
+              type="button"
+              onClick={handleAra}
+              className="flex items-center gap-2 bg-green-600 hover:bg-green-700 active:scale-95 text-white px-6 py-2.5 rounded-xl font-bold text-sm transition-all shadow-md whitespace-nowrap"
+            >
+              <Search size={16} />
+              Ara
+            </button>
+
+            {/* Haritada Ara */}
+            <button
+              type="button"
+              onClick={handleHaritadaAra}
+              className="flex items-center gap-2 border-2 border-green-600 text-green-600 hover:bg-green-50 active:scale-95 px-4 py-2.5 rounded-xl font-bold text-sm transition-all whitespace-nowrap"
+            >
+              <Map size={15} />
+              Haritada Ara
             </button>
           </div>
-        </div>
-
-        {/* Popüler Şehirler */}
-        <div className="flex items-center justify-center gap-2 mt-5 flex-wrap">
-          <span className="text-slate-400 text-sm">Popüler:</span>
-          {populerSehirler.map((sehir) => (
-            <button
-              key={sehir}
-              className="text-sm text-slate-200 hover:text-orange-400 bg-white/10 hover:bg-white/20 px-3 py-1 rounded-full transition-all border border-white/20"
-            >
-              {sehir}
-            </button>
-          ))}
-        </div>
-
-        {/* Küçük İstatistikler */}
-        <div className="flex justify-center gap-8 mt-10">
-          {[
-            { sayi: '500K+', label: 'Aktif İlan' },
-            { sayi: '81', label: 'İl' },
-            { sayi: '12K+', label: 'Emlak Ofisi' },
-          ].map((item) => (
-            <div key={item.label} className="text-center">
-              <div className="text-2xl font-bold text-white">{item.sayi}</div>
-              <div className="text-slate-400 text-xs mt-0.5">{item.label}</div>
-            </div>
-          ))}
         </div>
       </div>
     </section>

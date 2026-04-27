@@ -22,7 +22,8 @@ body {
 }
 .leaflet-popup-content {
   margin: 0 !important;
-  width: 220px !important;
+  width: 240px !important;
+  overflow: hidden;
 }
 .leaflet-popup-tip {
   background: white !important;
@@ -30,7 +31,7 @@ body {
 
 /* Özel fiyat marker */
 .fiyat-marker {
-  background: #f97316;
+  background: #16a34a;
   color: white;
   font-weight: 700;
   font-size: 11px;

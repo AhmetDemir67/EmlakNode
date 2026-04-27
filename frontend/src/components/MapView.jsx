@@ -1,26 +1,12 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import { divIcon } from 'leaflet';
 import { Link } from 'react-router-dom';
-import { MapPin, BedDouble, Square } from 'lucide-react';
+import { MapPin, BedDouble, Square, Loader2, Building2, Navigation } from 'lucide-react';
 
-// ── Türkiye'deki büyük şehirlerin koordinatları ───────────────────
-const SEHIR_KOORDINATLARI = {
-  'İstanbul': [41.015, 28.979],
-  'Istanbul': [41.015, 28.979],
-  'Ankara':   [39.920, 32.854],
-  'İzmir':    [38.423, 27.142],
-  'Izmir':    [38.423, 27.142],
-  'Bursa':    [40.183, 29.067],
-  'Antalya':  [36.897, 30.713],
-  'Adana':    [37.000, 35.321],
-  'Konya':    [37.874, 32.493],
-  'Kocaeli':  [40.765, 29.940],
-  'Gaziantep':[37.066, 37.383],
-};
-
-// ── Varsayılan koordinat (merkez Türkiye) ─────────────────────────
+// ── Sabitler ──────────────────────────────────────────────────────
 const TURKEY_CENTER = [39.0, 35.0];
+const NOMINATIM_BASE = 'https://nominatim.openstreetmap.org/search';
 
 // ── Fiyat formatlayıcı ────────────────────────────────────────────
 const fiyatKisa = (fiyat) => {
@@ -29,80 +15,209 @@ const fiyatKisa = (fiyat) => {
   return `${fiyat} ₺`;
 };
 
-// ── Harita zoom reset için yardımcı ──────────────────────────────
+// ── Tam fiyat formatlayıcı ────────────────────────────────────────
+const fiyatTam = (fiyat) =>
+  new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', maximumFractionDigits: 0 }).format(fiyat);
+
+// ── Adres stringi oluşturucu ──────────────────────────────────────
+const adresOlustur = (ilan) =>
+  [ilan.mahalle, ilan.ilce, ilan.sehir].filter(Boolean).join(', ') || null;
+
+// ── Nominatim geocode önbelleği ───────────────────────────────────
+const geocodeCache = new Map();
+
+// ── Nominatim'den koordinat getir ────────────────────────────────
+// null sonuçları da önbelleğe alır — aynı adres için tekrar sorgu yapmaz
+const geocodeAdres = async (anahtar, sorgu) => {
+  if (geocodeCache.has(anahtar)) return geocodeCache.get(anahtar);
+
+  try {
+    const url = `${NOMINATIM_BASE}?q=${encodeURIComponent(sorgu)}&format=json&limit=1&countrycodes=tr&addressdetails=0`;
+    const yanit = await fetch(url, {
+      headers: { 'Accept-Language': 'tr', 'User-Agent': 'EmlakNode/1.0' },
+    });
+    if (!yanit.ok) throw new Error('Nominatim yanıt vermedi');
+    const veri = await yanit.json();
+    if (veri.length > 0) {
+      const konum = [parseFloat(veri[0].lat), parseFloat(veri[0].lon)];
+      geocodeCache.set(anahtar, konum);
+      return konum;
+    }
+  } catch (e) {
+    console.warn(`Geocode hatası [${anahtar}]:`, e.message);
+  }
+  geocodeCache.set(anahtar, null);
+  return null;
+};
+
+// ── Rate-limited sıralı geocoding  ───────────────────────────────
+// Nominatim'in 1 istek/sn politikasına uymak için sıralı bekleme
+const bekle = (ms) => new Promise((res) => setTimeout(res, ms));
+
+// ── Harita merkezi güncelleyici ───────────────────────────────────
 const MapResetter = ({ center, zoom }) => {
   const map = useMap();
+  const ilkRef = useRef(true);
   useEffect(() => {
-    map.setView(center, zoom);
+    if (ilkRef.current) { ilkRef.current = false; return; }
+    map.setView(center, zoom, { animate: true });
   }, [center, zoom, map]);
   return null;
 };
 
 // ── Özel fiyat marker ikonu ───────────────────────────────────────
-const fiyatIkonu = (fiyat, tip) => divIcon({
-  html: `<div class="fiyat-marker" style="background:${tip === 'Kiralık' ? '#3b82f6' : '#f97316'}">${fiyatKisa(fiyat)}</div>`,
-  className: '',
-  iconAnchor: [30, 15],
-  popupAnchor: [0, -18],
-});
+const fiyatIkonu = (fiyat, tip) =>
+  divIcon({
+    html: `<div class="fiyat-marker" style="background:${tip === 'Kiralık' ? '#3b82f6' : '#16a34a'}">${fiyatKisa(fiyat)}</div>`,
+    className: '',
+    iconAnchor: [30, 15],
+    popupAnchor: [0, -20],
+  });
 
-// ── Koordinat atayıcı (enlem/boylam yoksa şehre göre + offset) ───
-let _seed = 0;
-const koordinatVer = (ilan) => {
-  if (ilan.enlem && ilan.boylam) return [parseFloat(ilan.enlem), parseFloat(ilan.boylam)];
-  const base = SEHIR_KOORDINATLARI[ilan.sehir] || TURKEY_CENTER;
-  _seed++;
-  // Her ilana küçük rastgele offset ekle (üst üste binmesin)
-  const offset = ((_seed * 17) % 40 - 20) * 0.008;
-  const offset2 = ((_seed * 13) % 40 - 20) * 0.008;
-  return [base[0] + offset, base[1] + offset2];
-};
+// ── Geocode durum tipi ────────────────────────────────────────────
+// { id, konum: [lat, lon] | null, yukleniyor: bool }
+const INITIAL_STATE = { listesi: [], merkez: TURKEY_CENTER, zoom: 6, hazir: false };
 
-// ── Ana Bileşen ──────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════
+// Ana Bileşen
+// ═══════════════════════════════════════════════════════════════════
 const MapView = ({ ilanlar }) => {
-  _seed = 0; // her render'da sıfırla (tutarlı koordinatlar için)
+  const [durum, setDurum] = useState(INITIAL_STATE);
+  const [yukleniyor, setYukleniyor] = useState(false);
+  const [tamamlanan, setTamamlanan] = useState(0);
+  const iptalRef = useRef(false);
 
-  // Koordinatlı ilan listesi
-  const ilanlarKoordinatli = useMemo(() =>
-    ilanlar.map((ilan) => ({
-      ...ilan,
-      _konum: koordinatVer(ilan),
-    })),
-  [ilanlar]);
+  // İlanlar değişince geocoding başlat
+  useEffect(() => {
+    if (!ilanlar || ilanlar.length === 0) {
+      setDurum(INITIAL_STATE);
+      return;
+    }
 
-  // Harita merkezi: ilanlar varsa ilk ilanın şehri, yoksa Türkiye merkezi
-  const merkez = ilanlarKoordinatli.length > 0
-    ? ilanlarKoordinatli[0]._konum
-    : TURKEY_CENTER;
-  const zoom   = ilanlar.length > 0 ? 11 : 6;
+    iptalRef.current = false;
+    setYukleniyor(true);
+    setTamamlanan(0);
 
-  if (ilanlar.length === 0) {
+    const geocodeTumu = async () => {
+      const sonuclar = [];
+
+      for (let i = 0; i < ilanlar.length; i++) {
+        if (iptalRef.current) break;
+
+        const ilan = ilanlar[i];
+
+        // 1) Veritabanında enlem/boylam varsa doğrudan kullan
+        if (ilan.enlem && ilan.boylam) {
+          sonuclar.push({ ...ilan, _konum: [parseFloat(ilan.enlem), parseFloat(ilan.boylam)] });
+          setTamamlanan(i + 1);
+          continue;
+        }
+
+        // 2) Geocoding için anahtar ve sorgu oluştur
+        const ilce  = ilan.ilce  || '';
+        const sehir = ilan.sehir || '';
+        const anahtar = `${ilce}|${sehir}`.toLowerCase().trim();
+        const sorguStr = adresOlustur(ilan);
+
+        if (!sorguStr) {
+          // Adres bilgisi yoksa atla
+          sonuclar.push({ ...ilan, _konum: null });
+          setTamamlanan(i + 1);
+          continue;
+        }
+
+        // 3) Cache'de yoksa API çağrısı yap; Nominatim rate limit: 1 req/s
+        const oncekiCacheDurumu = geocodeCache.has(anahtar);
+        const konum = await geocodeAdres(anahtar, sorguStr);
+        if (!oncekiCacheDurumu && !iptalRef.current) {
+          // Yeni istek yapıldıysa 1.1 sn bekle
+          await bekle(1100);
+        }
+
+        sonuclar.push({ ...ilan, _konum: konum });
+        setTamamlanan(i + 1);
+      }
+
+      if (iptalRef.current) return;
+
+      // Geçerli konumları filtrele
+      const konumluIlanlar = sonuclar.filter((i) => i._konum);
+
+      // Merkezi hesapla: tüm konumların ortalaması
+      let merkez = TURKEY_CENTER;
+      let zoom = 6;
+
+      if (konumluIlanlar.length > 0) {
+        const ortalamLat = konumluIlanlar.reduce((t, i) => t + i._konum[0], 0) / konumluIlanlar.length;
+        const ortalamLon = konumluIlanlar.reduce((t, i) => t + i._konum[1], 0) / konumluIlanlar.length;
+        merkez = [ortalamLat, ortalamLon];
+        zoom = konumluIlanlar.length === 1 ? 13 : 9;
+      }
+
+      setDurum({ listesi: sonuclar, merkez, zoom, hazir: true });
+      setYukleniyor(false);
+    };
+
+    geocodeTumu();
+
+    return () => { iptalRef.current = true; };
+  }, [ilanlar]);
+
+  // ── Boş durum ─────────────────────────────────────────────────
+  if (!ilanlar || ilanlar.length === 0) {
     return (
-      <div className="rounded-2xl overflow-hidden border border-slate-200 shadow-sm h-[600px] flex items-center justify-center bg-slate-100">
+      <div className="rounded-2xl overflow-hidden border border-slate-200 shadow-sm h-[600px] flex items-center justify-center bg-slate-50">
         <div className="text-center text-slate-400">
-          <MapPin size={40} className="mx-auto mb-3 text-slate-300" />
-          <p className="font-semibold">Gösterilecek ilan bulunamadı.</p>
-          <p className="text-sm mt-1">Filtreleri temizleyip tekrar deneyin.</p>
+          <MapPin size={42} className="mx-auto mb-3 text-slate-300" />
+          <p className="font-semibold text-slate-500">Gösterilecek ilan bulunamadı.</p>
+          <p className="text-sm mt-1 text-slate-400">Filtreleri temizleyip tekrar deneyin.</p>
         </div>
       </div>
     );
   }
 
+  // ── Yükleme ekranı ────────────────────────────────────────────
+  const yuklemeOrani = ilanlar.length > 0 ? Math.round((tamamlanan / ilanlar.length) * 100) : 0;
+
   return (
     <div className="rounded-2xl overflow-hidden border border-slate-200 shadow-md relative">
-      {/* İlan sayısı rozeti */}
+
+      {/* ── İlan sayısı rozeti ── */}
       <div className="absolute top-3 left-3 z-[1000] bg-white shadow-md rounded-xl px-3 py-1.5 flex items-center gap-2 text-sm font-semibold text-slate-700 border border-slate-100">
-        <MapPin size={14} className="text-orange-500" />
-        {ilanlar.length} ilan haritada
+        <MapPin size={14} className="text-green-600" />
+        {durum.listesi.filter((i) => i._konum).length} ilan haritada
       </div>
 
+      {/* ── Yükleme overlay ── */}
+      {yukleniyor && (
+        <div className="absolute inset-0 z-[2000] bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center gap-4">
+          <div className="flex items-center gap-3 text-slate-700 font-semibold">
+            <Loader2 size={22} className="text-green-600 animate-spin" />
+            <span>Adresler haritaya yerleştiriliyor…</span>
+          </div>
+          <div className="w-64">
+            <div className="flex justify-between text-xs text-slate-500 mb-1.5">
+              <span>{tamamlanan} / {ilanlar.length} ilan</span>
+              <span>{yuklemeOrani}%</span>
+            </div>
+            <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-green-600 rounded-full transition-all duration-300"
+                style={{ width: `${yuklemeOrani}%` }}
+              />
+            </div>
+          </div>
+          <p className="text-xs text-slate-400">OpenStreetMap Nominatim API kullanılıyor</p>
+        </div>
+      )}
+
       <MapContainer
-        center={merkez}
-        zoom={zoom}
+        center={durum.merkez}
+        zoom={durum.zoom}
         style={{ height: '600px', width: '100%' }}
         scrollWheelZoom={true}
       >
-        <MapResetter center={merkez} zoom={zoom} />
+        <MapResetter center={durum.merkez} zoom={durum.zoom} />
 
         {/* OpenStreetMap tile katmanı */}
         <TileLayer
@@ -110,73 +225,99 @@ const MapView = ({ ilanlar }) => {
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
 
-        {/* İlan marker'ları */}
-        {ilanlarKoordinatli.map((ilan) => (
-          <Marker
-            key={ilan.id}
-            position={ilan._konum}
-            icon={fiyatIkonu(ilan.fiyat, ilan.tip || 'Satılık')}
-          >
-            <Popup>
-              <div className="rounded-2xl overflow-hidden w-[220px]">
-                {/* Görsel */}
-                <div className="relative">
-                  <img
-                    src={ilan.gorsel || 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400&q=75'}
-                    alt={ilan.baslik}
-                    className="w-full h-32 object-cover"
-                  />
-                  <span className={`absolute top-2 left-2 text-xs font-bold px-2.5 py-1 rounded-full text-white ${
-                    (ilan.tip || 'Satılık') === 'Kiralık' ? 'bg-blue-500' : 'bg-orange-500'
-                  }`}>
-                    {ilan.tip || 'Satılık'}
-                  </span>
-                </div>
+        {/* İlan marker'ları — sadece başarılı geocode olanlar */}
+        {durum.listesi
+          .filter((ilan) => ilan._konum)
+          .map((ilan) => (
+            <Marker
+              key={ilan.id}
+              position={ilan._konum}
+              icon={fiyatIkonu(ilan.fiyat, ilan.tip || 'Satılık')}
+            >
+              <Popup minWidth={240} maxWidth={260}>
+                <div className="rounded-2xl overflow-hidden w-[240px] -m-3">
 
-                {/* İçerik */}
-                <div className="p-3 bg-white">
-                  <div className="text-lg font-extrabold text-orange-500 leading-none mb-1">
-                    {new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', maximumFractionDigits: 0 }).format(ilan.fiyat)}
-                  </div>
-                  <p className="text-xs font-semibold text-slate-800 leading-snug mb-2 line-clamp-2">
-                    {ilan.baslik}
-                  </p>
-
-                  {/* Özellikler */}
-                  <div className="flex items-center gap-3 text-xs text-slate-500 mb-3">
-                    {ilan.oda_sayisi && (
-                      <span className="flex items-center gap-1">
-                        <BedDouble size={11} className="text-orange-400" />
-                        {ilan.oda_sayisi}
-                      </span>
-                    )}
-                    {ilan.metrekare && (
-                      <span className="flex items-center gap-1">
-                        <Square size={11} className="text-orange-400" />
-                        {ilan.metrekare} m²
-                      </span>
-                    )}
-                    {ilan.sehir && (
-                      <span className="flex items-center gap-1">
-                        <MapPin size={11} className="text-orange-400" />
-                        {ilan.sehir}
-                      </span>
-                    )}
+                  {/* ── Görsel ── */}
+                  <div className="relative">
+                    <img
+                      src={ilan.gorsel || 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400&q=75'}
+                      alt={ilan.baslik}
+                      className="w-full h-32 object-cover"
+                    />
+                    <span className={`absolute top-2 left-2 text-xs font-bold px-2.5 py-1 rounded-full text-white shadow-sm ${
+                      (ilan.tip || 'Satılık') === 'Kiralık' ? 'bg-blue-500' : 'bg-green-600'
+                    }`}>
+                      {ilan.tip || 'Satılık'}
+                    </span>
                   </div>
 
-                  {/* Detay butonu */}
-                  <Link
-                    to={`/ilan/${ilan.id}`}
-                    className="block w-full text-center bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold py-2 rounded-xl transition-colors"
-                  >
-                    İlanı İncele →
-                  </Link>
+                  {/* ── İçerik ── */}
+                  <div className="p-3 bg-white space-y-2">
+
+                    {/* Fiyat */}
+                    <div className="text-lg font-extrabold text-green-600 leading-none">
+                      {fiyatTam(ilan.fiyat)}
+                    </div>
+
+                    {/* Başlık */}
+                    <p className="text-xs font-semibold text-slate-800 leading-snug line-clamp-2">
+                      {ilan.baslik}
+                    </p>
+
+                    {/* ── Adres Bilgisi ── */}
+                    {(ilan.ilce || ilan.sehir) && (
+                      <div className="flex items-start gap-1.5 bg-green-50 border border-green-100 rounded-lg px-2.5 py-2">
+                        <Navigation size={12} className="text-green-600 mt-0.5 flex-shrink-0" />
+                        <div className="text-xs text-slate-700 leading-snug">
+                          {[ilan.ilce, ilan.sehir].filter(Boolean).join(' / ')}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Özellikler */}
+                    <div className="flex items-center gap-3 text-xs text-slate-500">
+                      {ilan.oda_sayisi && (
+                        <span className="flex items-center gap-1">
+                          <BedDouble size={11} className="text-green-500" />
+                          {ilan.oda_sayisi}
+                        </span>
+                      )}
+                      {ilan.metrekare && (
+                        <span className="flex items-center gap-1">
+                          <Square size={11} className="text-green-500" />
+                          {ilan.metrekare} m²
+                        </span>
+                      )}
+                      {ilan.dukkan_adi && (
+                        <span className="flex items-center gap-1 truncate">
+                          <Building2 size={11} className="text-green-500 flex-shrink-0" />
+                          <span className="truncate">{ilan.dukkan_adi}</span>
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Detay butonu */}
+                    <Link
+                      to={`/ilan/${ilan.id}`}
+                      className="block w-full text-center bg-green-600 hover:bg-green-700 text-white text-xs font-bold py-2 rounded-xl transition-colors"
+                    >
+                      İlanı İncele →
+                    </Link>
+                  </div>
+
                 </div>
-              </div>
-            </Popup>
-          </Marker>
-        ))}
+              </Popup>
+            </Marker>
+          ))}
       </MapContainer>
+
+      {/* ── Konum bulunamayan ilanlar uyarısı ── */}
+      {durum.hazir && durum.listesi.some((i) => !i._konum) && (
+        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-[1000] bg-white/90 backdrop-blur-sm border border-slate-200 shadow-md rounded-xl px-4 py-2 text-xs text-slate-500 flex items-center gap-2">
+          <MapPin size={12} className="text-amber-500" />
+          {durum.listesi.filter((i) => !i._konum).length} ilanın konumu bulunamadı
+        </div>
+      )}
     </div>
   );
 };
