@@ -1,43 +1,35 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import Navbar         from './components/Navbar';
-import PrivateRoute   from './components/PrivateRoute';
-import Home           from './pages/Home';
-import Login          from './pages/Login';
-import Dashboard      from './pages/Dashboard';
-import ListingDetail  from './pages/ListingDetail';
+import Navbar        from './components/Navbar';
+import PrivateRoute  from './components/PrivateRoute';
+import Home          from './pages/Home';
+import Login         from './pages/Login';
+import Register      from './pages/Register';
+import Dashboard     from './pages/Dashboard';
+import ListingDetail from './pages/ListingDetail';
+
+const WithNavbar = ({ children }) => (
+  <div className="min-h-screen bg-slate-50">
+    <Navbar />
+    {children}
+  </div>
+);
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* ── Herkese Açık ─────────────────────────────── */}
-        <Route path="/" element={
-          <div className="min-h-screen bg-slate-50">
-            <Navbar />
-            <Home />
-          </div>
-        } />
+        <Route path="/" element={<WithNavbar><Home /></WithNavbar>} />
 
         <Route path="/login" element={<Login />} />
+        <Route path="/kayit" element={<Register />} />
 
-        {/* ── Korumalı Rotalar (Token Zorunlu) ─────────── */}
         <Route path="/panel" element={
-          <PrivateRoute>
-            <Dashboard />
-          </PrivateRoute>
+          <PrivateRoute><Dashboard /></PrivateRoute>
         } />
 
-        {/* ── İlan Detay (Herkese Açık) ──────────────────── */}
         <Route path="/ilan/:id" element={
-          <div className="min-h-screen bg-slate-50">
-            <Navbar />
-            <ListingDetail />
-          </div>
+          <WithNavbar><ListingDetail /></WithNavbar>
         } />
-
-        {/* TODO: İleride eklenecekler */}
-        {/* <Route path="/kayit" element={<Register />} /> */}
-        {/* <Route path="*"      element={<NotFound />} /> */}
       </Routes>
     </BrowserRouter>
   );

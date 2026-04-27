@@ -29,7 +29,7 @@ const SkeletonDetail = () => (
   <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-pulse">
     <div className="h-4 bg-slate-200 rounded w-64 mb-8" />
     <div className="h-12 bg-slate-200 rounded w-3/4 mb-4" />
-    <div className="h-8 bg-orange-100 rounded w-48 mb-8" />
+    <div className="h-8 bg-green-100 rounded w-48 mb-8" />
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
       <div className="lg:col-span-2 space-y-4">
         <div className="h-80 bg-slate-200 rounded-2xl" />
@@ -48,12 +48,12 @@ const SkeletonDetail = () => (
 );
 
 // ── Özellik Satırı Componenti ───────────────────────────────────
-const OzellikSatiri = ({ icon: Icon, etiket, deger, renk = 'text-orange-500' }) => {
+const OzellikSatiri = ({ icon: Icon, etiket, deger, renk = 'text-green-600' }) => {
   if (!deger && deger !== 0) return null;
   return (
     <div className="flex items-center justify-between py-3 border-b border-slate-100 last:border-0">
       <div className="flex items-center gap-2.5 text-slate-600">
-        <div className={`p-1.5 bg-orange-50 rounded-lg`}>
+        <div className={`p-1.5 bg-green-50 rounded-lg`}>
           <Icon size={15} className={renk} />
         </div>
         <span className="text-sm font-medium">{etiket}</span>
@@ -95,7 +95,7 @@ const ListingDetail = () => {
   if (yukleniyor) return (
     <div className="min-h-screen bg-slate-50">
       <div className="max-w-7xl mx-auto px-4 pt-8 flex items-center gap-2 text-slate-400">
-        <Loader2 size={18} className="animate-spin text-orange-500" />
+        <Loader2 size={18} className="animate-spin text-green-600" />
         <span className="text-sm">İlan yükleniyor...</span>
       </div>
       <SkeletonDetail />
@@ -112,7 +112,7 @@ const ListingDetail = () => {
         <p className="text-slate-500 text-sm mb-6">{hata}</p>
         <Link
           to="/"
-          className="inline-flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white font-semibold px-6 py-3 rounded-xl transition-colors"
+          className="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-semibold px-6 py-3 rounded-xl transition-colors"
         >
           <Home size={16} />
           Ana Sayfaya Dön
@@ -125,7 +125,7 @@ const ListingDetail = () => {
 
   const gorselUrl = ilan.gorsel || 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=1200&q=80';
   const tip       = ilan.tip || 'Satılık';
-  const tipRenk   = tip === 'Satılık' ? 'bg-orange-500' : 'bg-blue-500';
+  const tipRenk   = tip === 'Satılık' ? 'bg-green-600' : 'bg-blue-500';
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -136,7 +136,7 @@ const ListingDetail = () => {
           <div className="flex items-center justify-between h-14">
             {/* Breadcrumb sol */}
             <nav className="flex items-center gap-1.5 text-sm text-slate-500 overflow-hidden">
-              <Link to="/" className="flex items-center gap-1 hover:text-orange-500 transition-colors font-medium whitespace-nowrap">
+              <Link to="/" className="flex items-center gap-1 hover:text-green-600 transition-colors font-medium whitespace-nowrap">
                 <Home size={14} />
                 <span>Ana Sayfa</span>
               </Link>
@@ -199,7 +199,7 @@ const ListingDetail = () => {
 
               {/* Konum */}
               <div className="flex items-center gap-1.5 text-slate-500">
-                <MapPin size={15} className="text-orange-400" />
+                <MapPin size={15} className="text-green-500" />
                 <span className="text-sm">
                   {ilan.ilce && `${ilan.ilce}, `}{ilan.sehir}
                 </span>
@@ -208,7 +208,7 @@ const ListingDetail = () => {
 
             {/* Fiyat */}
             <div className="text-right flex-shrink-0">
-              <div className="text-3xl sm:text-4xl font-extrabold text-orange-500 tracking-tight">
+              <div className="text-3xl sm:text-4xl font-extrabold text-green-600 tracking-tight">
                 {fiyatFormatla(ilan.fiyat)}
               </div>
               {ilan.metrekare && (
@@ -251,13 +251,13 @@ const ListingDetail = () => {
                 <div className="flex gap-2">
                   {ilan.oda_sayisi && (
                     <span className="bg-white/90 backdrop-blur-sm text-slate-700 text-xs font-semibold px-3 py-1.5 rounded-full flex items-center gap-1.5">
-                      <BedDouble size={12} className="text-orange-500" />
+                      <BedDouble size={12} className="text-green-600" />
                       {ilan.oda_sayisi}
                     </span>
                   )}
                   {ilan.metrekare && (
                     <span className="bg-white/90 backdrop-blur-sm text-slate-700 text-xs font-semibold px-3 py-1.5 rounded-full flex items-center gap-1.5">
-                      <Square size={12} className="text-orange-500" />
+                      <Square size={12} className="text-green-600" />
                       {ilan.metrekare} m²
                     </span>
                   )}
@@ -275,7 +275,7 @@ const ListingDetail = () => {
             {(ilan.aciklama || ilan.ai_aciklama) && (
               <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 sm:p-8">
                 <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
-                  <div className="w-1 h-6 bg-orange-500 rounded-full" />
+                  <div className="w-1 h-6 bg-green-600 rounded-full" />
                   İlan Açıklaması
                 </h2>
                 <p className="text-slate-600 leading-relaxed text-sm whitespace-pre-line">
@@ -302,13 +302,13 @@ const ListingDetail = () => {
               <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
                 <div className="p-6 border-b border-slate-100">
                   <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                    <div className="w-1 h-6 bg-orange-500 rounded-full" />
+                    <div className="w-1 h-6 bg-green-600 rounded-full" />
                     Konum
                   </h2>
                 </div>
                 <div className="h-52 bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center">
                   <div className="text-center text-slate-400">
-                    <MapPin size={36} className="mx-auto mb-2 text-orange-300" />
+                    <MapPin size={36} className="mx-auto mb-2 text-green-400" />
                     <p className="text-xs">
                       {ilan.enlem}, {ilan.boylam}
                     </p>
@@ -325,7 +325,7 @@ const ListingDetail = () => {
             {/* Özellikler Kartı */}
             <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
               <h2 className="text-base font-bold text-slate-900 mb-4 flex items-center gap-2">
-                <CheckCircle2 size={17} className="text-orange-500" />
+                <CheckCircle2 size={17} className="text-green-600" />
                 İlan Özellikleri
               </h2>
 
@@ -350,13 +350,13 @@ const ListingDetail = () => {
             {/* Ofis / İrtibat Kartı */}
             <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
               <h2 className="text-base font-bold text-slate-900 mb-4 flex items-center gap-2">
-                <Building2 size={17} className="text-orange-500" />
+                <Building2 size={17} className="text-green-600" />
                 Emlak Ofisi
               </h2>
 
               <div className="flex items-center gap-3 mb-5">
-                <div className="w-12 h-12 bg-orange-100 rounded-2xl flex items-center justify-center flex-shrink-0">
-                  <Building2 size={20} className="text-orange-500" />
+                <div className="w-12 h-12 bg-green-100 rounded-2xl flex items-center justify-center flex-shrink-0">
+                  <Building2 size={20} className="text-green-600" />
                 </div>
                 <div className="min-w-0">
                   <p className="font-bold text-slate-800 text-sm truncate">
@@ -370,11 +370,11 @@ const ListingDetail = () => {
               </div>
 
               <div className="space-y-2.5">
-                <button className="w-full flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-200 hover:shadow-lg hover:shadow-orange-200 active:scale-[0.98] text-sm">
+                <button className="w-full flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-200 hover:shadow-lg hover:shadow-green-300 active:scale-[0.98] text-sm">
                   <Phone size={15} />
                   Ara — İletişime Geç
                 </button>
-                <button className="w-full flex items-center justify-center gap-2 border border-orange-200 text-orange-500 hover:bg-orange-50 font-semibold py-3 px-4 rounded-xl transition-all text-sm">
+                <button className="w-full flex items-center justify-center gap-2 border border-green-300 text-green-600 hover:bg-green-50 font-semibold py-3 px-4 rounded-xl transition-all text-sm">
                   <User size={15} />
                   Danışman Bilgileri
                 </button>
@@ -384,7 +384,7 @@ const ListingDetail = () => {
             {/* Geri Dön Butonu */}
             <Link
               to="/"
-              className="flex items-center justify-center gap-2 w-full py-3 rounded-xl border border-slate-200 text-slate-500 hover:border-orange-200 hover:text-orange-500 transition-all text-sm font-medium group"
+              className="flex items-center justify-center gap-2 w-full py-3 rounded-xl border border-slate-200 text-slate-500 hover:border-green-300 hover:text-green-600 transition-all text-sm font-medium group"
             >
               <ArrowLeft size={15} className="group-hover:-translate-x-1 transition-transform" />
               İlan Listesine Dön

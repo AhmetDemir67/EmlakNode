@@ -50,15 +50,15 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-800 via-slate-700 to-orange-900 flex flex-col">
+    <div className="min-h-screen bg-gradient-to-br from-slate-800 via-slate-700 to-green-900 flex flex-col">
       {/* Üst Logo Çubuğu */}
       <div className="p-6">
         <Link to="/" className="flex items-center gap-2 w-fit">
-          <div className="bg-orange-500 text-white p-1.5 rounded-lg">
+          <div className="bg-green-600 text-white p-1.5 rounded-lg">
             <Home size={20} />
           </div>
           <span className="text-xl font-bold text-white">
-            Emlak<span className="text-orange-400">Node</span>
+            Emlak<span className="text-green-500">Node</span>
           </span>
         </Link>
       </div>
@@ -69,8 +69,8 @@ const Login = () => {
 
           {/* Başlık */}
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-14 h-14 bg-orange-100 rounded-2xl mb-4">
-              <Home size={26} className="text-orange-500" />
+            <div className="inline-flex items-center justify-center w-14 h-14 bg-green-100 rounded-2xl mb-4">
+              <Home size={26} className="text-green-600" />
             </div>
             <h1 className="text-2xl font-bold text-gray-900">Tekrar Hoşgeldin</h1>
             <p className="text-gray-500 text-sm mt-1">Hesabına giriş yap ve devam et</p>
@@ -108,7 +108,7 @@ const Login = () => {
                   onChange={handleChange}
                   placeholder="ornek@email.com"
                   autoComplete="email"
-                  className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 transition-all"
+                  className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 transition-all"
                 />
               </div>
             </div>
@@ -117,7 +117,7 @@ const Login = () => {
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <label className="text-sm font-semibold text-gray-700">Şifre</label>
-                <button type="button" className="text-xs text-orange-500 hover:underline font-medium">
+                <button type="button" className="text-xs text-green-600 hover:underline font-medium">
                   Şifremi Unuttum
                 </button>
               </div>
@@ -130,7 +130,7 @@ const Login = () => {
                   onChange={handleChange}
                   placeholder="Şifrenizi girin"
                   autoComplete="current-password"
-                  className="w-full pl-10 pr-12 py-3 border border-gray-200 rounded-xl text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 transition-all"
+                  className="w-full pl-10 pr-12 py-3 border border-gray-200 rounded-xl text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 transition-all"
                 />
                 <button
                   type="button"
@@ -146,7 +146,7 @@ const Login = () => {
             <button
               type="submit"
               disabled={yukleniyor || basarili}
-              className="w-full bg-orange-500 hover:bg-orange-600 disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold py-3.5 rounded-xl transition-all flex items-center justify-center gap-2 shadow-md hover:shadow-lg mt-2"
+              className="w-full bg-green-600 hover:bg-green-700 disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold py-3.5 rounded-xl transition-all flex items-center justify-center gap-2 shadow-md hover:shadow-lg mt-2"
             >
               {yukleniyor
                 ? <><Loader2 size={18} className="animate-spin" /> Giriş Yapılıyor...</>
@@ -158,7 +158,7 @@ const Login = () => {
           {/* Alt Link */}
           <div className="mt-6 text-center text-sm text-gray-500">
             Hesabın yok mu?{' '}
-            <Link to="/kayit" className="text-orange-500 font-semibold hover:underline">
+            <Link to="/kayit" className="text-green-600 font-semibold hover:underline">
               Kayıt Ol
             </Link>
           </div>

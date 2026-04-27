@@ -20,7 +20,7 @@ const ListingCard = ({ ilan }) => {
         {/* Tip Etiketi */}
         <span className={`absolute top-3 left-3 text-xs font-bold px-3 py-1.5 rounded-full shadow-sm ${
           ilan.tip === 'Satılık'
-            ? 'bg-orange-500 text-white'
+            ? 'bg-green-600 text-white'
             : 'bg-blue-500 text-white'
         }`}>
           {ilan.tip}
@@ -46,18 +46,18 @@ const ListingCard = ({ ilan }) => {
       {/* İçerik */}
       <div className="p-4">
         {/* Fiyat */}
-        <div className="text-2xl font-bold text-orange-500 mb-1">
+        <div className="text-2xl font-bold text-green-600 mb-1">
           {fiyatFormatla(ilan.fiyat)}
         </div>
 
         {/* Başlık */}
-        <h3 className="font-semibold text-gray-800 text-sm leading-snug mb-2 line-clamp-2 group-hover:text-orange-500 transition-colors">
+        <h3 className="font-semibold text-gray-800 text-sm leading-snug mb-2 line-clamp-2 group-hover:text-green-600 transition-colors">
           {ilan.baslik}
         </h3>
 
         {/* Konum */}
         <div className="flex items-center gap-1 text-gray-500 text-xs mb-3">
-          <MapPin size={13} className="text-orange-400 flex-shrink-0" />
+          <MapPin size={13} className="text-green-500 flex-shrink-0" />
           <span>{ilan.ilce}, {ilan.sehir}</span>
         </div>
 
@@ -82,7 +82,7 @@ const ListingCard = ({ ilan }) => {
         {/* Ofis Bilgisi */}
         <div className="mt-3 pt-3 border-t border-gray-50 flex items-center justify-between">
           <span className="text-xs text-gray-400">{ilan.ofis}</span>
-          <button className="text-xs text-orange-500 font-semibold hover:underline">
+          <button className="text-xs text-green-600 font-semibold hover:underline">
             İncele →
           </button>
         </div>
