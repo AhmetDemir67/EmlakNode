@@ -43,6 +43,7 @@ export const ilanEkle         = (data)       => api.post('/ilanlar', data);
 export const ilanGuncelle     = (id, data)   => api.put(`/ilanlar/${id}`, data);
 export const ilanSil          = (id)         => api.delete(`/ilanlar/${id}`);
 export const benimIlanlarim   = (dukkan_id)  => api.get('/ilanlar', { params: { dukkan_id, limit: 100 } });
+export const kullaniciilanlarim = (kullanici_id) => api.get('/ilanlar', { params: { kullanici_id, limit: 100 } });
 export const ilanDurumGuncelle = (id, durum) => api.patch(`/ilanlar/${id}/durum`, { durum });
 
 // Auth

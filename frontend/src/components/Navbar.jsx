@@ -178,23 +178,23 @@ const Navbar = () => {
                           <p className="text-sm font-bold text-gray-900">{kullanici.ad_soyad}</p>
                           <p className="text-xs text-gray-400 capitalize mt-0.5">{kullanici.eposta}</p>
                         </div>
-                        <Link to="/panel" onClick={() => setKulAcik(false)}
+                        <Link to="/panel?sekme=yeni" onClick={() => setKulAcik(false)}
                           className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-green-50 hover:text-green-700 transition-colors">
                           <PlusCircle size={15} className="text-green-500" /> İlan Ver
                         </Link>
-                        <Link to="/panel" onClick={() => setKulAcik(false)}
+                        <Link to="/panel?sekme=ilanlar" onClick={() => setKulAcik(false)}
                           className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-green-50 hover:text-green-700 transition-colors">
                           <FileText size={15} className="text-green-500" /> İlanlarım
                         </Link>
-                        <Link to="/panel" onClick={() => setKulAcik(false)}
+                        <Link to="/panel?sekme=aramalar" onClick={() => setKulAcik(false)}
                           className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-green-50 hover:text-green-700 transition-colors">
                           <Bookmark size={15} className="text-green-500" /> Kayıtlı Aramalarım
                         </Link>
-                        <Link to="/panel" onClick={() => setKulAcik(false)}
+                        <Link to="/panel?sekme=mesajlar" onClick={() => setKulAcik(false)}
                           className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-green-50 hover:text-green-700 transition-colors">
                           <MessageSquare size={15} className="text-green-500" /> Mesajlarım
                         </Link>
-                        <Link to="/panel" onClick={() => setKulAcik(false)}
+                        <Link to="/panel?sekme=uyelik" onClick={() => setKulAcik(false)}
                           className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-green-50 hover:text-green-700 transition-colors">
                           <User size={15} className="text-green-500" /> Üyelik
                         </Link>
@@ -282,19 +282,19 @@ const Navbar = () => {
                       <p className="text-xs text-gray-400">{kullanici.eposta}</p>
                     </div>
                   </div>
-                  <Link to="/panel" onClick={() => setMenuAcik(false)}
+                  <Link to="/panel?sekme=yeni" onClick={() => setMenuAcik(false)}
                     className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-semibold text-gray-700 hover:bg-green-50 hover:text-green-600">
                     <PlusCircle size={14} className="text-green-500" /> İlan Ver
                   </Link>
-                  <Link to="/panel" onClick={() => setMenuAcik(false)}
+                  <Link to="/panel?sekme=ilanlar" onClick={() => setMenuAcik(false)}
                     className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-semibold text-gray-700 hover:bg-green-50 hover:text-green-600">
                     <FileText size={14} className="text-green-500" /> İlanlarım
                   </Link>
-                  <Link to="/panel" onClick={() => setMenuAcik(false)}
+                  <Link to="/panel?sekme=mesajlar" onClick={() => setMenuAcik(false)}
                     className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-semibold text-gray-700 hover:bg-green-50 hover:text-green-600">
                     <MessageSquare size={14} className="text-green-500" /> Mesajlarım
                   </Link>
-                  <Link to="/panel" onClick={() => setMenuAcik(false)}
+                  <Link to="/panel?sekme=uyelik" onClick={() => setMenuAcik(false)}
                     className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-semibold text-gray-700 hover:bg-green-50 hover:text-green-600">
                     <User size={14} className="text-green-500" /> Üyelik
                   </Link>
