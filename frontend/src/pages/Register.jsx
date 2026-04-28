@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import {
   Home, Mail, Lock, Eye, EyeOff, User, Building2,
   Loader2, AlertCircle, CheckCircle2, FileText, Hash,
@@ -381,7 +381,8 @@ const KurumsalForm = () => {
 // ANA SAYFA
 // ════════════════════════════════════════════════════════════════
 const Register = () => {
-  const [aktifTab, setAktifTab] = useState('bireysel');
+  const location = useLocation();
+  const [aktifTab, setAktifTab] = useState(location.state?.tab || 'bireysel');
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 flex flex-col">
