@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import ListingCard      from '../components/ListingCard';
 import FilterSidebar    from '../components/FilterSidebar';
 import MapView          from '../components/MapView';
@@ -20,10 +21,16 @@ const BOSLUK_FILTRE = {
 const GORSEL_FALLBACK = 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=600&q=80';
 
 const Home = () => {
+  const [searchParams]                = useSearchParams();
   const [ilanlar, setIlanlar]         = useState([]);
   const [yukleniyor, setYukleniyor]   = useState(true);
   const [hata, setHata]               = useState(null);
-  const [filtreler, setFiltreler]     = useState(BOSLUK_FILTRE);
+  const [filtreler, setFiltreler]     = useState(() => {
+    // Navbar dropdown'dan gelen URL parametrelerini başlangıç filtresi olarak oku
+    const urlTip         = searchParams.get('tip')        || '';
+    const urlEmlakTuru   = searchParams.get('emlak_turu') || '';
+    return { ...BOSLUK_FILTRE, tip: urlTip, emlak_turu: urlEmlakTuru };
+  });
   const [mobilFiltre, setMobilFiltre] = useState(false);
   const [gorunum, setGorunum]         = useState('liste');
 
@@ -42,6 +49,13 @@ const Home = () => {
       setYukleniyor(false);
     }
   }, [filtreler]);
+
+  // Navbar dropdown URL parametresi değişince filtreyi güncelle
+  useEffect(() => {
+    const urlTip       = searchParams.get('tip')        || '';
+    const urlEmlakTuru = searchParams.get('emlak_turu') || '';
+    setFiltreler(f => ({ ...f, tip: urlTip, emlak_turu: urlEmlakTuru }));
+  }, [searchParams]);
 
   // Filtreler değişince 350ms debounce ile yeniden çek
   useEffect(() => {
