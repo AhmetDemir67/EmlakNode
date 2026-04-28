@@ -134,6 +134,7 @@ export default function Dashboard() {
   const [yukleniyor, setYukleniyor] = useState(false);
   const [mesaj, setMesaj] = useState(null);
   const [hata, setHata] = useState(null);
+  const [limitAsimi, setLimitAsimi] = useState(false);
   const [ilanlar, setIlanlar] = useState([]);
   const [listeleniyor, setListeleniyor] = useState(false);
   const [duzenle, setDuzenle] = useState(null);
@@ -165,7 +166,7 @@ export default function Dashboard() {
     e.preventDefault();
     if (!form.baslik || !form.fiyat || !form.metrekare) { setHata('Başlık, fiyat ve metrekare zorunludur.'); return; }
     try {
-      setYukleniyor(true); setHata(null);
+      setYukleniyor(true); setHata(null); setLimitAsimi(false);
       if (duzenle) {
         await ilanGuncelle(duzenle.id, form);
         setMesaj('İlan güncellendi!'); setDuzenle(null);
@@ -174,7 +175,13 @@ export default function Dashboard() {
         setMesaj(`"${r.data.ilan.baslik}" yayınlandı!`);
       }
       setForm(BOSLUK); setAdim(0); setMenu('ilanlar');
-    } catch (err) { setHata(err.response?.data?.mesaj || 'Bir hata oluştu.'); }
+    } catch (err) {
+      if (err.response?.data?.limit_asimi) {
+        setLimitAsimi(true);
+      } else {
+        setHata(err.response?.data?.mesaj || 'Bir hata oluştu.');
+      }
+    }
     finally { setYukleniyor(false); }
   };
 
@@ -255,6 +262,30 @@ export default function Dashboard() {
           {/* Mesaj / Hata */}
           {mesaj && <div className="flex items-center gap-3 bg-green-50 border border-green-200 rounded-xl p-4 mb-6"><CheckCircle2 size={18} className="text-green-500 flex-shrink-0" /><p className="text-green-800 text-sm font-medium flex-1">{mesaj}</p><button onClick={() => setMesaj(null)}><X size={15} className="text-green-400" /></button></div>}
           {hata && <div className="flex items-center gap-3 bg-red-50 border border-red-200 rounded-xl p-4 mb-6"><AlertCircle size={18} className="text-red-400 flex-shrink-0" /><p className="text-red-700 text-sm flex-1">{hata}</p><button onClick={() => setHata(null)}><X size={15} className="text-red-400" /></button></div>}
+          {limitAsimi && (
+            <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6 mb-6">
+              <div className="flex items-start gap-4">
+                <div className="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <AlertCircle size={20} className="text-amber-500" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-bold text-amber-800 mb-1">İlan Limitine Ulaştınız</p>
+                  <p className="text-sm text-amber-700 mb-3">
+                    Bireysel hesaplar en fazla <strong>3 ilan</strong> ekleyebilir. Daha fazla ilan vermek için bir emlak ofisiyle çalışmanız gerekmektedir.
+                  </p>
+                  <a
+                    href="/kayit"
+                    className="inline-flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-white text-sm font-bold px-4 py-2 rounded-xl transition-colors"
+                  >
+                    Kurumsal Hesap Aç
+                  </a>
+                </div>
+                <button onClick={() => setLimitAsimi(false)} className="text-amber-400 hover:text-amber-600 transition-colors">
+                  <X size={16} />
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* YENİ İLAN FORMU */}
           {menu === 'yeni' && (

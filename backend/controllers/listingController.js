@@ -9,7 +9,22 @@ const { sorgu } = require('../config/db');
 // ----------------------------------------------------------------
 const ilanEkle = async (req, res) => {
     // --- 1. Token'dan kullanıcı bilgilerini al ---
-    const { id: kullanici_id, dukkan_id } = req.kullanici;
+    const { id: kullanici_id, dukkan_id, rol } = req.kullanici;
+
+    // --- 1b. Bireysel kullanıcı ilan limiti kontrolü (max 3) ---
+    if (!dukkan_id && rol !== 'admin') {
+        const sayimSonuc = await sorgu(
+            'SELECT COUNT(*) FROM ilanlar WHERE kullanici_id = $1',
+            [kullanici_id]
+        );
+        if (parseInt(sayimSonuc.rows[0].count) >= 3) {
+            return res.status(403).json({
+                basarili:    false,
+                limit_asimi: true,
+                mesaj:       'Bireysel hesaplar en fazla 3 ilan ekleyebilir. Daha fazla ilan vermek için bir emlak ofisiyle çalışmanız gerekmektedir.',
+            });
+        }
+    }
 
     // --- 2. İstek gövdesinden alanları al ---
     const {
