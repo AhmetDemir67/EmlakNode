@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { MapContainer, TileLayer, Marker } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import { divIcon } from 'leaflet';
 import {
   MapPin, BedDouble, Square, Building2, Thermometer,
   Layers, ArrowLeft, Heart, Share2, Phone, User,
   Calendar, CheckCircle2, Loader2, AlertCircle, Home,
-  ChevronRight, TrendingUp, Eye,
+  ChevronRight, TrendingUp, Eye, Maximize2, X, Map,
 } from 'lucide-react';
 import { ilanDetayGetir } from '../services/api';
 
@@ -18,15 +18,19 @@ const fiyatFormatla = (fiyat) =>
     maximumFractionDigits: 0,
   }).format(fiyat);
 
-// ── Mini Harita Bileşeni ────────────────────────────────────────
+// ── Harita Bileşeni (mini + tam ekran mod) ──────────────────────
 const noktalanmisIkon = divIcon({
-  html: '<div style="width:14px;height:14px;background:#16a34a;border:3px solid white;border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,0.35)"></div>',
+  html: `<div style="
+    width:16px;height:16px;background:#16a34a;
+    border:3px solid white;border-radius:50%;
+    box-shadow:0 2px 8px rgba(0,0,0,0.4)
+  "></div>`,
   className: '',
-  iconAnchor: [7, 7],
+  iconAnchor: [8, 8],
 });
 
-const MiniHarita = ({ ilan }) => {
-  const [konum, setKonum] = useState(null);
+const KonumHaritasi = ({ ilan, tam = false, onKapat }) => {
+  const [konum, setKonum]         = useState(null);
   const [yukleniyor, setYukleniyor] = useState(true);
 
   useEffect(() => {
@@ -49,6 +53,80 @@ const MiniHarita = ({ ilan }) => {
     getKonum();
   }, [ilan]);
 
+  // ── TAM EKRAN MOD ──────────────────────────────────────────────
+  if (tam) {
+    return (
+      <div className="fixed inset-0 z-[9999] flex flex-col bg-black">
+        {/* Üst bar */}
+        <div className="flex items-center justify-between px-4 py-3 bg-white shadow-md flex-shrink-0">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+              <Map size={16} className="text-green-600" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-bold text-slate-800 truncate max-w-xs sm:max-w-lg">{ilan.baslik}</p>
+              <p className="text-xs text-slate-400 flex items-center gap-1">
+                <MapPin size={10} className="text-green-500" />
+                {[ilan.ilce, ilan.sehir].filter(Boolean).join(', ')}
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={onKapat}
+            className="ml-4 flex-shrink-0 w-9 h-9 bg-slate-100 hover:bg-red-50 hover:text-red-600 rounded-xl flex items-center justify-center transition-colors"
+          >
+            <X size={18} />
+          </button>
+        </div>
+
+        {/* Harita alanı */}
+        <div className="flex-1 relative">
+          {yukleniyor && (
+            <div className="absolute inset-0 bg-slate-800 flex flex-col items-center justify-center gap-3 z-10">
+              <Loader2 size={28} className="animate-spin text-green-400" />
+              <span className="text-slate-400 text-sm">Konum yükleniyor…</span>
+            </div>
+          )}
+          {!yukleniyor && !konum && (
+            <div className="absolute inset-0 bg-slate-800 flex flex-col items-center justify-center gap-3 z-10">
+              <MapPin size={32} className="text-slate-500" />
+              <span className="text-slate-400 text-sm">Konum bilgisi bulunamadı</span>
+            </div>
+          )}
+          {konum && (
+            <MapContainer
+              center={konum}
+              zoom={16}
+              style={{ height: '100%', width: '100%' }}
+              zoomControl={true}
+              scrollWheelZoom={true}
+            >
+              <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution="&copy; OpenStreetMap" />
+              <Marker position={konum} icon={noktalanmisIkon}>
+                <Popup>
+                  <div style={{ minWidth: 180 }}>
+                    <p style={{ fontWeight: 700, fontSize: 13, marginBottom: 4, lineHeight: 1.3 }}>{ilan.baslik}</p>
+                    {ilan.fiyat && (
+                      <p style={{ color: '#16a34a', fontWeight: 700, fontSize: 15 }}>
+                        {fiyatFormatla(ilan.fiyat)}
+                      </p>
+                    )}
+                    {(ilan.ilce || ilan.sehir) && (
+                      <p style={{ color: '#94a3b8', fontSize: 11, marginTop: 2 }}>
+                        📍 {[ilan.ilce, ilan.sehir].filter(Boolean).join(', ')}
+                      </p>
+                    )}
+                  </div>
+                </Popup>
+              </Marker>
+            </MapContainer>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // ── MİNİ MOD ──────────────────────────────────────────────────
   if (yukleniyor) return (
     <div className="h-56 bg-slate-100 rounded-2xl flex items-center justify-center">
       <Loader2 size={22} className="animate-spin text-green-500" />
@@ -59,7 +137,7 @@ const MiniHarita = ({ ilan }) => {
   return (
     <div className="rounded-2xl overflow-hidden border border-slate-100 shadow-sm" style={{ height: 220 }}>
       <MapContainer center={konum} zoom={15} style={{ height: '100%', width: '100%' }} zoomControl={true} scrollWheelZoom={false}>
-        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution='&copy; OpenStreetMap' />
+        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution="&copy; OpenStreetMap" />
         <Marker position={konum} icon={noktalanmisIkon} />
       </MapContainer>
     </div>
@@ -119,8 +197,9 @@ const ListingDetail = () => {
   const [ilan, setIlan]             = useState(null);
   const [yukleniyor, setYukleniyor] = useState(true);
   const [hata, setHata]             = useState(null);
-  const [begenildi, setBegenildi]   = useState(false);
+  const [begenildi, setBegenildi]     = useState(false);
   const [gorsellendi, setGorsellendi] = useState(false);
+  const [haritaAcik, setHaritaAcik]   = useState(false);
 
   useEffect(() => {
     const detayGetir = async () => {
@@ -355,14 +434,23 @@ const ListingDetail = () => {
                     <div className="w-1 h-6 bg-green-600 rounded-full" />
                     Konum
                   </h2>
-                  {(ilan.ilce || ilan.sehir) && (
-                    <span className="text-xs text-slate-400 flex items-center gap-1">
-                      <MapPin size={12} className="text-green-500" />
-                      {[ilan.ilce, ilan.sehir].filter(Boolean).join(', ')}
-                    </span>
-                  )}
+                  <div className="flex items-center gap-3">
+                    {(ilan.ilce || ilan.sehir) && (
+                      <span className="text-xs text-slate-400 flex items-center gap-1">
+                        <MapPin size={12} className="text-green-500" />
+                        {[ilan.ilce, ilan.sehir].filter(Boolean).join(', ')}
+                      </span>
+                    )}
+                    <button
+                      onClick={() => setHaritaAcik(true)}
+                      className="flex items-center gap-1.5 bg-green-600 hover:bg-green-700 active:scale-95 text-white text-xs font-bold px-3 py-2 rounded-xl transition-all shadow-sm"
+                    >
+                      <Maximize2 size={13} />
+                      Haritada Göster
+                    </button>
+                  </div>
                 </div>
-                <MiniHarita ilan={ilan} />
+                <KonumHaritasi ilan={ilan} />
               </div>
             )}
           </div>
@@ -426,6 +514,15 @@ const ListingDetail = () => {
                   <User size={15} />
                   Danışman Bilgileri
                 </button>
+                {(ilan.enlem || ilan.boylam || ilan.ilce || ilan.sehir) && (
+                  <button
+                    onClick={() => setHaritaAcik(true)}
+                    className="w-full flex items-center justify-center gap-2 border border-slate-200 text-slate-600 hover:border-green-400 hover:text-green-600 hover:bg-green-50 font-semibold py-3 px-4 rounded-xl transition-all text-sm"
+                  >
+                    <Map size={15} />
+                    Haritada Göster
+                  </button>
+                )}
               </div>
             </div>
 
@@ -440,6 +537,15 @@ const ListingDetail = () => {
           </div>
         </div>
       </div>
+
+      {/* ── Tam Ekran Harita Modalı ────────────────────────────── */}
+      {haritaAcik && (
+        <KonumHaritasi
+          ilan={ilan}
+          tam={true}
+          onKapat={() => setHaritaAcik(false)}
+        />
+      )}
     </div>
   );
 };
