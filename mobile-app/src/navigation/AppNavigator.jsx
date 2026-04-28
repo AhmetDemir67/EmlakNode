@@ -1,7 +1,7 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { createStackNavigator } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
 import { View, TouchableOpacity, StyleSheet } from 'react-native';
 
@@ -13,7 +13,7 @@ import HesabimScreen  from '../screens/HesabimScreen';
 import GirisScreen    from '../screens/GirisScreen';
 
 const Tab   = createBottomTabNavigator();
-const Stack = createNativeStackNavigator();
+const Stack = createStackNavigator();
 
 // İlan Ver merkez butonu
 const IlanVerButon = ({ onPress }) => (
@@ -69,8 +69,8 @@ export default function AppNavigator() {
   return (
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="Ana"   component={TabNavigator} />
-        <Stack.Screen name="Giris" component={GirisScreen}  options={{ headerShown: true, headerTitle: 'Giriş Yap', headerStyle: { backgroundColor: '#fff' }, headerTintColor: '#111827' }} />
+        <Stack.Screen name="Ana"   component={TabNavigator} options={{ headerShown: false }} />
+        <Stack.Screen name="Giris" component={GirisScreen}  options={{ title: 'Giriş Yap', headerStyle: { backgroundColor: '#fff' }, headerTintColor: '#111827', headerTitleStyle: { fontWeight: '700' } }} />
       </Stack.Navigator>
     </NavigationContainer>
   );
