@@ -44,7 +44,17 @@ const Navbar = () => {
     str.split(' ').map(s => s.charAt(0).toUpperCase()).slice(0, 2).join('');
 
   return (
-    <nav className="bg-white border-b border-gray-100 sticky top-0 z-50 shadow-sm">
+    <nav className="sticky top-0 z-50">
+      {/* ── Duyuru Bandı ──────────────────────────────── */}
+      <div className="bg-green-700 text-white text-center text-xs font-semibold py-2 px-4 tracking-wide">
+        🏠 Doğru Evi Yanlış Yerde Arama · Türkiye'nin En Güncel Emlak Platformu&nbsp;
+        <span className="underline underline-offset-2 cursor-pointer hover:text-green-100 transition-colors">
+          EmlakNode
+        </span>
+        &nbsp;ile Fırsatları Yakala!
+      </div>
+
+    <div className="bg-white border-b border-gray-100 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
 
@@ -227,6 +237,7 @@ const Navbar = () => {
           </div>
         </div>
       )}
+    </div>
     </nav>
   );
 };

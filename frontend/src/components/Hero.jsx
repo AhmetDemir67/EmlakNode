@@ -1,9 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
-import { Search, MapPin, ChevronDown, X, Map } from 'lucide-react';
+import { Search, MapPin, ChevronDown, X, Map, Building2, Hash } from 'lucide-react';
 
 const TABS = ['Satılık', 'Kiralık', 'Projeler', 'Emlak Ofisleri', 'İlan No'];
 
 const GM_TIPLERI    = ['Konut', 'İşyeri', 'Arsa', 'Bina', 'Devremülk', 'Turistik'];
+const PROJE_TIPLERI = ['Konut Projesi', 'Ticari Proje', 'Arsa Projesi', 'Karma Proje', 'Tatil Projesi'];
 const ODA_SECENEGI  = ['Stüdyo', '1+1', '2+1', '3+1', '4+1', '5+1', '6+1+'];
 const FIYAT_ARALIK  = [
   { label: 'Fiyat Giriniz', min: '', max: '' },
@@ -16,7 +17,7 @@ const FIYAT_ARALIK  = [
 
 const HERO_IMG = 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=1920&q=85';
 
-// Dropdown bileşeni
+// ── Dropdown bileşeni ─────────────────────────────────────────────
 const Dropdown = ({ label, value, items, acik, setAcik, onSec, dropRef, minWidth = 130 }) => (
   <div className="relative flex-shrink-0" ref={dropRef}>
     <button
@@ -56,24 +57,52 @@ const Dropdown = ({ label, value, items, acik, setAcik, onSec, dropRef, minWidth
   </div>
 );
 
-const Hero = ({ onAra, onHaritaAra }) => {
-  const [aktifTab, setAktifTab] = useState('Satılık');
-  const [konum,    setKonum]    = useState('');
-  const [gmTipi,   setGmTipi]   = useState('Konut');
-  const [oda,      setOda]      = useState('');
-  const [fiyat,    setFiyat]    = useState(FIYAT_ARALIK[0]);
+// ── Metin girişi (ortak stil) ─────────────────────────────────────
+const MetinGirisi = ({ icon: Icon, value, onChange, onKeyDown, placeholder, type = 'text' }) => (
+  <div className="flex-1 flex items-center gap-2 border border-gray-200 rounded-xl px-3 focus-within:border-green-500 focus-within:ring-2 focus-within:ring-green-100 transition-all min-w-0">
+    <Icon size={16} className="text-green-500 flex-shrink-0" />
+    <input
+      type={type}
+      value={value}
+      onChange={onChange}
+      onKeyDown={onKeyDown}
+      placeholder={placeholder}
+      className="flex-1 outline-none text-sm text-gray-700 placeholder-gray-400 py-3 bg-transparent min-w-0"
+    />
+    {value && (
+      <button type="button" onClick={() => onChange({ target: { value: '' } })} className="flex-shrink-0">
+        <X size={13} className="text-gray-300 hover:text-gray-500" />
+      </button>
+    )}
+  </div>
+);
 
-  const [gmAcik,    setGmAcik]    = useState(false);
-  const [odaAcik,   setOdaAcik]   = useState(false);
-  const [fiyatAcik, setFiyatAcik] = useState(false);
+// ═══════════════════════════════════════════════════════════════════
+const Hero = ({ onAra, onHaritaAra }) => {
+  const [aktifTab,  setAktifTab]  = useState('Satılık');
+  const [konum,     setKonum]     = useState('');
+  const [gmTipi,    setGmTipi]    = useState('Konut');
+  const [projeTipi, setProjeTipi] = useState('');
+  const [ofisAdi,   setOfisAdi]   = useState('');
+  const [ilanNo,    setIlanNo]    = useState('');
+  const [oda,       setOda]       = useState('');
+  const [fiyat,     setFiyat]     = useState(FIYAT_ARALIK[0]);
+
+  const [gmAcik,     setGmAcik]     = useState(false);
+  const [projeAcik,  setProjeAcik]  = useState(false);
+  const [odaAcik,    setOdaAcik]    = useState(false);
+  const [fiyatAcik,  setFiyatAcik]  = useState(false);
 
   const gmRef    = useRef(null);
+  const projeRef = useRef(null);
   const odaRef   = useRef(null);
   const fiyatRef = useRef(null);
 
+  // Tüm dropdown'ları dışarı tıklayınca kapat
   useEffect(() => {
     const handler = (e) => {
       if (!gmRef.current?.contains(e.target))    setGmAcik(false);
+      if (!projeRef.current?.contains(e.target)) setProjeAcik(false);
       if (!odaRef.current?.contains(e.target))   setOdaAcik(false);
       if (!fiyatRef.current?.contains(e.target)) setFiyatAcik(false);
     };
@@ -81,19 +110,25 @@ const Hero = ({ onAra, onHaritaAra }) => {
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  const buildParams = () => ({
-    sehir:     konum.trim(),
-    tip:       aktifTab === 'Satılık' || aktifTab === 'Kiralık' ? aktifTab : '',
-    oda_sayisi: oda === 'Stüdyo' ? '1+0' : oda,
-    min_fiyat:  fiyat.min,
-    max_fiyat:  fiyat.max,
-  });
+  const buildParams = () => {
+    if (aktifTab === 'Emlak Ofisleri') return { ofis_adi: ofisAdi.trim() };
+    if (aktifTab === 'İlan No')        return { ilan_id: ilanNo.trim() };
+    return {
+      sehir:      konum.trim(),
+      tip:        aktifTab === 'Satılık' || aktifTab === 'Kiralık' ? aktifTab : '',
+      oda_sayisi: oda === 'Stüdyo' ? '1+0' : oda,
+      min_fiyat:  fiyat.min,
+      max_fiyat:  fiyat.max,
+    };
+  };
 
-  const handleAra        = () => onAra?.(buildParams());
+  const handleAra         = () => onAra?.(buildParams());
   const handleHaritadaAra = () => { onAra?.(buildParams()); onHaritaAra?.(); };
+  const enterAra          = (e) => { if (e.key === 'Enter') handleAra(); };
 
-  // İlan No tab için arama
-  const ilanNoTabAktif = aktifTab === 'İlan No';
+  const solDropdownGorunsun = aktifTab === 'Satılık' || aktifTab === 'Kiralık' || aktifTab === 'Projeler';
+  const filtrelerGorunsun   = aktifTab === 'Satılık' || aktifTab === 'Kiralık' || aktifTab === 'Projeler';
+  const haritaGorunsun      = aktifTab !== 'Emlak Ofisleri' && aktifTab !== 'İlan No';
 
   return (
     <section className="relative h-[460px] md:h-[500px] overflow-hidden">
@@ -105,13 +140,11 @@ const Hero = ({ onAra, onHaritaAra }) => {
         className="absolute inset-0 w-full h-full object-cover"
         loading="eager"
       />
-      {/* Karanlık overlay */}
       <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/50 to-black/40" />
 
       {/* İçerik */}
       <div className="relative z-10 h-full flex flex-col items-center justify-center px-4 text-center">
 
-        {/* Başlık */}
         <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-white mb-1.5 leading-tight drop-shadow-lg">
           Satılık Ev Arıyorsan Çözüm Net:
           <span className="text-green-400"> EmlakNode</span>
@@ -141,65 +174,89 @@ const Hero = ({ onAra, onHaritaAra }) => {
             ))}
           </div>
 
-          {/* Arama Satırı */}
+          {/* ── Arama Satırı ── */}
           <div className="flex items-stretch gap-2 px-3 py-3">
 
-            {/* Gayrimenkul Tipi */}
-            <Dropdown
-              label="Gayrimenkul Tipi"
-              value={gmTipi}
-              items={GM_TIPLERI}
-              acik={gmAcik}
-              setAcik={setGmAcik}
-              onSec={v => setGmTipi(v)}
-              dropRef={gmRef}
-              minWidth={155}
-            />
-
-            {/* Konum */}
-            <div className="flex-1 flex items-center gap-2 border border-gray-200 rounded-xl px-3 focus-within:border-green-500 focus-within:ring-2 focus-within:ring-green-100 transition-all min-w-0">
-              <MapPin size={16} className="text-green-500 flex-shrink-0" />
-              <input
-                type="text"
-                value={konum}
-                onChange={e => setKonum(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && handleAra()}
-                placeholder="İl, ilçe, mahalle, site, okul, metro..."
-                className="flex-1 outline-none text-sm text-gray-700 placeholder-gray-400 py-3 bg-transparent min-w-0"
-              />
-              {konum && (
-                <button type="button" onClick={() => setKonum('')} className="flex-shrink-0">
-                  <X size={13} className="text-gray-300 hover:text-gray-500" />
-                </button>
-              )}
-            </div>
-
-            {/* Oda Sayısı */}
-            {!ilanNoTabAktif && (
+            {/* Sol dropdown: Satılık/Kiralık → Gayrimenkul Tipi, Projeler → Proje Tipi */}
+            {(aktifTab === 'Satılık' || aktifTab === 'Kiralık') && (
               <Dropdown
-                label="Oda Sayısı"
-                value={oda}
-                items={['Tümü', ...ODA_SECENEGI]}
-                acik={odaAcik}
-                setAcik={setOdaAcik}
-                onSec={v => setOda(v === 'Tümü' ? '' : (v === 'Stüdyo' ? '1+0' : v))}
-                dropRef={odaRef}
-                minWidth={120}
+                label="Gayrimenkul Tipi"
+                value={gmTipi}
+                items={GM_TIPLERI}
+                acik={gmAcik}
+                setAcik={setGmAcik}
+                onSec={v => setGmTipi(v)}
+                dropRef={gmRef}
+                minWidth={155}
+              />
+            )}
+            {aktifTab === 'Projeler' && (
+              <Dropdown
+                label="Proje Tipi"
+                value={projeTipi}
+                items={PROJE_TIPLERI}
+                acik={projeAcik}
+                setAcik={setProjeAcik}
+                onSec={v => setProjeTipi(v)}
+                dropRef={projeRef}
+                minWidth={155}
               />
             )}
 
-            {/* Fiyat Bilgisi */}
-            {!ilanNoTabAktif && (
-              <Dropdown
-                label="Fiyat Bilgisi"
-                value={fiyat.min || fiyat.max ? fiyat.label : ''}
-                items={FIYAT_ARALIK}
-                acik={fiyatAcik}
-                setAcik={setFiyatAcik}
-                onSec={v => setFiyat(v)}
-                dropRef={fiyatRef}
-                minWidth={135}
+            {/* Metin girişi — tabın içeriğine göre */}
+            {aktifTab === 'Emlak Ofisleri' && (
+              <MetinGirisi
+                icon={Building2}
+                value={ofisAdi}
+                onChange={e => setOfisAdi(e.target.value)}
+                onKeyDown={enterAra}
+                placeholder="Emlak ofisi veya danışman adı yazın..."
               />
+            )}
+            {aktifTab === 'İlan No' && (
+              <MetinGirisi
+                icon={Hash}
+                value={ilanNo}
+                onChange={e => setIlanNo(e.target.value)}
+                onKeyDown={enterAra}
+                placeholder="İlan numarasını girin..."
+                type="number"
+              />
+            )}
+            {(aktifTab !== 'Emlak Ofisleri' && aktifTab !== 'İlan No') && (
+              <MetinGirisi
+                icon={MapPin}
+                value={konum}
+                onChange={e => setKonum(e.target.value)}
+                onKeyDown={enterAra}
+                placeholder="İl, ilçe, mahalle, site, okul, metro..."
+              />
+            )}
+
+            {/* Oda Sayısı + Fiyat — Satılık / Kiralık / Projeler */}
+            {filtrelerGorunsun && (
+              <>
+                <Dropdown
+                  label="Oda Sayısı"
+                  value={oda}
+                  items={['Tümü', ...ODA_SECENEGI]}
+                  acik={odaAcik}
+                  setAcik={setOdaAcik}
+                  onSec={v => setOda(v === 'Tümü' ? '' : v)}
+                  dropRef={odaRef}
+                  minWidth={120}
+                />
+                <Dropdown
+                  label="Fiyat Bilgisi"
+                  value={fiyat.min || fiyat.max ? fiyat.label : ''}
+                  items={FIYAT_ARALIK}
+                  acik={fiyatAcik}
+                  setAcik={setFiyatAcik}
+                  onSec={v => setFiyat(v)}
+                  dropRef={fiyatRef}
+                  minWidth={135}
+                />
+              </>
             )}
 
             {/* Ara */}
@@ -212,15 +269,17 @@ const Hero = ({ onAra, onHaritaAra }) => {
               Ara
             </button>
 
-            {/* Haritada Ara */}
-            <button
-              type="button"
-              onClick={handleHaritadaAra}
-              className="flex items-center gap-2 border-2 border-green-600 text-green-600 hover:bg-green-50 active:scale-95 px-4 py-2.5 rounded-xl font-bold text-sm transition-all whitespace-nowrap"
-            >
-              <Map size={15} />
-              Haritada Ara
-            </button>
+            {/* Haritada Ara — Emlak Ofisleri ve İlan No'da gizle */}
+            {haritaGorunsun && (
+              <button
+                type="button"
+                onClick={handleHaritadaAra}
+                className="flex items-center gap-2 border-2 border-green-600 text-green-600 hover:bg-green-50 active:scale-95 px-4 py-2.5 rounded-xl font-bold text-sm transition-all whitespace-nowrap"
+              >
+                <Map size={15} />
+                Haritada Ara
+              </button>
+            )}
           </div>
         </div>
       </div>

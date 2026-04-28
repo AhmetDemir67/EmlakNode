@@ -6,6 +6,7 @@ import Login         from './pages/Login';
 import Register      from './pages/Register';
 import Dashboard     from './pages/Dashboard';
 import ListingDetail from './pages/ListingDetail';
+import NotFound      from './pages/NotFound';
 
 const WithNavbar = ({ children }) => (
   <div className="min-h-screen bg-slate-50">
@@ -30,6 +31,8 @@ function App() {
         <Route path="/ilan/:id" element={
           <WithNavbar><ListingDetail /></WithNavbar>
         } />
+
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
   );

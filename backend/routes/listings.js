@@ -8,6 +8,7 @@ const {
     ilanGetir,
     ilanGuncelle,
     ilanSil,
+    ilanDurumGuncelle,
 } = require('../controllers/listingController');
 const { tokenDogrula } = require('../middleware/authMiddleware');
 
@@ -27,5 +28,8 @@ router.put('/:id', tokenDogrula, ilanGuncelle);
 
 // DELETE /api/ilanlar/:id      → İlan sil (sadece sahibi veya admin)
 router.delete('/:id', tokenDogrula, ilanSil);
+
+// PATCH  /api/ilanlar/:id/durum → İlan durumunu güncelle (aktif/pasif/satildi/kiralandı)
+router.patch('/:id/durum', tokenDogrula, ilanDurumGuncelle);
 
 module.exports = router;
