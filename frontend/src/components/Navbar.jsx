@@ -2,8 +2,8 @@ import { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   Home, Menu, X, ChevronDown, LogOut,
-  LayoutDashboard, PlusCircle,
-  Building, MapPin, Briefcase, Palmtree, Repeat2, Sun,
+  PlusCircle, FileText, MessageSquare, User, Bookmark,
+  MapPin, Briefcase, Palmtree, Repeat2, Sun,
 } from 'lucide-react';
 
 // ── Dropdown verileri ────────────────────────────────────────────
@@ -153,11 +153,6 @@ const Navbar = () => {
             <div className="hidden md:flex items-center gap-2">
               {kullanici ? (
                 <>
-                  <Link to="/panel"
-                    className="flex items-center gap-1.5 px-3 py-2 text-sm font-semibold text-gray-600 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all">
-                    <LayoutDashboard size={15} /> Panel
-                  </Link>
-
                   <div className="relative" ref={kulDropRef}>
                     <button
                       onClick={() => setKulAcik(!kulAcik)}
@@ -178,20 +173,32 @@ const Navbar = () => {
                     </button>
 
                     {kulAcik && (
-                      <div className="absolute right-0 top-full mt-2 w-52 bg-white border border-gray-100 rounded-2xl shadow-xl z-50 overflow-hidden py-1">
-                        <div className="px-4 py-3 border-b border-gray-50">
+                      <div className="absolute right-0 top-full mt-2 w-56 bg-white border border-gray-100 rounded-2xl shadow-xl z-50 overflow-hidden py-1">
+                        <div className="px-4 py-3 border-b border-gray-100">
                           <p className="text-sm font-bold text-gray-900">{kullanici.ad_soyad}</p>
-                          <p className="text-xs text-gray-400 capitalize mt-0.5">{kullanici.rol}</p>
+                          <p className="text-xs text-gray-400 capitalize mt-0.5">{kullanici.eposta}</p>
                         </div>
                         <Link to="/panel" onClick={() => setKulAcik(false)}
                           className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-green-50 hover:text-green-700 transition-colors">
-                          <LayoutDashboard size={15} /> Dashboard
+                          <PlusCircle size={15} className="text-green-500" /> İlan Ver
                         </Link>
                         <Link to="/panel" onClick={() => setKulAcik(false)}
                           className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-green-50 hover:text-green-700 transition-colors">
-                          <PlusCircle size={15} /> İlan Ver
+                          <FileText size={15} className="text-green-500" /> İlanlarım
                         </Link>
-                        <div className="border-t border-gray-50 mt-1 pt-1">
+                        <Link to="/panel" onClick={() => setKulAcik(false)}
+                          className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-green-50 hover:text-green-700 transition-colors">
+                          <Bookmark size={15} className="text-green-500" /> Kayıtlı Aramalarım
+                        </Link>
+                        <Link to="/panel" onClick={() => setKulAcik(false)}
+                          className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-green-50 hover:text-green-700 transition-colors">
+                          <MessageSquare size={15} className="text-green-500" /> Mesajlarım
+                        </Link>
+                        <Link to="/panel" onClick={() => setKulAcik(false)}
+                          className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-green-50 hover:text-green-700 transition-colors">
+                          <User size={15} className="text-green-500" /> Üyelik
+                        </Link>
+                        <div className="border-t border-gray-100 mt-1 pt-1">
                           <button onClick={cikisYap}
                             className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors">
                             <LogOut size={15} /> Çıkış Yap
@@ -200,6 +207,10 @@ const Navbar = () => {
                       </div>
                     )}
                   </div>
+                  <Link to="/panel"
+                    className="flex items-center gap-1.5 bg-green-600 hover:bg-green-700 text-white font-bold text-sm px-4 py-2 rounded-lg transition-colors shadow-sm">
+                    <PlusCircle size={15} /> Ücretsiz İlan Ver
+                  </Link>
                 </>
               ) : (
                 <>
@@ -259,25 +270,37 @@ const Navbar = () => {
               );
             })}
 
-            <div className="border-t border-gray-100 pt-3 mt-2 flex flex-col gap-2">
+            <div className="border-t border-gray-100 pt-3 mt-2 flex flex-col gap-1">
               {kullanici ? (
                 <>
-                  <div className="flex items-center gap-3 px-3 py-2 bg-green-50 rounded-xl">
+                  <div className="flex items-center gap-3 px-3 py-2 bg-green-50 rounded-xl mb-1">
                     <div className="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center text-white text-xs font-bold">
                       {basTurkce(kullanici.ad_soyad)}
                     </div>
                     <div>
                       <p className="text-sm font-bold text-gray-900">{kullanici.ad_soyad}</p>
-                      <p className="text-xs text-gray-400 capitalize">{kullanici.rol}</p>
+                      <p className="text-xs text-gray-400">{kullanici.eposta}</p>
                     </div>
                   </div>
                   <Link to="/panel" onClick={() => setMenuAcik(false)}
-                    className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-semibold text-gray-700 hover:bg-gray-100">
-                    <LayoutDashboard size={15} /> Dashboard
+                    className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-semibold text-gray-700 hover:bg-green-50 hover:text-green-600">
+                    <PlusCircle size={14} className="text-green-500" /> İlan Ver
+                  </Link>
+                  <Link to="/panel" onClick={() => setMenuAcik(false)}
+                    className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-semibold text-gray-700 hover:bg-green-50 hover:text-green-600">
+                    <FileText size={14} className="text-green-500" /> İlanlarım
+                  </Link>
+                  <Link to="/panel" onClick={() => setMenuAcik(false)}
+                    className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-semibold text-gray-700 hover:bg-green-50 hover:text-green-600">
+                    <MessageSquare size={14} className="text-green-500" /> Mesajlarım
+                  </Link>
+                  <Link to="/panel" onClick={() => setMenuAcik(false)}
+                    className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-semibold text-gray-700 hover:bg-green-50 hover:text-green-600">
+                    <User size={14} className="text-green-500" /> Üyelik
                   </Link>
                   <button onClick={() => { cikisYap(); setMenuAcik(false); }}
                     className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-semibold text-red-500 hover:bg-red-50 text-left">
-                    <LogOut size={15} /> Çıkış Yap
+                    <LogOut size={14} /> Çıkış Yap
                   </button>
                 </>
               ) : (
