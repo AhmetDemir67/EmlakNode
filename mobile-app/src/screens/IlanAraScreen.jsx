@@ -60,7 +60,10 @@ export default function IlanAraScreen({ navigation, route }) {
           {item.kat        && <View style={s.chip}><Ionicons name="layers-outline" size={11} color="#16a34a" /><Text style={s.chipText}>{item.kat}. Kat</Text></View>}
         </View>
         {item.dukkan_adi && (
-          <Text style={s.ofis}><Ionicons name="business-outline" size={11} /> {item.dukkan_adi}</Text>
+          <View style={s.ofisRow}>
+            <Ionicons name="business-outline" size={11} color="#9ca3af" />
+            <Text style={s.ofis}>{item.dukkan_adi}</Text>
+          </View>
         )}
       </View>
     </TouchableOpacity>
@@ -152,7 +155,8 @@ const s = StyleSheet.create({
   ozellikler:      { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 8 },
   chip:            { flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: '#f0fdf4', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 },
   chipText:        { fontSize: 11, color: '#166534', fontWeight: '600' },
-  ofis:            { fontSize: 11, color: '#9ca3af', marginTop: 6 },
+  ofisRow:         { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 6 },
+  ofis:            { fontSize: 11, color: '#9ca3af' },
   bos:             { alignItems: 'center', paddingTop: 80, gap: 12 },
   bosText:         { fontSize: 15, color: '#9ca3af', fontWeight: '600' },
 });
