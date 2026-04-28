@@ -113,10 +113,12 @@ export default function KesifScreen({ navigation }) {
               <View style={s.ilanBilgi}>
                 <Text style={s.ilanFiyat}>{fiyatFormat(ilan.fiyat)}</Text>
                 <Text style={s.ilanBaslik} numberOfLines={1}>{ilan.baslik}</Text>
-                <Text style={s.ilanKonum} numberOfLines={1}>
+                <View style={s.ilanKonumRow}>
                   <Ionicons name="location-outline" size={11} color="#9ca3af" />
-                  {' '}{[ilan.ilce, ilan.sehir].filter(Boolean).join(', ') || '—'}
-                </Text>
+                  <Text style={s.ilanKonum} numberOfLines={1}>
+                    {[ilan.ilce, ilan.sehir].filter(Boolean).join(', ') || '—'}
+                  </Text>
+                </View>
                 <View style={s.ilanOzellikler}>
                   {ilan.oda_sayisi  && <Text style={s.chip}>{ilan.oda_sayisi}</Text>}
                   {ilan.metrekare   && <Text style={s.chip}>{ilan.metrekare} m²</Text>}
@@ -156,7 +158,8 @@ const s = StyleSheet.create({
   ilanBilgi:       { padding: 10 },
   ilanFiyat:       { fontSize: 14, fontWeight: '800', color: '#16a34a' },
   ilanBaslik:      { fontSize: 12, fontWeight: '600', color: '#111827', marginTop: 2 },
-  ilanKonum:       { fontSize: 11, color: '#9ca3af', marginTop: 3 },
+  ilanKonumRow:    { flexDirection: 'row', alignItems: 'center', gap: 3, marginTop: 3 },
+  ilanKonum:       { fontSize: 11, color: '#9ca3af', flex: 1 },
   ilanOzellikler:  { flexDirection: 'row', flexWrap: 'wrap', gap: 4, marginTop: 6 },
   chip:            { fontSize: 10, backgroundColor: '#f3f4f6', color: '#6b7280', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6, fontWeight: '600' },
 });
