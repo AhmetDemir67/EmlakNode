@@ -6,6 +6,7 @@ import Login         from './pages/Login';
 import Register      from './pages/Register';
 import Dashboard     from './pages/Dashboard';
 import ListingDetail from './pages/ListingDetail';
+import Listings      from './pages/Listings';
 import NotFound      from './pages/NotFound';
 
 const WithNavbar = ({ children }) => (
@@ -26,6 +27,10 @@ function App() {
 
         <Route path="/panel" element={
           <PrivateRoute><Dashboard /></PrivateRoute>
+        } />
+
+        <Route path="/ilanlar" element={
+          <WithNavbar><Listings /></WithNavbar>
         } />
 
         <Route path="/ilan/:id" element={

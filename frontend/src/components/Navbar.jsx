@@ -37,7 +37,7 @@ const NavDropdown = ({ label, secenekler }) => {
   const git = (s) => {
     const params = new URLSearchParams({ tip: s.tip });
     if (s.emlak_turu) params.set('emlak_turu', s.emlak_turu);
-    navigate(`/?${params.toString()}`);
+    navigate(`/ilanlar?${params.toString()}`);
     setAcik(false);
   };
 
@@ -239,7 +239,7 @@ const Navbar = () => {
               const Ikon = s.ikon;
               return (
                 <button key={s.label}
-                  onClick={() => { navigate(`/?tip=${s.tip}&emlak_turu=${s.emlak_turu}`); setMenuAcik(false); }}
+                  onClick={() => { navigate(`/ilanlar?tip=${s.tip}&emlak_turu=${s.emlak_turu}`); setMenuAcik(false); }}
                   className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-gray-700 hover:bg-green-50 hover:text-green-600 transition-all">
                   <Ikon size={14} className="text-green-500" /> {s.label}
                 </button>
@@ -252,7 +252,7 @@ const Navbar = () => {
               const Ikon = s.ikon;
               return (
                 <button key={s.label + '_k'}
-                  onClick={() => { navigate(`/?tip=${s.tip}&emlak_turu=${s.emlak_turu}`); setMenuAcik(false); }}
+                  onClick={() => { navigate(`/ilanlar?tip=${s.tip}&emlak_turu=${s.emlak_turu}`); setMenuAcik(false); }}
                   className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-gray-700 hover:bg-green-50 hover:text-green-600 transition-all">
                   <Ikon size={14} className="text-green-500" /> {s.label}
                 </button>
