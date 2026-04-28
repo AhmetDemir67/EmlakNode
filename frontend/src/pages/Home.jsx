@@ -1,8 +1,10 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import ListingCard   from '../components/ListingCard';
-import FilterSidebar from '../components/FilterSidebar';
-import MapView       from '../components/MapView';
-import Hero          from '../components/Hero';
+import ListingCard      from '../components/ListingCard';
+import FilterSidebar    from '../components/FilterSidebar';
+import MapView          from '../components/MapView';
+import Hero             from '../components/Hero';
+import OnecikarIlanlar  from '../components/OnecikarIlanlar';
+import EmlakHaberleri   from '../components/EmlakHaberleri';
 import { ilanlarGetir } from '../services/api';
 import {
   TrendingUp, Loader2, AlertCircle, RefreshCw,
@@ -216,6 +218,12 @@ const Home = () => {
           </div>
         </div>
       </section>
+
+      {/* ── Öne Çıkan İlanlar Slider ──────────────────────────── */}
+      <OnecikarIlanlar ilanlar={ilanlarFormatli} />
+
+      {/* ── Emlak Haberleri ────────────────────────────────────── */}
+      <EmlakHaberleri />
 
       {/* ── Mobil Filtre Overlay ───────────────────────────────── */}
       {mobilFiltre && (
