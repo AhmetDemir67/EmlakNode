@@ -114,24 +114,29 @@ const MapView = ({ ilanlar }) => {
         }
 
         // 2) Geocoding için anahtar ve sorgu oluştur
-        const ilce  = ilan.ilce  || '';
-        const sehir = ilan.sehir || '';
-        const anahtar = `${ilce}|${sehir}`.toLowerCase().trim();
+        const mahalle = ilan.mahalle || '';
+        const ilce    = ilan.ilce    || '';
+        const sehir   = ilan.sehir   || '';
+        const anahtar  = `${mahalle}|${ilce}|${sehir}`.toLowerCase().trim();
         const sorguStr = adresOlustur(ilan);
 
         if (!sorguStr) {
-          // Adres bilgisi yoksa atla
           sonuclar.push({ ...ilan, _konum: null });
           setTamamlanan(i + 1);
           continue;
         }
 
         // 3) Cache'de yoksa API çağrısı yap; Nominatim rate limit: 1 req/s
-        const oncekiCacheDurumu = geocodeCache.has(anahtar);
-        const konum = await geocodeAdres(anahtar, sorguStr);
-        if (!oncekiCacheDurumu && !iptalRef.current) {
-          // Yeni istek yapıldıysa 1.1 sn bekle
-          await bekle(1100);
+        const oncekiCache = geocodeCache.has(anahtar);
+        let konum = await geocodeAdres(anahtar, sorguStr);
+        if (!oncekiCache && !iptalRef.current) await bekle(1100);
+
+        // 4) Tam adres bulunamazsa yalnızca şehir ile tekrar dene (fallback)
+        if (!konum && sehir && !iptalRef.current) {
+          const sehirAnahtar = `sehir|${sehir}`.toLowerCase();
+          const sehirCache   = geocodeCache.has(sehirAnahtar);
+          konum = await geocodeAdres(sehirAnahtar, sehir);
+          if (!sehirCache && !iptalRef.current) await bekle(1100);
         }
 
         sonuclar.push({ ...ilan, _konum: konum });

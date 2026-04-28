@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { MapContainer, TileLayer, Marker } from 'react-leaflet';
+import { divIcon } from 'leaflet';
 import {
   MapPin, BedDouble, Square, Building2, Thermometer,
   Layers, ArrowLeft, Heart, Share2, Phone, User,
@@ -15,6 +17,54 @@ const fiyatFormatla = (fiyat) =>
     currency: 'TRY',
     maximumFractionDigits: 0,
   }).format(fiyat);
+
+// ── Mini Harita Bileşeni ────────────────────────────────────────
+const noktalanmisIkon = divIcon({
+  html: '<div style="width:14px;height:14px;background:#16a34a;border:3px solid white;border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,0.35)"></div>',
+  className: '',
+  iconAnchor: [7, 7],
+});
+
+const MiniHarita = ({ ilan }) => {
+  const [konum, setKonum] = useState(null);
+  const [yukleniyor, setYukleniyor] = useState(true);
+
+  useEffect(() => {
+    const getKonum = async () => {
+      if (ilan.enlem && ilan.boylam) {
+        setKonum([parseFloat(ilan.enlem), parseFloat(ilan.boylam)]);
+        setYukleniyor(false);
+        return;
+      }
+      const sorgu = [ilan.mahalle, ilan.ilce, ilan.sehir].filter(Boolean).join(', ');
+      if (!sorgu) { setYukleniyor(false); return; }
+      try {
+        const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(sorgu)}&format=json&limit=1&countrycodes=tr`;
+        const res  = await fetch(url, { headers: { 'Accept-Language': 'tr', 'User-Agent': 'EmlakNode/1.0' } });
+        const veri = await res.json();
+        if (veri.length > 0) setKonum([parseFloat(veri[0].lat), parseFloat(veri[0].lon)]);
+      } catch { /* konum bulunamadı */ }
+      setYukleniyor(false);
+    };
+    getKonum();
+  }, [ilan]);
+
+  if (yukleniyor) return (
+    <div className="h-56 bg-slate-100 rounded-2xl flex items-center justify-center">
+      <Loader2 size={22} className="animate-spin text-green-500" />
+    </div>
+  );
+  if (!konum) return null;
+
+  return (
+    <div className="rounded-2xl overflow-hidden border border-slate-100 shadow-sm" style={{ height: 220 }}>
+      <MapContainer center={konum} zoom={15} style={{ height: '100%', width: '100%' }} zoomControl={true} scrollWheelZoom={false}>
+        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution='&copy; OpenStreetMap' />
+        <Marker position={konum} icon={noktalanmisIkon} />
+      </MapContainer>
+    </div>
+  );
+};
 
 // ── Yardımcı: Tarih formatlayıcı ───────────────────────────────
 const tarihFormatla = (tarih) =>
@@ -297,24 +347,22 @@ const ListingDetail = () => {
               </div>
             )}
 
-            {/* Konum Kartı (placeholder harita) */}
-            {(ilan.enlem && ilan.boylam) && (
+            {/* Konum Kartı — gerçek Leaflet harita */}
+            {(ilan.enlem || ilan.boylam || ilan.ilce || ilan.sehir) && (
               <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
-                <div className="p-6 border-b border-slate-100">
+                <div className="p-5 border-b border-slate-100 flex items-center justify-between">
                   <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
                     <div className="w-1 h-6 bg-green-600 rounded-full" />
                     Konum
                   </h2>
+                  {(ilan.ilce || ilan.sehir) && (
+                    <span className="text-xs text-slate-400 flex items-center gap-1">
+                      <MapPin size={12} className="text-green-500" />
+                      {[ilan.ilce, ilan.sehir].filter(Boolean).join(', ')}
+                    </span>
+                  )}
                 </div>
-                <div className="h-52 bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center">
-                  <div className="text-center text-slate-400">
-                    <MapPin size={36} className="mx-auto mb-2 text-green-400" />
-                    <p className="text-xs">
-                      {ilan.enlem}, {ilan.boylam}
-                    </p>
-                    <p className="text-xs mt-1 text-slate-400">Harita entegrasyonu — 7. Hafta</p>
-                  </div>
-                </div>
+                <MiniHarita ilan={ilan} />
               </div>
             )}
           </div>

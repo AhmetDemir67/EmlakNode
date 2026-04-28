@@ -8,16 +8,8 @@ const { sorgu } = require('../config/db');
 // Korumalı: tokenDogrula middleware gerekli
 // ----------------------------------------------------------------
 const ilanEkle = async (req, res) => {
-    // --- 1. dukkan_id'yi token'dan al (req.kullanici, tokenDogrula tarafından set edildi) ---
-    const { id: kullanici_id, rol, dukkan_id } = req.kullanici;
-
-    // Sadece bir dükkana bağlı kullanıcılar ilan ekleyebilir
-    if (!dukkan_id) {
-        return res.status(403).json({
-            basarili: false,
-            mesaj: 'İlan eklemek için bir emlak ofisine bağlı olmanız gerekiyor. Müşteriler ilan ekleyemez.',
-        });
-    }
+    // --- 1. Token'dan kullanıcı bilgilerini al ---
+    const { id: kullanici_id, dukkan_id } = req.kullanici;
 
     // --- 2. İstek gövdesinden alanları al ---
     const {
@@ -75,8 +67,9 @@ const ilanEkle = async (req, res) => {
         `INSERT INTO ilanlar
             (baslik, aciklama, fiyat, tip, emlak_turu, metrekare, oda_sayisi, bina_yasi,
              kat, toplam_kat, isinma_tipi, banyo_sayisi, balkon, asansor, otopark,
-             esyali, site_icerisinde, sehir, ilce, mahalle, enlem, boylam, gorsel, ai_aciklama, dukkan_id)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25)
+             esyali, site_icerisinde, sehir, ilce, mahalle, enlem, boylam, gorsel,
+             ai_aciklama, dukkan_id, kullanici_id)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26)
          RETURNING *`,
         [
             baslik.trim(),
@@ -103,7 +96,8 @@ const ilanEkle = async (req, res) => {
             boylam              ? parseFloat(boylam)     : null,
             gorsel              || null,
             ai_aciklama         || null,
-            dukkan_id,
+            dukkan_id           || null,
+            kullanici_id,
         ]
     );
 
@@ -152,7 +146,7 @@ const ilanlariGetir = async (req, res) => {
                 COALESCE(i.sehir, d.sehir) AS sehir,
                 COALESCE(i.ilce, d.ilce)   AS ilce
          FROM ilanlar i
-         JOIN dukkanlar d ON i.dukkan_id = d.id
+         LEFT JOIN dukkanlar d ON i.dukkan_id = d.id
          ${whereClause}
          ORDER BY i.olusturulma_tarihi DESC
          LIMIT $${paramSayac++} OFFSET $${paramSayac}`,
@@ -175,9 +169,9 @@ const ilanGetir = async (req, res) => {
     const { id } = req.params;
 
     const sonuc = await sorgu(
-        `SELECT i.*, d.dukkan_adi, d.sehir, d.ilce, d.vergi_no
+        `SELECT i.*, d.dukkan_adi, d.sehir AS dukkan_sehir, d.ilce AS dukkan_ilce, d.vergi_no
          FROM ilanlar i
-         JOIN dukkanlar d ON i.dukkan_id = d.id
+         LEFT JOIN dukkanlar d ON i.dukkan_id = d.id
          WHERE i.id = $1`,
         [id]
     );
@@ -202,27 +196,25 @@ const ilanGetir = async (req, res) => {
 // ----------------------------------------------------------------
 const ilanGuncelle = async (req, res) => {
     const { id } = req.params;
-    const { rol, dukkan_id } = req.kullanici;
+    const { id: kullanici_id, rol, dukkan_id } = req.kullanici;
 
     // --- 1. İlan var mı ve kime ait? ---
     const mevcutIlan = await sorgu(
-        'SELECT id, dukkan_id FROM ilanlar WHERE id = $1',
+        'SELECT id, dukkan_id, kullanici_id FROM ilanlar WHERE id = $1',
         [id]
     );
 
     if (mevcutIlan.rows.length === 0) {
-        return res.status(404).json({
-            basarili: false,
-            mesaj: 'İlan bulunamadı.',
-        });
+        return res.status(404).json({ basarili: false, mesaj: 'İlan bulunamadı.' });
     }
 
-    // --- 2. Yetki kontrolü: Kendi dükkanının ilanı mı, yoksa admin mi? ---
-    const ilanSahibiDukkan = mevcutIlan.rows[0].dukkan_id;
-    if (rol !== 'admin' && ilanSahibiDukkan !== dukkan_id) {
+    // --- 2. Yetki: admin, ilanın sahibi kullanıcı veya aynı dükkan ---
+    const ilan = mevcutIlan.rows[0];
+    const sahibi = ilan.kullanici_id === kullanici_id || (dukkan_id && ilan.dukkan_id === dukkan_id);
+    if (rol !== 'admin' && !sahibi) {
         return res.status(403).json({
             basarili: false,
-            mesaj: 'Bu ilanı güncelleme yetkiniz yok. Sadece ilanı ekleyen ofis güncelleyebilir.',
+            mesaj: 'Bu ilanı güncelleme yetkiniz yok.',
         });
     }
 
@@ -306,27 +298,25 @@ const ilanGuncelle = async (req, res) => {
 // ----------------------------------------------------------------
 const ilanSil = async (req, res) => {
     const { id } = req.params;
-    const { rol, dukkan_id } = req.kullanici;
+    const { id: kullanici_id, rol, dukkan_id } = req.kullanici;
 
     // --- 1. İlan var mı? ---
     const mevcutIlan = await sorgu(
-        'SELECT id, baslik, dukkan_id FROM ilanlar WHERE id = $1',
+        'SELECT id, baslik, dukkan_id, kullanici_id FROM ilanlar WHERE id = $1',
         [id]
     );
 
     if (mevcutIlan.rows.length === 0) {
-        return res.status(404).json({
-            basarili: false,
-            mesaj: 'İlan bulunamadı.',
-        });
+        return res.status(404).json({ basarili: false, mesaj: 'İlan bulunamadı.' });
     }
 
-    // --- 2. Yetki kontrolü ---
-    const ilanSahibiDukkan = mevcutIlan.rows[0].dukkan_id;
-    if (rol !== 'admin' && ilanSahibiDukkan !== dukkan_id) {
+    // --- 2. Yetki: admin, ilanın sahibi kullanıcı veya aynı dükkan ---
+    const ilan = mevcutIlan.rows[0];
+    const sahibi = ilan.kullanici_id === kullanici_id || (dukkan_id && ilan.dukkan_id === dukkan_id);
+    if (rol !== 'admin' && !sahibi) {
         return res.status(403).json({
             basarili: false,
-            mesaj: 'Bu ilanı silme yetkiniz yok. Sadece ilanı ekleyen ofis silebilir.',
+            mesaj: 'Bu ilanı silme yetkiniz yok.',
         });
     }
 
@@ -339,4 +329,48 @@ const ilanSil = async (req, res) => {
     });
 };
 
-module.exports = { ilanEkle, ilanlariGetir, ilanGetir, ilanGuncelle, ilanSil };
+// ----------------------------------------------------------------
+// İLAN DURUM GÜNCELLE (Patch Status)
+// PATCH /api/ilanlar/:id/durum
+// Korumalı: Sadece ilanın sahibi dükkan veya admin güncelleyebilir
+// ----------------------------------------------------------------
+const GECERLI_DURUMLAR = ['aktif', 'pasif', 'satildi', 'kiralandı'];
+
+const ilanDurumGuncelle = async (req, res) => {
+    const { id }     = req.params;
+    const { durum }  = req.body;
+    const { rol, dukkan_id } = req.kullanici;
+
+    if (!durum || !GECERLI_DURUMLAR.includes(durum)) {
+        return res.status(400).json({
+            basarili: false,
+            mesaj: `Geçerli durum değerleri: ${GECERLI_DURUMLAR.join(', ')}`,
+        });
+    }
+
+    const mevcutIlan = await sorgu(
+        'SELECT id, dukkan_id FROM ilanlar WHERE id = $1',
+        [id]
+    );
+
+    if (mevcutIlan.rows.length === 0) {
+        return res.status(404).json({ basarili: false, mesaj: 'İlan bulunamadı.' });
+    }
+
+    if (rol !== 'admin' && mevcutIlan.rows[0].dukkan_id !== dukkan_id) {
+        return res.status(403).json({ basarili: false, mesaj: 'Bu ilanı güncelleme yetkiniz yok.' });
+    }
+
+    const guncellenen = await sorgu(
+        'UPDATE ilanlar SET durum = $1 WHERE id = $2 RETURNING id, baslik, durum',
+        [durum, id]
+    );
+
+    return res.status(200).json({
+        basarili: true,
+        mesaj: 'İlan durumu güncellendi.',
+        ilan: guncellenen.rows[0],
+    });
+};
+
+module.exports = { ilanEkle, ilanlariGetir, ilanGetir, ilanGuncelle, ilanSil, ilanDurumGuncelle };

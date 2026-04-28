@@ -38,13 +38,13 @@ body {
   padding: 5px 10px;
   border-radius: 20px;
   white-space: nowrap;
-  box-shadow: 0 2px 8px rgba(249,115,22,0.5);
+  box-shadow: 0 2px 8px rgba(22,163,74,0.45);
   border: 2px solid white;
   cursor: pointer;
   transition: transform 0.15s ease, background 0.15s ease;
 }
 .fiyat-marker:hover {
   transform: scale(1.1);
-  background: #ea580c;
+  background: #15803d;
 }
 

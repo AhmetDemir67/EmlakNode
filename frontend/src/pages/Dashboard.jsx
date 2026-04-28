@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Home, Plus, List, LogOut, User, Loader2, CheckCircle2, AlertCircle, X, Eye, Trash2, Pencil, ChevronRight, ChevronLeft, Building2, TrendingUp, FileText, MapPin, BedDouble, Square, Bath, Layers } from 'lucide-react';
-import { ilanEkle, ilanGuncelle, ilanSil, benimIlanlarim } from '../services/api';
+import { Home, Plus, List, LogOut, User, Loader2, CheckCircle2, AlertCircle, X, Eye, Trash2, Pencil, ChevronRight, ChevronLeft, Building2, TrendingUp, FileText, MapPin, BedDouble, Square, Bath, Layers, ChevronDown } from 'lucide-react';
+import { ilanEkle, ilanGuncelle, ilanSil, benimIlanlarim, ilanDurumGuncelle } from '../services/api';
+import { ILLER, ILCELER } from '../data/turkiyeAdresler';
 
 const kullaniciBilgi = () => { try { return JSON.parse(localStorage.getItem('kullanici')) || {}; } catch { return {}; } };
 
@@ -34,12 +35,93 @@ const Sel = ({ label, name, value, onChange, opts }) => (
 );
 
 const Toggle = ({ label, name, value, onChange }) => (
-  <button type="button" onClick={() => onChange({ target: { name, value: !value, type: 'checkbox' } })}
-    className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-xs font-semibold transition-all ${value ? 'bg-green-600 border-green-600 text-white' : 'border-gray-200 text-gray-500 hover:border-green-400'}`}>
-    <span className={`w-3 h-3 rounded-full ${value ? 'bg-white' : 'bg-gray-300'}`} />
+  <button
+    type="button"
+    onClick={() => onChange({ target: { name, value: !value, type: 'checkbox', checked: !value } })}
+    className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-xs font-semibold transition-all ${
+      value ? 'bg-green-600 border-green-600 text-white shadow-sm' : 'border-gray-200 text-gray-500 hover:border-green-400 hover:text-green-600'
+    }`}
+  >
+    <span className={`w-3 h-3 rounded-full flex-shrink-0 ${value ? 'bg-white' : 'bg-gray-300'}`} />
     {label}
   </button>
 );
+
+// ── Arama yapılabilir dropdown ────────────────────────────────────
+const AramaDropdown = ({ label, value, secenekler, onChange, disabled }) => {
+  const [acik, setAcik]     = useState(false);
+  const [arama, setArama]   = useState('');
+  const ref                 = useRef(null);
+
+  useEffect(() => {
+    const handler = (e) => { if (!ref.current?.contains(e.target)) setAcik(false); };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  const filtrelenmis = secenekler.filter(s =>
+    s.toLowerCase().includes(arama.toLowerCase())
+  );
+
+  const sec = (secenek) => {
+    onChange(secenek);
+    setAcik(false);
+    setArama('');
+  };
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={() => { if (!disabled) setAcik(!acik); setArama(''); }}
+        className={`w-full flex items-center justify-between px-3 py-2.5 border rounded-xl text-sm transition-all ${
+          disabled
+            ? 'bg-gray-50 border-gray-100 text-gray-300 cursor-not-allowed'
+            : acik
+              ? 'border-green-500 bg-white ring-2 ring-green-100 text-gray-700'
+              : 'border-gray-200 bg-white text-gray-700 hover:border-green-400 focus:border-green-500 focus:ring-2 focus:ring-green-100'
+        }`}
+      >
+        <span className={value ? 'text-gray-800 font-medium' : 'text-gray-400'}>
+          {value || label}
+        </span>
+        <ChevronDown size={14} className={`text-gray-400 transition-transform ${acik ? 'rotate-180' : ''}`} />
+      </button>
+
+      {acik && (
+        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-xl z-50 overflow-hidden">
+          <div className="p-2 border-b border-gray-100">
+            <input
+              type="text"
+              value={arama}
+              onChange={e => setArama(e.target.value)}
+              placeholder={`${label} ara...`}
+              className="w-full px-2 py-1.5 text-xs border border-gray-200 rounded-lg outline-none focus:border-green-400"
+              autoFocus
+            />
+          </div>
+          <div className="max-h-48 overflow-y-auto py-1">
+            {filtrelenmis.length === 0 ? (
+              <p className="text-xs text-gray-400 text-center py-3">Sonuç bulunamadı</p>
+            ) : filtrelenmis.map(s => (
+              <button
+                key={s}
+                type="button"
+                onClick={() => sec(s)}
+                className={`w-full text-left px-3 py-2 text-sm transition-colors ${
+                  value === s ? 'bg-green-50 text-green-700 font-semibold' : 'text-gray-700 hover:bg-gray-50'
+                }`}
+              >
+                {s}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
 
 const fiyatFormat = (f) => f ? new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', maximumFractionDigits: 0 }).format(f) : '-';
 
@@ -60,7 +142,12 @@ export default function Dashboard() {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setForm(f => ({ ...f, [name]: type === 'checkbox' ? checked : value }));
+    setForm(f => {
+      const yeni = { ...f, [name]: type === 'checkbox' ? (checked ?? value) : value };
+      // Şehir değişince ilçeyi sıfırla
+      if (name === 'sehir') yeni.ilce = '';
+      return yeni;
+    });
     setHata(null);
   };
 
@@ -95,6 +182,13 @@ export default function Dashboard() {
     if (!confirm(`"${baslik}" ilanını silmek istiyor musunuz?`)) return;
     try { await ilanSil(id); setIlanlar(p => p.filter(i => i.id !== id)); setMesaj('İlan silindi.'); }
     catch { setHata('Silme başarısız.'); }
+  };
+
+  const durumDegistir = async (id, yeniDurum) => {
+    try {
+      await ilanDurumGuncelle(id, yeniDurum);
+      setIlanlar(p => p.map(i => i.id === id ? { ...i, durum: yeniDurum } : i));
+    } catch { setHata('Durum güncellenemedi.'); }
   };
 
   const duzenleBaslat = (ilan) => {
@@ -230,9 +324,26 @@ export default function Dashboard() {
                     <div>
                       <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Konum</p>
                       <div className="grid grid-cols-3 gap-4">
-                        <Inp label="Şehir" name="sehir" value={form.sehir} onChange={handleChange} placeholder="İstanbul" />
-                        <Inp label="İlçe" name="ilce" value={form.ilce} onChange={handleChange} placeholder="Kadıköy" />
-                        <Inp label="Mahalle" name="mahalle" value={form.mahalle} onChange={handleChange} placeholder="Caferağa" />
+                        <div>
+                          <label className="block text-xs font-semibold text-gray-500 mb-1">Şehir</label>
+                          <AramaDropdown
+                            label="Şehir seçin"
+                            value={form.sehir}
+                            secenekler={ILLER}
+                            onChange={v => handleChange({ target: { name: 'sehir', value: v } })}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-semibold text-gray-500 mb-1">İlçe</label>
+                          <AramaDropdown
+                            label={form.sehir ? 'İlçe seçin' : 'Önce şehir seçin'}
+                            value={form.ilce}
+                            secenekler={form.sehir ? (ILCELER[form.sehir] || []) : []}
+                            onChange={v => handleChange({ target: { name: 'ilce', value: v } })}
+                            disabled={!form.sehir}
+                          />
+                        </div>
+                        <Inp label="Mahalle" name="mahalle" value={form.mahalle} onChange={handleChange} placeholder="Mahalle adı" />
                       </div>
                     </div>
                     <div>
@@ -312,12 +423,28 @@ export default function Dashboard() {
                       {ilan.kat && <span className="flex items-center gap-1"><Layers size={12} className="text-green-500" />{ilan.kat}. kat</span>}
                     </div>
                   </div>
-                  <div className="flex flex-col items-end justify-between p-4 border-l border-gray-100 min-w-[140px]">
+                  <div className="flex flex-col items-end justify-between p-4 border-l border-gray-100 min-w-[155px]">
                     <div className="text-right">
                       <p className="text-lg font-extrabold text-green-600 leading-none">{fiyatFormat(ilan.fiyat)}</p>
                       <p className="text-xs text-gray-400 mt-1">{ilan.emlak_turu || 'Daire'}</p>
                     </div>
-                    <div className="flex gap-2 mt-3">
+                    {/* Durum seçici */}
+                    <select
+                      value={ilan.durum || 'aktif'}
+                      onChange={e => durumDegistir(ilan.id, e.target.value)}
+                      className={`mt-2 text-xs font-bold px-2.5 py-1.5 rounded-lg border cursor-pointer focus:outline-none transition-all ${
+                        ilan.durum === 'pasif'     ? 'bg-gray-100 text-gray-500 border-gray-200' :
+                        ilan.durum === 'satildi'   ? 'bg-red-50 text-red-600 border-red-200' :
+                        ilan.durum === 'kiralandı' ? 'bg-blue-50 text-blue-600 border-blue-200' :
+                                                     'bg-green-50 text-green-700 border-green-200'
+                      }`}
+                    >
+                      <option value="aktif">✅ Aktif</option>
+                      <option value="pasif">⏸ Pasif</option>
+                      <option value="satildi">🏷 Satıldı</option>
+                      <option value="kiralandı">🔑 Kiralandı</option>
+                    </select>
+                    <div className="flex gap-2 mt-2">
                       <Link to={`/ilan/${ilan.id}`} className="p-2 rounded-lg border border-gray-200 text-gray-400 hover:text-blue-500 hover:border-blue-200 transition-all"><Eye size={15} /></Link>
                       <button onClick={() => duzenleBaslat(ilan)} className="p-2 rounded-lg border border-gray-200 text-gray-400 hover:text-green-600 hover:border-green-300 transition-all"><Pencil size={15} /></button>
                       <button onClick={() => sil(ilan.id, ilan.baslik)} className="p-2 rounded-lg border border-gray-200 text-gray-400 hover:text-red-500 hover:border-red-200 transition-all"><Trash2 size={15} /></button>
