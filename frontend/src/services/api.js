@@ -46,7 +46,8 @@ export const benimIlanlarim   = (dukkan_id)  => api.get('/ilanlar', { params: { 
 export const ilanDurumGuncelle = (id, durum) => api.patch(`/ilanlar/${id}/durum`, { durum });
 
 // Auth
-export const kayitOl  = (data) => api.post('/auth/kayit', data);
-export const girisYap = (data) => api.post('/auth/giris', data);
+export const kayitOl         = (data) => api.post('/auth/kayit',          data);
+export const kurumsalKayitOl = (data) => api.post('/auth/kurumsal-kayit', data);
+export const girisYap        = (data) => api.post('/auth/giris',          data);
 
 export default api;
