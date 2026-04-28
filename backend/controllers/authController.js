@@ -2,7 +2,7 @@
 
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const { sorgu } = require('../config/db');
+const { pool, sorgu } = require('../config/db');
 
 // Token süresi .env'den alınır, yoksa varsayılan 7 gün
 const JWT_SECRET = process.env.JWT_SECRET;
@@ -142,4 +142,81 @@ const girisYap = async (req, res) => {
     });
 };
 
-module.exports = { kayitOl, girisYap };
+// ----------------------------------------------------------------
+// KURUMSAL KAYIT (Corporate Register)
+// POST /api/auth/kurumsal-kayit
+// Emlak ofisi + patron kullanıcısı tek transaction'da oluşturulur
+// ----------------------------------------------------------------
+const kurumsal_kayitOl = async (req, res) => {
+    const {
+        ad_soyad, eposta, sifre,
+        dukkan_adi, sehir, ilce, vergi_no, yetki_belge_no,
+    } = req.body;
+
+    // --- 1. Zorunlu alan kontrolü ---
+    if (!ad_soyad || !eposta || !sifre || !dukkan_adi || !sehir || !ilce || !vergi_no || !yetki_belge_no) {
+        return res.status(400).json({
+            basarili: false,
+            mesaj: 'Tüm alanlar zorunludur.',
+        });
+    }
+
+    if (sifre.length < 6) {
+        return res.status(400).json({ basarili: false, mesaj: 'Şifre en az 6 karakter olmalıdır.' });
+    }
+
+    // --- 2. Tekil kontroller ---
+    const [mevcutKullanici, mevcutVergi, mevcutBelge] = await Promise.all([
+        sorgu('SELECT id FROM kullanicilar WHERE eposta = $1', [eposta.toLowerCase().trim()]),
+        sorgu('SELECT id FROM dukkanlar WHERE vergi_no = $1',  [vergi_no.trim()]),
+        sorgu('SELECT id FROM dukkanlar WHERE yetki_belge_no = $1', [yetki_belge_no.trim()]),
+    ]);
+
+    if (mevcutKullanici.rows.length > 0)
+        return res.status(409).json({ basarili: false, mesaj: 'Bu e-posta adresi zaten kayıtlı.' });
+    if (mevcutVergi.rows.length > 0)
+        return res.status(409).json({ basarili: false, mesaj: 'Bu vergi numarası zaten kayıtlı.' });
+    if (mevcutBelge.rows.length > 0)
+        return res.status(409).json({ basarili: false, mesaj: 'Bu yetki belge numarası zaten kayıtlı.' });
+
+    // --- 3. Şifre hash ---
+    const sifreHash = await bcrypt.hash(sifre, SALT_ROUNDS);
+
+    // --- 4. Transaction: önce dükkan, sonra patron kullanıcı ---
+    const client = await pool.connect();
+    try {
+        await client.query('BEGIN');
+
+        const dukkanSonuc = await client.query(
+            `INSERT INTO dukkanlar (dukkan_adi, sehir, ilce, yetki_belge_no, vergi_no)
+             VALUES ($1, $2, $3, $4, $5)
+             RETURNING id, dukkan_adi, sehir, ilce`,
+            [dukkan_adi.trim(), sehir.trim(), ilce.trim(), yetki_belge_no.trim(), vergi_no.trim()]
+        );
+
+        const dukkan = dukkanSonuc.rows[0];
+
+        const kullaniciSonuc = await client.query(
+            `INSERT INTO kullanicilar (ad_soyad, eposta, sifre, rol, dukkan_id)
+             VALUES ($1, $2, $3, 'patron', $4)
+             RETURNING id, ad_soyad, eposta, rol, dukkan_id, olusturulma_tarihi`,
+            [ad_soyad.trim(), eposta.toLowerCase().trim(), sifreHash, dukkan.id]
+        );
+
+        await client.query('COMMIT');
+
+        return res.status(201).json({
+            basarili: true,
+            mesaj: 'Kurumsal hesap başarıyla oluşturuldu.',
+            kullanici: kullaniciSonuc.rows[0],
+            dukkan,
+        });
+    } catch (err) {
+        await client.query('ROLLBACK');
+        throw err;
+    } finally {
+        client.release();
+    }
+};
+
+module.exports = { kayitOl, girisYap, kurumsal_kayitOl };
