@@ -1,7 +1,7 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { View, TouchableOpacity, StyleSheet } from 'react-native';
 
@@ -13,7 +13,7 @@ import HesabimScreen  from '../screens/HesabimScreen';
 import GirisScreen    from '../screens/GirisScreen';
 
 const Tab   = createBottomTabNavigator();
-const Stack = createStackNavigator();
+const Stack = createNativeStackNavigator();
 
 // İlan Ver merkez butonu
 const IlanVerButon = ({ onPress }) => (
