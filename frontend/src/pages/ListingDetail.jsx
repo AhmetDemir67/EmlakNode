@@ -183,10 +183,20 @@ const ListingDetail = () => {
           const ofisYanit = await ilanlarGetir({ dukkan_id: veri.dukkan_id, limit: 4 });
           setFirmaIlanlar((ofisYanit.data.ilanlar || []).filter(i => String(i.id) !== String(id)).slice(0, 3));
         }
-        // Benzer ilanlar (aynı şehir)
+        // Benzer ilanlar — önce aynı tip+şehir, yeterli değilse sadece şehir
         if (veri.sehir) {
-          const benzerYanit = await ilanlarGetir({ sehir: veri.sehir, limit: 5 });
-          setBenzerIlanlar((benzerYanit.data.ilanlar || []).filter(i => String(i.id) !== String(id)).slice(0, 4));
+          const exclude = (liste) => liste.filter(i => String(i.id) !== String(id));
+          let liste = [];
+          if (veri.tip) {
+            const r = await ilanlarGetir({ sehir: veri.sehir, tip: veri.tip, limit: 9 });
+            liste = exclude(r.data.ilanlar || []);
+          }
+          if (liste.length < 4) {
+            const r2 = await ilanlarGetir({ sehir: veri.sehir, limit: 9 });
+            const ek = exclude(r2.data.ilanlar || []).filter(i => !liste.find(x => x.id === i.id));
+            liste = [...liste, ...ek];
+          }
+          setBenzerIlanlar(liste.slice(0, 8));
         }
       } catch (err) {
         setHata(err.response?.status === 404 ? 'Bu ilan bulunamadı.' : 'İlan yüklenirken hata oluştu.');
@@ -554,12 +564,83 @@ const ListingDetail = () => {
           </div>
         )}
 
-        {/* ══ BU İLANA BAKANLAR DA BAKTI ════════════════════════════ */}
+        {/* ══ BU İLANA BAKANLAR BUNLARA DA BAKTI ═══════════════════ */}
         {benzerIlanlar.length > 0 && (
           <div className="mt-8">
-            <h2 className="text-lg font-extrabold text-slate-900 mb-4">Bu İlana Bakanlar da Baktı</h2>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-              {benzerIlanlar.map(i => <MiniIlanKarti key={i.id} ilan={i} />)}
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h2 className="text-lg font-extrabold text-slate-900">Bu İlana Bakanlar Bunlara da Baktı</h2>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  {[ilan.ilce, ilan.sehir].filter(Boolean).join(' / ')} bölgesinde {ilan.tip || ''} ilanlar
+                </p>
+              </div>
+              <button
+                onClick={() => navigate(`/?sehir=${encodeURIComponent(ilan.sehir || '')}&tip=${encodeURIComponent(ilan.tip || '')}`)}
+                className="text-sm text-green-600 hover:text-green-700 font-semibold flex items-center gap-1 whitespace-nowrap"
+              >
+                Tümünü Gör <ChevronRight size={14} />
+              </button>
+            </div>
+
+            {/* Yatay kaydırmalı kart listesi */}
+            <div
+              className="flex gap-4 overflow-x-auto pb-2"
+              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+            >
+              {benzerIlanlar.map(i => (
+                <div
+                  key={i.id}
+                  onClick={() => navigate(`/ilan/${i.id}`)}
+                  className="flex-shrink-0 w-52 cursor-pointer group border border-gray-100 rounded-2xl overflow-hidden hover:shadow-lg transition-all bg-white"
+                >
+                  {/* Görsel */}
+                  <div className="relative h-36 overflow-hidden bg-gray-100">
+                    <img
+                      src={i.gorsel || GORSEL_FALLBACK}
+                      alt={i.baslik}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      onError={e => { e.currentTarget.src = GORSEL_FALLBACK; }}
+                    />
+                    {i.tip && (
+                      <span className={`absolute top-2 left-2 text-white text-[10px] font-bold px-2 py-0.5 rounded-md ${i.tip === 'Satılık' ? 'bg-green-600' : 'bg-blue-500'}`}>
+                        {i.tip}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Bilgiler */}
+                  <div className="p-3 flex flex-col gap-1">
+                    <p className="text-xs font-bold text-gray-900 line-clamp-2 leading-tight group-hover:text-green-700 transition-colors">
+                      {i.baslik}
+                    </p>
+                    {/* Özellik chip'leri */}
+                    <div className="flex flex-wrap gap-1 mt-0.5">
+                      {i.oda_sayisi && (
+                        <span className="text-[10px] bg-slate-50 text-slate-500 px-1.5 py-0.5 rounded-md font-medium">{i.oda_sayisi}</span>
+                      )}
+                      {i.metrekare && (
+                        <span className="text-[10px] bg-slate-50 text-slate-500 px-1.5 py-0.5 rounded-md font-medium">{i.metrekare} m²</span>
+                      )}
+                      {i.kat != null && (
+                        <span className="text-[10px] bg-slate-50 text-slate-500 px-1.5 py-0.5 rounded-md font-medium">{i.kat}. Kat</span>
+                      )}
+                    </div>
+                    {(i.ilce || i.sehir) && (
+                      <p className="text-[10px] text-gray-400 flex items-center gap-1">
+                        <MapPin size={9} className="text-green-500 flex-shrink-0" />
+                        {[i.ilce, i.sehir].filter(Boolean).join(' / ')}
+                      </p>
+                    )}
+                    <p className="text-green-700 font-extrabold text-sm mt-0.5">{fiyatFormatla(i.fiyat)}</p>
+                    <button
+                      onClick={e => { e.stopPropagation(); navigate(`/ilan/${i.id}`); }}
+                      className="mt-1 w-full text-xs font-bold text-green-600 border border-green-200 hover:bg-green-50 py-1.5 rounded-lg transition-colors"
+                    >
+                      Telefona Bak
+                    </button>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         )}
