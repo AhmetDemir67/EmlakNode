@@ -132,7 +132,7 @@ const ilanEkle = async (req, res) => {
 const ilanlariGetir = async (req, res) => {
     const {
         sehir, ilce, min_fiyat, max_fiyat, oda_sayisi, tip, emlak_turu,
-        dukkan_id, min_metrekare, max_metrekare, arama, limit = 50, sayfa = 1,
+        dukkan_id, kullanici_id, min_metrekare, max_metrekare, arama, limit = 50, sayfa = 1,
     } = req.query;
 
     const kosullar = [];
@@ -149,6 +149,7 @@ const ilanlariGetir = async (req, res) => {
     if (sehir)         { kosullar.push(`(i.sehir ILIKE $${paramSayac} OR d.sehir ILIKE $${paramSayac})`); params.push(`%${sehir}%`); paramSayac++; }
     if (ilce)          { kosullar.push(`i.ilce ILIKE $${paramSayac++}`);    params.push(`%${ilce}%`); }
     if (dukkan_id)     { kosullar.push(`i.dukkan_id = $${paramSayac++}`);   params.push(parseInt(dukkan_id)); }
+    if (kullanici_id)  { kosullar.push(`i.kullanici_id = $${paramSayac++}`); params.push(parseInt(kullanici_id)); }
     if (arama)         { kosullar.push(`(i.baslik ILIKE $${paramSayac} OR i.aciklama ILIKE $${paramSayac})`); params.push(`%${arama}%`); paramSayac++; }
 
     const whereClause = kosullar.length > 0 ? `WHERE ${kosullar.join(' AND ')}` : '';
