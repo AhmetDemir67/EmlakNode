@@ -126,10 +126,7 @@ const Navbar = () => {
           <div className="flex items-center justify-between h-16">
 
             {/* ── Logo ─────────────────────────────────── */}
-            <Link to="/" className="flex items-center gap-2 flex-shrink-0">
-              <div className="bg-green-600 text-white p-1.5 rounded-lg">
-                <Home size={18} />
-              </div>
+            <Link to="/" className="flex items-center flex-shrink-0">
               <span className="text-xl font-extrabold text-gray-900 tracking-tight">
                 Emlak<span className="text-green-600">Node</span>
               </span>
