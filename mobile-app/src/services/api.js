@@ -2,7 +2,7 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Geliştirme: bilgisayarın IP'si (Android emülatör için 10.0.2.2, gerçek cihaz için LAN IP)
-export const API_URL = 'http://10.0.2.2:5000/api';
+export const API_URL = 'http://10.0.2.2:3000/api';
 
 const api = axios.create({ baseURL: API_URL });
 
@@ -12,7 +12,8 @@ api.interceptors.request.use(async (config) => {
   return config;
 });
 
-export const ilanlarGetir    = (params)  => api.get('/ilanlar', { params });
+export const ilanlarGetir        = (params)  => api.get('/ilanlar', { params });
+export const fiyatiDusenIlanlar = (tip)     => api.get('/ilanlar', { params: { fiyat_dustu: true, tip, limit: 20 } });
 export const ilanDetayGetir  = (id)      => api.get(`/ilanlar/${id}`);
 
 export const girisYap        = (data)    => api.post('/auth/giris', data);

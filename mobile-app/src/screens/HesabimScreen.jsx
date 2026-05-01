@@ -1,66 +1,70 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity,
   StyleSheet, Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const MenuItem = ({ icon, label, onPress, badge }) => (
-  <TouchableOpacity style={s.menuItem} onPress={onPress}>
-    <View style={s.menuSol}>
-      <Ionicons name={icon} size={20} color="#374151" style={{ marginRight: 14 }} />
-      <Text style={s.menuLabel}>{label}</Text>
+const MenuItem = ({ icon, iconBg, label, alt, onPress, badge, danger }) => (
+  <TouchableOpacity style={s.menuItem} onPress={onPress} activeOpacity={0.7}>
+    <View style={[s.menuIkon, { backgroundColor: iconBg || '#f3f4f6' }]}>
+      <Ionicons name={icon} size={20} color={danger ? '#ef4444' : '#16a34a'} />
     </View>
-    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-      {badge && <View style={s.badge}><Text style={s.badgeText}>{badge}</Text></View>}
-      <Ionicons name="chevron-forward" size={16} color="#9ca3af" />
+    <View style={{ flex: 1 }}>
+      <Text style={[s.menuLabel, danger && { color: '#ef4444' }]}>{label}</Text>
+      {alt ? <Text style={s.menuAlt}>{alt}</Text> : null}
     </View>
+    {badge ? (
+      <View style={s.badge}><Text style={s.badgeText}>{badge}</Text></View>
+    ) : null}
+    {!danger ? <Ionicons name="chevron-forward" size={16} color="#d1d5db" /> : null}
   </TouchableOpacity>
 );
 
-const Bolum = ({ baslik, children }) => (
-  <View style={s.bolum}>
-    <Text style={s.bolumBaslik}>{baslik}</Text>
-    <View style={s.bolumIcerik}>{children}</View>
-  </View>
-);
+const basTurkce = (str = '') =>
+  str.split(' ').map(s => s.charAt(0).toUpperCase()).slice(0, 2).join('');
 
 export default function HesabimScreen({ navigation }) {
   const [kullanici, setKullanici] = useState(null);
 
-  useEffect(() => {
-    AsyncStorage.getItem('kullanici').then(v => {
-      if (v) setKullanici(JSON.parse(v));
-    });
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      AsyncStorage.getItem('kullanici').then(v => {
+        setKullanici(v ? JSON.parse(v) : null);
+      });
+    }, [])
+  );
 
-  const cikis = async () => {
+  const cikis = () => {
     Alert.alert('Çıkış Yap', 'Hesabınızdan çıkmak istiyor musunuz?', [
       { text: 'İptal', style: 'cancel' },
       {
         text: 'Çıkış Yap', style: 'destructive', onPress: async () => {
           await AsyncStorage.multiRemove(['token', 'kullanici']);
-          navigation.reset({ index: 0, routes: [{ name: 'Giris' }] });
+          navigation.reset({ index: 0, routes: [{ name: 'Ana' }] });
         },
       },
     ]);
   };
 
-  const basTurkce = (str = '') =>
-    str.split(' ').map(s => s.charAt(0).toUpperCase()).slice(0, 2).join('');
+  const yakinda = (ozellik) =>
+    Alert.alert(ozellik, 'Bu özellik yakında eklenecek.');
 
   if (!kullanici) {
     return (
       <View style={s.girisGerekli}>
-        <Ionicons name="person-circle-outline" size={72} color="#d1d5db" />
+        <View style={s.avatarBuyuk}>
+          <Ionicons name="person" size={44} color="#fff" />
+        </View>
         <Text style={s.girisBaslik}>Hesabınıza Giriş Yapın</Text>
-        <Text style={s.girisAlt}>İlanlarınızı yönetmek için giriş yapın.</Text>
+        <Text style={s.girisAlt}>İlanlarınızı yönetmek ve daha fazlası için giriş yapın.</Text>
         <TouchableOpacity style={s.girisBtn} onPress={() => navigation.navigate('Giris')}>
           <Text style={s.girisBtnText}>Giriş Yap</Text>
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate('Kayit')}>
-          <Text style={s.kayitLink}>Hesabın yok mu? <Text style={{ color: '#16a34a', fontWeight: '700' }}>Kayıt Ol</Text></Text>
+        <TouchableOpacity style={s.kayitBtn} onPress={() => navigation.navigate('Kayit')}>
+          <Text style={s.kayitBtnText}>Hesabın yok mu? Kayıt Ol</Text>
         </TouchableOpacity>
       </View>
     );
@@ -68,8 +72,9 @@ export default function HesabimScreen({ navigation }) {
 
   return (
     <ScrollView style={s.container} showsVerticalScrollIndicator={false}>
-      {/* Profil */}
-      <View style={s.profil}>
+
+      {/* Profil Kartı */}
+      <View style={s.profilKart}>
         <View style={s.avatar}>
           <Text style={s.avatarText}>{basTurkce(kullanici.ad_soyad)}</Text>
         </View>
@@ -77,48 +82,119 @@ export default function HesabimScreen({ navigation }) {
           <Text style={s.profilAd}>{kullanici.ad_soyad}</Text>
           <Text style={s.profilEposta}>{kullanici.eposta}</Text>
           <View style={s.rolBadge}>
+            <Ionicons
+              name={kullanici.dukkan_id ? 'business-outline' : 'person-outline'}
+              size={11}
+              color="#16a34a"
+              style={{ marginRight: 4 }}
+            />
             <Text style={s.rolText}>{kullanici.dukkan_id ? 'Kurumsal Hesap' : 'Bireysel Hesap'}</Text>
           </View>
         </View>
+        <TouchableOpacity
+          style={s.duzenleBtn}
+          onPress={() => yakinda('Profil Düzenle')}
+        >
+          <Ionicons name="pencil-outline" size={16} color="#16a34a" />
+        </TouchableOpacity>
       </View>
-
-      {/* Bildirim bandı */}
-      <View style={s.bildirimBant}>
-        <Ionicons name="notifications-outline" size={20} color="#16a34a" style={{ marginRight: 10 }} />
-        <Text style={s.bildirimText}>
-          <Text style={{ fontWeight: '700' }}>Favori ilanlarınızdan</Text> ve{' '}
-          <Text style={{ fontWeight: '700' }}>size özel fırsatlardan</Text> haberdar olun!
-        </Text>
-      </View>
-
-      {/* Üyelik */}
-      <Bolum baslik="ÜYELİK">
-        <MenuItem icon="person-outline" label="Üyelik Bilgilerim" onPress={() => {}} />
-      </Bolum>
 
       {/* İlan Yönetimi */}
-      <Bolum baslik="İLAN YÖNETİMİ">
-        <MenuItem icon="list-outline"        label="İlanlarım"      onPress={() => navigation.navigate('Ilanlarim')} />
-        <MenuItem icon="bar-chart-outline"   label="İlan Raporlarım" onPress={() => {}} />
-        <MenuItem icon="add-circle-outline"  label="Yeni İlan Ver"  onPress={() => navigation.navigate('IlanVer')} badge="YENİ" />
-      </Bolum>
+      <View style={s.grup}>
+        <Text style={s.grupBaslik}>İLAN YÖNETİMİ</Text>
+        <View style={s.grupKutu}>
+          <MenuItem
+            icon="list-outline"
+            iconBg="#f0fdf4"
+            label="İlanlarım"
+            alt="Aktif ve pasif ilanlarınız"
+            onPress={() => navigation.navigate('Ilanlarim')}
+          />
+          <MenuItem
+            icon="add-circle-outline"
+            iconBg="#f0fdf4"
+            label="Yeni İlan Ver"
+            onPress={() => navigation.navigate('IlanVer')}
+            badge="YENİ"
+          />
+        </View>
+      </View>
 
       {/* Bana Özel */}
-      <Bolum baslik="BANA ÖZEL">
-        <MenuItem icon="heart-outline"       label="Favori Listelerim"      onPress={() => {}} />
-        <MenuItem icon="bookmark-outline"    label="Kayıtlı Aramalarım"    onPress={() => {}} />
-        <MenuItem icon="location-outline"    label="Kayıtlı Adreslerim"    onPress={() => {}} />
-      </Bolum>
+      <View style={s.grup}>
+        <Text style={s.grupBaslik}>BANA ÖZEL</Text>
+        <View style={s.grupKutu}>
+          <MenuItem
+            icon="heart-outline"
+            iconBg="#fff1f2"
+            label="Favorilerim"
+            alt="Beğendiğin ilanlar"
+            onPress={() => yakinda('Favorilerim')}
+          />
+          <MenuItem
+            icon="search-outline"
+            iconBg="#eff6ff"
+            label="Kayıtlı Aramalarım"
+            onPress={() => yakinda('Kayıtlı Aramalar')}
+          />
+          <MenuItem
+            icon="location-outline"
+            iconBg="#faf5ff"
+            label="Kayıtlı Adreslerim"
+            onPress={() => yakinda('Kayıtlı Adresler')}
+          />
+        </View>
+      </View>
 
-      {/* Çıkış */}
-      <View style={s.bolum}>
-        <View style={s.bolumIcerik}>
-          <TouchableOpacity style={[s.menuItem, { borderBottomWidth: 0 }]} onPress={cikis}>
-            <View style={s.menuSol}>
-              <Ionicons name="log-out-outline" size={20} color="#ef4444" style={{ marginRight: 14 }} />
-              <Text style={[s.menuLabel, { color: '#ef4444' }]}>Çıkış Yap</Text>
-            </View>
-          </TouchableOpacity>
+      {/* Hesap */}
+      <View style={s.grup}>
+        <Text style={s.grupBaslik}>HESAP</Text>
+        <View style={s.grupKutu}>
+          <MenuItem
+            icon="person-outline"
+            iconBg="#f0fdf4"
+            label="Üyelik Bilgilerim"
+            alt="Ad, e-posta, telefon"
+            onPress={() => yakinda('Üyelik Bilgileri')}
+          />
+          <MenuItem
+            icon="notifications-outline"
+            iconBg="#fff7ed"
+            label="Bildirim Ayarları"
+            onPress={() => yakinda('Bildirim Ayarları')}
+          />
+          <MenuItem
+            icon="shield-checkmark-outline"
+            iconBg="#f0fdf4"
+            label="Gizlilik ve Güvenlik"
+            onPress={() => yakinda('Gizlilik')}
+          />
+        </View>
+      </View>
+
+      {/* Diğer */}
+      <View style={s.grup}>
+        <Text style={s.grupBaslik}>DİĞER</Text>
+        <View style={s.grupKutu}>
+          <MenuItem
+            icon="help-circle-outline"
+            iconBg="#f0f9ff"
+            label="Yardım & Destek"
+            onPress={() => yakinda('Yardım')}
+          />
+          <MenuItem
+            icon="information-circle-outline"
+            iconBg="#f5f3ff"
+            label="Uygulama Hakkında"
+            onPress={() => Alert.alert('EmlakNode', 'Sürüm 1.0.0\nGeliştirici: EmlakNode Ekibi')}
+          />
+          <MenuItem
+            icon="log-out-outline"
+            iconBg="#fff1f2"
+            label="Çıkış Yap"
+            onPress={cikis}
+            danger
+          />
         </View>
       </View>
 
@@ -128,28 +204,34 @@ export default function HesabimScreen({ navigation }) {
 }
 
 const s = StyleSheet.create({
-  container:     { flex: 1, backgroundColor: '#f3f4f6' },
-  profil:        { flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: '#fff', padding: 20, marginBottom: 12 },
-  avatar:        { width: 56, height: 56, borderRadius: 16, backgroundColor: '#16a34a', justifyContent: 'center', alignItems: 'center' },
-  avatarText:    { color: '#fff', fontSize: 18, fontWeight: '900' },
-  profilAd:      { fontSize: 17, fontWeight: '800', color: '#111827' },
-  profilEposta:  { fontSize: 12, color: '#9ca3af', marginTop: 2 },
-  rolBadge:      { marginTop: 6, alignSelf: 'flex-start', backgroundColor: '#f0fdf4', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8 },
-  rolText:       { fontSize: 11, fontWeight: '700', color: '#16a34a' },
-  bildirimBant:  { flexDirection: 'row', alignItems: 'flex-start', backgroundColor: '#f0fdf4', marginHorizontal: 16, marginBottom: 12, padding: 14, borderRadius: 14, borderWidth: 1, borderColor: '#bbf7d0' },
-  bildirimText:  { flex: 1, fontSize: 13, color: '#374151', lineHeight: 20 },
-  bolum:         { marginBottom: 12 },
-  bolumBaslik:   { fontSize: 11, fontWeight: '700', color: '#9ca3af', paddingHorizontal: 20, paddingVertical: 8, letterSpacing: 0.8 },
-  bolumIcerik:   { backgroundColor: '#fff' },
-  menuItem:      { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 15, borderBottomWidth: 1, borderBottomColor: '#f9fafb' },
-  menuSol:       { flexDirection: 'row', alignItems: 'center' },
-  menuLabel:     { fontSize: 15, color: '#111827', fontWeight: '500' },
-  badge:         { backgroundColor: '#dcfce7', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 8 },
-  badgeText:     { fontSize: 10, fontWeight: '800', color: '#16a34a' },
-  girisGerekli:  { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 12, padding: 40, backgroundColor: '#f9fafb' },
-  girisBaslik:   { fontSize: 20, fontWeight: '800', color: '#111827' },
-  girisAlt:      { fontSize: 14, color: '#6b7280', textAlign: 'center' },
-  girisBtn:      { backgroundColor: '#16a34a', paddingHorizontal: 40, paddingVertical: 14, borderRadius: 14, marginTop: 8 },
-  girisBtnText:  { color: '#fff', fontSize: 15, fontWeight: '800' },
-  kayitLink:     { fontSize: 14, color: '#6b7280', marginTop: 4 },
+  container:      { flex: 1, backgroundColor: '#f5f5f5' },
+
+  profilKart:     { flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: '#fff', margin: 16, borderRadius: 20, padding: 18, elevation: 1, shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 6 },
+  avatar:         { width: 60, height: 60, borderRadius: 30, backgroundColor: '#16a34a', justifyContent: 'center', alignItems: 'center' },
+  avatarText:     { color: '#fff', fontSize: 20, fontWeight: '900' },
+  profilAd:       { fontSize: 17, fontWeight: '800', color: '#111827' },
+  profilEposta:   { fontSize: 12, color: '#9ca3af', marginTop: 2 },
+  rolBadge:       { flexDirection: 'row', alignItems: 'center', marginTop: 6, alignSelf: 'flex-start', backgroundColor: '#f0fdf4', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8, borderWidth: 1, borderColor: '#bbf7d0' },
+  rolText:        { fontSize: 11, fontWeight: '700', color: '#16a34a' },
+  duzenleBtn:     { width: 36, height: 36, borderRadius: 18, borderWidth: 1.5, borderColor: '#e5e7eb', justifyContent: 'center', alignItems: 'center' },
+
+  grup:           { marginBottom: 4 },
+  grupBaslik:     { fontSize: 11, fontWeight: '700', color: '#9ca3af', paddingHorizontal: 20, paddingTop: 16, paddingBottom: 8, letterSpacing: 0.8 },
+  grupKutu:       { backgroundColor: '#fff', marginHorizontal: 16, borderRadius: 16, overflow: 'hidden', borderWidth: 1, borderColor: '#f0f0f0' },
+
+  menuItem:       { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 13, gap: 12, borderBottomWidth: 1, borderBottomColor: '#f9fafb' },
+  menuIkon:       { width: 38, height: 38, borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
+  menuLabel:      { fontSize: 15, fontWeight: '600', color: '#111827' },
+  menuAlt:        { fontSize: 12, color: '#9ca3af', marginTop: 1 },
+  badge:          { backgroundColor: '#dcfce7', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 8, marginRight: 4 },
+  badgeText:      { fontSize: 10, fontWeight: '800', color: '#16a34a' },
+
+  girisGerekli:   { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 12, padding: 40, backgroundColor: '#f9fafb' },
+  avatarBuyuk:    { width: 90, height: 90, borderRadius: 45, backgroundColor: '#d1d5db', justifyContent: 'center', alignItems: 'center', marginBottom: 8 },
+  girisBaslik:    { fontSize: 20, fontWeight: '800', color: '#111827' },
+  girisAlt:       { fontSize: 14, color: '#6b7280', textAlign: 'center', lineHeight: 22 },
+  girisBtn:       { backgroundColor: '#16a34a', paddingHorizontal: 48, paddingVertical: 15, borderRadius: 14, marginTop: 8, width: '100%', alignItems: 'center' },
+  girisBtnText:   { color: '#fff', fontSize: 16, fontWeight: '800' },
+  kayitBtn:       { paddingVertical: 12 },
+  kayitBtnText:   { fontSize: 14, color: '#16a34a', fontWeight: '700' },
 });

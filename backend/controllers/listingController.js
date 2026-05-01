@@ -45,6 +45,8 @@ const ilanEkle = async (req, res) => {
         otopark,
         esyali,
         site_icerisinde,
+        krediye_uygunluk,
+        takas,
         sehir,
         ilce,
         mahalle,
@@ -82,9 +84,10 @@ const ilanEkle = async (req, res) => {
         `INSERT INTO ilanlar
             (baslik, aciklama, fiyat, tip, emlak_turu, metrekare, oda_sayisi, bina_yasi,
              kat, toplam_kat, isinma_tipi, banyo_sayisi, balkon, asansor, otopark,
-             esyali, site_icerisinde, sehir, ilce, mahalle, enlem, boylam, gorsel,
+             esyali, site_icerisinde, krediye_uygunluk, takas,
+             sehir, ilce, mahalle, enlem, boylam, gorsel,
              ai_aciklama, dukkan_id, kullanici_id)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28)
          RETURNING *`,
         [
             baslik.trim(),
@@ -104,6 +107,8 @@ const ilanEkle = async (req, res) => {
             otopark             === true || otopark === 'true' ? true : false,
             esyali              === true || esyali === 'true' ? true : false,
             site_icerisinde     === true || site_icerisinde === 'true' ? true : false,
+            krediye_uygunluk    != null ? (krediye_uygunluk === true || krediye_uygunluk === 'true') : null,
+            takas               != null ? (takas === true || takas === 'true') : null,
             sehir               || null,
             ilce                || null,
             mahalle             || null,
@@ -132,7 +137,8 @@ const ilanEkle = async (req, res) => {
 const ilanlariGetir = async (req, res) => {
     const {
         sehir, ilce, min_fiyat, max_fiyat, oda_sayisi, tip, emlak_turu,
-        dukkan_id, kullanici_id, min_metrekare, max_metrekare, arama, limit = 50, sayfa = 1,
+        dukkan_id, kullanici_id, min_metrekare, max_metrekare, arama,
+        fiyat_dustu, limit = 50, sayfa = 1,
     } = req.query;
 
     const kosullar = [];
@@ -151,6 +157,7 @@ const ilanlariGetir = async (req, res) => {
     if (dukkan_id)     { kosullar.push(`i.dukkan_id = $${paramSayac++}`);   params.push(parseInt(dukkan_id)); }
     if (kullanici_id)  { kosullar.push(`i.kullanici_id = $${paramSayac++}`); params.push(parseInt(kullanici_id)); }
     if (arama)         { kosullar.push(`(i.baslik ILIKE $${paramSayac} OR i.aciklama ILIKE $${paramSayac})`); params.push(`%${arama}%`); paramSayac++; }
+    if (fiyat_dustu)   { kosullar.push(`i.onceki_fiyat IS NOT NULL AND i.onceki_fiyat > i.fiyat`); }
 
     const whereClause = kosullar.length > 0 ? `WHERE ${kosullar.join(' AND ')}` : '';
     const limitSayi   = Math.min(parseInt(limit), 100);
@@ -158,7 +165,7 @@ const ilanlariGetir = async (req, res) => {
     params.push(limitSayi, offset);
 
     const ilanlar = await sorgu(
-        `SELECT i.*, d.dukkan_adi,
+        `SELECT i.*, i.onceki_fiyat, d.dukkan_adi,
                 COALESCE(i.sehir, d.sehir) AS sehir,
                 COALESCE(i.ilce, d.ilce)   AS ilce
          FROM ilanlar i
@@ -239,8 +246,8 @@ const ilanGuncelle = async (req, res) => {
         baslik, aciklama, fiyat, tip, emlak_turu,
         metrekare, oda_sayisi, bina_yasi, kat, toplam_kat,
         isinma_tipi, banyo_sayisi, balkon, asansor, otopark,
-        esyali, site_icerisinde, sehir, ilce, mahalle,
-        enlem, boylam, gorsel, ai_aciklama,
+        esyali, site_icerisinde, krediye_uygunluk, takas,
+        sehir, ilce, mahalle, enlem, boylam, gorsel, ai_aciklama,
     } = req.body;
 
     // En az bir alan gönderilmeli
@@ -280,8 +287,10 @@ const ilanGuncelle = async (req, res) => {
     alanEkle('balkon',           balkon);
     alanEkle('asansor',          asansor);
     alanEkle('otopark',          otopark);
-    alanEkle('esyali',           esyali);
+    alanEkle('esyali',            esyali);
     alanEkle('site_icerisinde',  site_icerisinde);
+    alanEkle('krediye_uygunluk', krediye_uygunluk);
+    alanEkle('takas',            takas);
     alanEkle('sehir',            sehir);
     alanEkle('ilce',             ilce);
     alanEkle('mahalle',          mahalle);

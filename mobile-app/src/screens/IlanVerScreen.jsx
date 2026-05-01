@@ -1,14 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity,
-  TextInput, StyleSheet, Alert, ActivityIndicator,
+  TextInput, StyleSheet, Alert, ActivityIndicator, Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as ImagePicker from 'expo-image-picker';
+import * as Location from 'expo-location';
 import api from '../services/api';
 
-const TIPLER = ['Satılık', 'Kiralık'];
-const TURLER = ['Daire', 'Villa', 'Müstakil Ev', 'Arsa', 'İşyeri', 'Depo'];
+const TIPLER      = ['Satılık', 'Kiralık'];
+const TURLER      = ['Daire', 'Villa', 'Müstakil Ev', 'Arsa', 'İşyeri', 'Depo'];
+const ISINMA      = ['Kombi', 'Doğalgaz', 'Merkezi', 'Klima', 'Soba', 'Yok'];
+const ODA_SECENEKLERI = ['Stüdyo', '1+1', '2+1', '3+1', '4+1', '5+1', '6+1', '7+'];
 
 const Alan = ({ label, value, onChangeText, placeholder, keyboardType = 'default', zorunlu }) => (
   <View style={s.alanWrap}>
@@ -20,6 +24,8 @@ const Alan = ({ label, value, onChangeText, placeholder, keyboardType = 'default
       placeholder={placeholder}
       placeholderTextColor="#9ca3af"
       keyboardType={keyboardType}
+      autoCorrect={false}
+      autoCapitalize="none"
     />
   </View>
 );
@@ -27,15 +33,85 @@ const Alan = ({ label, value, onChangeText, placeholder, keyboardType = 'default
 export default function IlanVerScreen({ navigation }) {
   const [kullanici, setKullanici] = useState(null);
   const [yukleniyor, setYukleniyor] = useState(false);
+  const [konumAlinıyor, setKonumAlıniyor] = useState(false);
+  const [secilenGorsel, setSecilenGorsel] = useState(null);
   const [form, setForm] = useState({
     tip: 'Satılık', emlak_turu: 'Daire',
     baslik: '', aciklama: '', fiyat: '', metrekare: '',
-    oda_sayisi: '', bina_yasi: '', kat: '', sehir: '', ilce: '', mahalle: '', gorsel: '',
+    oda_sayisi: '', bina_yasi: '', kat: '', toplam_kat: '',
+    banyo_sayisi: '', isinma_tipi: '',
+    balkon: false, asansor: false, otopark: false,
+    esyali: false, site_icerisinde: false,
+    krediye_uygunluk: false, takas: false,
+    sehir: '', ilce: '', mahalle: '', gorsel: '',
+    enlem: '', boylam: '',
   });
 
   useEffect(() => {
     AsyncStorage.getItem('kullanici').then(v => { if (v) setKullanici(JSON.parse(v)); });
   }, []);
+
+  const fotografSec = async (kaynak) => {
+    let izin;
+    if (kaynak === 'kamera') {
+      izin = await ImagePicker.requestCameraPermissionsAsync();
+    } else {
+      izin = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    }
+
+    if (!izin.granted) {
+      Alert.alert('İzin Gerekli', kaynak === 'kamera' ? 'Kamera erişimi verilmedi.' : 'Galeri erişimi verilmedi.');
+      return;
+    }
+
+    const sonuc = kaynak === 'kamera'
+      ? await ImagePicker.launchCameraAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, quality: 0.8, allowsEditing: true, aspect: [16, 9] })
+      : await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, quality: 0.8, allowsEditing: true, aspect: [16, 9] });
+
+    if (!sonuc.canceled) {
+      setSecilenGorsel(sonuc.assets[0].uri);
+    }
+  };
+
+  const fotografSecModal = () => {
+    Alert.alert('Fotoğraf Ekle', 'Nereden eklemek istersiniz?', [
+      { text: 'Kamera', onPress: () => fotografSec('kamera') },
+      { text: 'Galeri', onPress: () => fotografSec('galeri') },
+      { text: 'İptal', style: 'cancel' },
+    ]);
+  };
+
+  const konumAl = async () => {
+    setKonumAlıniyor(true);
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('İzin Gerekli', 'Konum erişimi verilmedi.'); return;
+      }
+      const konum = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+      const { latitude, longitude } = konum.coords;
+
+      const adres = await Location.reverseGeocodeAsync({ latitude, longitude });
+      if (adres.length > 0) {
+        const a = adres[0];
+        setForm(f => ({
+          ...f,
+          enlem: String(latitude),
+          boylam: String(longitude),
+          sehir:   a.city    || a.region  || f.sehir,
+          ilce:    a.district || a.subregion || f.ilce,
+          mahalle: a.street  || a.name    || f.mahalle,
+        }));
+      } else {
+        setForm(f => ({ ...f, enlem: String(latitude), boylam: String(longitude) }));
+      }
+      Alert.alert('Konum Alındı', 'Adres bilgileri otomatik dolduruldu.');
+    } catch {
+      Alert.alert('Hata', 'Konum alınamadı, tekrar deneyin.');
+    } finally {
+      setKonumAlıniyor(false);
+    }
+  };
 
   const gonder = async () => {
     if (!form.baslik || !form.fiyat || !form.metrekare) {
@@ -45,8 +121,15 @@ export default function IlanVerScreen({ navigation }) {
     try {
       await api.post('/ilanlar', {
         ...form,
-        fiyat: parseFloat(form.fiyat),
-        metrekare: parseFloat(form.metrekare),
+        fiyat:             parseFloat(form.fiyat),
+        metrekare:         parseFloat(form.metrekare),
+        bina_yasi:         form.bina_yasi    ? parseInt(form.bina_yasi)    : undefined,
+        kat:               form.kat          ? parseInt(form.kat)          : undefined,
+        toplam_kat:        form.toplam_kat   ? parseInt(form.toplam_kat)   : undefined,
+        banyo_sayisi:      form.banyo_sayisi ? parseInt(form.banyo_sayisi) : undefined,
+        gorsel:            secilenGorsel || form.gorsel || undefined,
+        enlem:             form.enlem ? parseFloat(form.enlem) : undefined,
+        boylam:            form.boylam ? parseFloat(form.boylam) : undefined,
       });
       Alert.alert('Başarılı!', 'İlanınız yayınlandı.', [
         { text: 'Tamam', onPress: () => navigation.goBack() },
@@ -99,6 +182,26 @@ export default function IlanVerScreen({ navigation }) {
           ))}
         </View>
 
+        {/* Fotoğraf */}
+        <Text style={s.grupBaslik}>Fotoğraf</Text>
+        <TouchableOpacity style={s.fotografBtn} onPress={fotografSecModal}>
+          {secilenGorsel ? (
+            <Image source={{ uri: secilenGorsel }} style={s.onizleme} resizeMode="cover" />
+          ) : (
+            <View style={s.fotografPlaceholder}>
+              <Ionicons name="camera-outline" size={36} color="#9ca3af" />
+              <Text style={s.fotografPlaceholderText}>Fotoğraf Ekle</Text>
+              <Text style={s.fotografPlaceholderAlt}>Kamera veya galeriden seç</Text>
+            </View>
+          )}
+        </TouchableOpacity>
+        {secilenGorsel && (
+          <TouchableOpacity style={s.fotografKaldir} onPress={() => setSecilenGorsel(null)}>
+            <Ionicons name="trash-outline" size={14} color="#ef4444" />
+            <Text style={s.fotografKaldirText}>Fotoğrafı Kaldır</Text>
+          </TouchableOpacity>
+        )}
+
         {/* Temel Bilgiler */}
         <Text style={s.grupBaslik}>İlan Bilgileri</Text>
         <Alan label="İlan Başlığı" value={form.baslik} onChangeText={v => setForm(f => ({ ...f, baslik: v }))} placeholder="Örn: Kadıköy 3+1 Daire" zorunlu />
@@ -106,27 +209,108 @@ export default function IlanVerScreen({ navigation }) {
           <Text style={s.alanLabel}>Açıklama</Text>
           <TextInput style={[s.alanInput, { height: 90, textAlignVertical: 'top' }]}
             value={form.aciklama} onChangeText={v => setForm(f => ({ ...f, aciklama: v }))}
-            placeholder="İlan detayları..." placeholderTextColor="#9ca3af" multiline />
+            placeholder="İlan detayları..." placeholderTextColor="#9ca3af" multiline
+            autoCorrect={false} autoCapitalize="none" />
         </View>
         <View style={{ flexDirection: 'row', gap: 12 }}>
           <View style={{ flex: 1 }}>
             <Alan label="Fiyat (₺)" value={form.fiyat} onChangeText={v => setForm(f => ({ ...f, fiyat: v }))} placeholder="4500000" keyboardType="numeric" zorunlu />
           </View>
           <View style={{ flex: 1 }}>
-            <Alan label="Metrekare" value={form.metrekare} onChangeText={v => setForm(f => ({ ...f, metrekare: v }))} placeholder="120" keyboardType="numeric" zorunlu />
+            <Alan label="Metrekare (m²)" value={form.metrekare} onChangeText={v => setForm(f => ({ ...f, metrekare: v }))} placeholder="120" keyboardType="numeric" zorunlu />
+          </View>
+        </View>
+
+        {/* Oda Sayısı Seçici */}
+        <View style={s.alanWrap}>
+          <Text style={s.alanLabel}>Oda Sayısı</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
+            {ODA_SECENEKLERI.map(o => (
+              <TouchableOpacity
+                key={o}
+                onPress={() => setForm(f => ({ ...f, oda_sayisi: f.oda_sayisi === o ? '' : o }))}
+                style={[s.chipBtn, form.oda_sayisi === o && s.chipBtnAktif]}
+              >
+                <Text style={[s.chipBtnText, form.oda_sayisi === o && s.chipBtnTextAktif]}>{o}</Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+
+        <View style={{ flexDirection: 'row', gap: 12 }}>
+          <View style={{ flex: 1 }}>
+            <Alan label="Bulunduğu Kat" value={form.kat} onChangeText={v => setForm(f => ({ ...f, kat: v }))} placeholder="3" keyboardType="numeric" />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Alan label="Toplam Kat" value={form.toplam_kat} onChangeText={v => setForm(f => ({ ...f, toplam_kat: v }))} placeholder="8" keyboardType="numeric" />
           </View>
         </View>
         <View style={{ flexDirection: 'row', gap: 12 }}>
           <View style={{ flex: 1 }}>
-            <Alan label="Oda Sayısı" value={form.oda_sayisi} onChangeText={v => setForm(f => ({ ...f, oda_sayisi: v }))} placeholder="3+1" />
+            <Alan label="Banyo Sayısı" value={form.banyo_sayisi} onChangeText={v => setForm(f => ({ ...f, banyo_sayisi: v }))} placeholder="1" keyboardType="numeric" />
           </View>
           <View style={{ flex: 1 }}>
-            <Alan label="Kat" value={form.kat} onChangeText={v => setForm(f => ({ ...f, kat: v }))} placeholder="3" keyboardType="numeric" />
+            <Alan label="Bina Yaşı" value={form.bina_yasi} onChangeText={v => setForm(f => ({ ...f, bina_yasi: v }))} placeholder="0=sıfır" keyboardType="numeric" />
           </View>
+        </View>
+
+        {/* Isıtma Tipi */}
+        <View style={s.alanWrap}>
+          <Text style={s.alanLabel}>Isıtma Tipi</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
+            {ISINMA.map(i => (
+              <TouchableOpacity
+                key={i}
+                onPress={() => setForm(f => ({ ...f, isinma_tipi: f.isinma_tipi === i ? '' : i }))}
+                style={[s.chipBtn, form.isinma_tipi === i && s.chipBtnAktif]}
+              >
+                <Text style={[s.chipBtnText, form.isinma_tipi === i && s.chipBtnTextAktif]}>{i}</Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+
+        {/* Özellikler */}
+        <Text style={s.grupBaslik}>Özellikler</Text>
+        <View style={s.toggleGrid}>
+          {[
+            ['balkon',           'Balkon'],
+            ['asansor',          'Asansör'],
+            ['otopark',          'Otopark'],
+            ['esyali',           'Eşyalı'],
+            ['site_icerisinde',  'Site İçi'],
+            ['krediye_uygunluk', 'Krediye Uygun'],
+            ['takas',            'Takas'],
+          ].map(([key, label]) => (
+            <TouchableOpacity
+              key={key}
+              onPress={() => setForm(f => ({ ...f, [key]: !f[key] }))}
+              style={[s.toggleBtn, form[key] && s.toggleBtnAktif]}
+            >
+              <Ionicons
+                name={form[key] ? 'checkmark-circle' : 'ellipse-outline'}
+                size={16}
+                color={form[key] ? '#fff' : '#9ca3af'}
+              />
+              <Text style={[s.toggleText, form[key] && s.toggleTextAktif]}>{label}</Text>
+            </TouchableOpacity>
+          ))}
         </View>
 
         {/* Konum */}
         <Text style={s.grupBaslik}>Konum</Text>
+        <TouchableOpacity style={s.gpsBtn} onPress={konumAl} disabled={konumAlinıyor}>
+          {konumAlinıyor ? (
+            <ActivityIndicator size="small" color="#16a34a" />
+          ) : (
+            <Ionicons name="locate-outline" size={18} color="#16a34a" />
+          )}
+          <Text style={s.gpsBtnText}>
+            {konumAlinıyor ? 'Konum alınıyor...' : 'GPS ile Konum Al'}
+          </Text>
+          {form.enlem ? <Ionicons name="checkmark-circle" size={16} color="#16a34a" /> : null}
+        </TouchableOpacity>
+
         <View style={{ flexDirection: 'row', gap: 12 }}>
           <View style={{ flex: 1 }}>
             <Alan label="Şehir" value={form.sehir} onChangeText={v => setForm(f => ({ ...f, sehir: v }))} placeholder="İstanbul" />
@@ -136,13 +320,17 @@ export default function IlanVerScreen({ navigation }) {
           </View>
         </View>
         <Alan label="Mahalle" value={form.mahalle} onChangeText={v => setForm(f => ({ ...f, mahalle: v }))} placeholder="Moda Mah." />
-        <Alan label="Görsel URL" value={form.gorsel} onChangeText={v => setForm(f => ({ ...f, gorsel: v }))} placeholder="https://..." />
 
         {/* Gönder */}
         <TouchableOpacity style={s.gondBtn} onPress={gonder} disabled={yukleniyor}>
           {yukleniyor
             ? <ActivityIndicator color="#fff" />
-            : <><Ionicons name="checkmark-circle-outline" size={20} color="#fff" /><Text style={s.gondBtnText}>İlanı Yayınla</Text></>
+            : (
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <Ionicons name="checkmark-circle-outline" size={20} color="#fff" />
+                <Text style={s.gondBtnText}>İlanı Yayınla</Text>
+              </View>
+            )
           }
         </TouchableOpacity>
 
@@ -153,26 +341,44 @@ export default function IlanVerScreen({ navigation }) {
 }
 
 const s = StyleSheet.create({
-  container:      { flex: 1, backgroundColor: '#f9fafb' },
-  icerik:         { padding: 16 },
-  grupBaslik:     { fontSize: 12, fontWeight: '700', color: '#6b7280', textTransform: 'uppercase', letterSpacing: 0.6, marginTop: 20, marginBottom: 10 },
-  secimRow:       { flexDirection: 'row', gap: 10 },
-  secimBtn:       { flex: 1, paddingVertical: 14, borderRadius: 14, borderWidth: 2, borderColor: '#e5e7eb', alignItems: 'center' },
-  secimBtnAktif:  { borderColor: '#16a34a', backgroundColor: '#f0fdf4' },
-  secimText:      { fontSize: 14, fontWeight: '700', color: '#6b7280' },
-  secimTextAktif: { color: '#16a34a' },
-  secimGrid:      { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  turBtn:         { paddingHorizontal: 14, paddingVertical: 9, borderRadius: 10, borderWidth: 2, borderColor: '#e5e7eb' },
-  turBtnAktif:    { borderColor: '#16a34a', backgroundColor: '#f0fdf4' },
-  turText:        { fontSize: 13, fontWeight: '600', color: '#6b7280' },
-  turTextAktif:   { color: '#16a34a' },
-  alanWrap:       { marginBottom: 12 },
-  alanLabel:      { fontSize: 12, fontWeight: '600', color: '#374151', marginBottom: 6 },
-  alanInput:      { backgroundColor: '#fff', borderWidth: 1, borderColor: '#e5e7eb', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 11, fontSize: 14, color: '#111827' },
-  gondBtn:        { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: '#16a34a', paddingVertical: 16, borderRadius: 16, marginTop: 24 },
-  gondBtnText:    { color: '#fff', fontSize: 16, fontWeight: '800' },
-  girisGerekli:   { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 16, padding: 40, backgroundColor: '#f9fafb' },
-  girisBaslik:    { fontSize: 18, fontWeight: '800', color: '#111827' },
-  girisBtn:       { backgroundColor: '#16a34a', paddingHorizontal: 40, paddingVertical: 14, borderRadius: 14 },
-  girisBtnText:   { color: '#fff', fontSize: 15, fontWeight: '800' },
+  container:               { flex: 1, backgroundColor: '#f9fafb' },
+  icerik:                  { padding: 16 },
+  grupBaslik:              { fontSize: 12, fontWeight: '700', color: '#6b7280', textTransform: 'uppercase', letterSpacing: 0.6, marginTop: 20, marginBottom: 10 },
+  secimRow:                { flexDirection: 'row', gap: 10 },
+  secimBtn:                { flex: 1, paddingVertical: 14, borderRadius: 14, borderWidth: 2, borderColor: '#e5e7eb', alignItems: 'center' },
+  secimBtnAktif:           { borderColor: '#16a34a', backgroundColor: '#f0fdf4' },
+  secimText:               { fontSize: 14, fontWeight: '700', color: '#6b7280' },
+  secimTextAktif:          { color: '#16a34a' },
+  secimGrid:               { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  turBtn:                  { paddingHorizontal: 14, paddingVertical: 9, borderRadius: 10, borderWidth: 2, borderColor: '#e5e7eb' },
+  turBtnAktif:             { borderColor: '#16a34a', backgroundColor: '#f0fdf4' },
+  turText:                 { fontSize: 13, fontWeight: '600', color: '#6b7280' },
+  turTextAktif:            { color: '#16a34a' },
+  fotografBtn:             { borderRadius: 16, overflow: 'hidden', borderWidth: 2, borderColor: '#e5e7eb', borderStyle: 'dashed', minHeight: 160 },
+  fotografPlaceholder:     { flex: 1, minHeight: 160, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f9fafb', gap: 6 },
+  fotografPlaceholderText: { fontSize: 14, fontWeight: '700', color: '#6b7280' },
+  fotografPlaceholderAlt:  { fontSize: 12, color: '#9ca3af' },
+  onizleme:                { width: '100%', height: 200 },
+  fotografKaldir:          { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 6, alignSelf: 'flex-end' },
+  fotografKaldirText:      { fontSize: 12, color: '#ef4444', fontWeight: '600' },
+  gpsBtn:                  { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#f0fdf4', borderWidth: 1, borderColor: '#86efac', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12, marginBottom: 12 },
+  gpsBtnText:              { flex: 1, fontSize: 14, fontWeight: '600', color: '#16a34a' },
+  alanWrap:                { marginBottom: 12 },
+  alanLabel:               { fontSize: 12, fontWeight: '600', color: '#374151', marginBottom: 6 },
+  alanInput:               { backgroundColor: '#fff', borderWidth: 1, borderColor: '#e5e7eb', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 11, fontSize: 14, color: '#111827' },
+  chipBtn:                 { paddingHorizontal: 14, paddingVertical: 9, borderRadius: 20, borderWidth: 1.5, borderColor: '#e5e7eb', backgroundColor: '#fafafa' },
+  chipBtnAktif:            { borderColor: '#16a34a', backgroundColor: '#f0fdf4' },
+  chipBtnText:             { fontSize: 13, fontWeight: '600', color: '#6b7280' },
+  chipBtnTextAktif:        { color: '#16a34a' },
+  toggleGrid:              { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 12 },
+  toggleBtn:               { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 9, borderRadius: 20, borderWidth: 1.5, borderColor: '#e5e7eb', backgroundColor: '#fafafa' },
+  toggleBtnAktif:          { borderColor: '#16a34a', backgroundColor: '#16a34a' },
+  toggleText:              { fontSize: 13, fontWeight: '600', color: '#6b7280' },
+  toggleTextAktif:         { color: '#fff' },
+  gondBtn:                 { alignItems: 'center', justifyContent: 'center', backgroundColor: '#16a34a', paddingVertical: 16, borderRadius: 16, marginTop: 24 },
+  gondBtnText:             { color: '#fff', fontSize: 16, fontWeight: '800' },
+  girisGerekli:            { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 16, padding: 40, backgroundColor: '#f9fafb' },
+  girisBaslik:             { fontSize: 18, fontWeight: '800', color: '#111827' },
+  girisBtn:                { backgroundColor: '#16a34a', paddingHorizontal: 40, paddingVertical: 14, borderRadius: 14 },
+  girisBtnText:            { color: '#fff', fontSize: 15, fontWeight: '800' },
 });

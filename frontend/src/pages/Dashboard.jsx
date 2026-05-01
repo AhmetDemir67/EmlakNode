@@ -19,7 +19,8 @@ const BOSLUK = {
   tip: 'Satılık', emlak_turu: 'Daire', baslik: '', aciklama: '',
   fiyat: '', metrekare: '', oda_sayisi: '', bina_yasi: '', kat: '', toplam_kat: '',
   isinma_tipi: '', banyo_sayisi: '', balkon: false, asansor: false, otopark: false,
-  esyali: false, site_icerisinde: false, sehir: '', ilce: '', mahalle: '', gorsel: '',
+  esyali: false, site_icerisinde: false, krediye_uygunluk: false, takas: false,
+  sehir: '', ilce: '', mahalle: '', gorsel: '',
 };
 const ADIMLAR = ['İlan Tipi', 'Özellikler', 'Konum & Fiyat'];
 
@@ -608,7 +609,11 @@ export default function Dashboard() {
             <div>
               <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Özellikler</p>
               <div className="flex flex-wrap gap-2">
-                {[['balkon','Balkon'],['asansor','Asansör'],['otopark','Otopark'],['esyali','Eşyalı'],['site_icerisinde','Site İçinde']].map(([n, l]) => (
+                {[
+                  ['balkon','Balkon'],['asansor','Asansör'],['otopark','Otopark'],
+                  ['esyali','Eşyalı'],['site_icerisinde','Site İçinde'],
+                  ['krediye_uygunluk','Krediye Uygun'],['takas','Takas'],
+                ].map(([n, l]) => (
                   <Toggle key={n} name={n} label={l} value={form[n]} onChange={handleChange} />
                 ))}
               </div>
