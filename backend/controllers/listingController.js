@@ -53,6 +53,7 @@ const ilanEkle = async (req, res) => {
         enlem,
         boylam,
         gorsel,
+        fotograflar,
         ai_aciklama,
     } = req.body;
 
@@ -79,15 +80,23 @@ const ilanEkle = async (req, res) => {
         });
     }
 
+    // Fotoğraflar dizisini normalize et
+    let fotograflarArray = null;
+    if (Array.isArray(fotograflar) && fotograflar.length > 0) {
+        fotograflarArray = fotograflar;
+    }
+    // Birinci fotoğrafı gorsel alanına fallback olarak kullan
+    const gorselUrl = gorsel || (fotograflarArray && fotograflarArray[0]) || null;
+
     // --- 5. Veritabanına kaydet ---
     const yeniIlan = await sorgu(
         `INSERT INTO ilanlar
             (baslik, aciklama, fiyat, tip, emlak_turu, metrekare, oda_sayisi, bina_yasi,
              kat, toplam_kat, isinma_tipi, banyo_sayisi, balkon, asansor, otopark,
              esyali, site_icerisinde, krediye_uygunluk, takas,
-             sehir, ilce, mahalle, enlem, boylam, gorsel,
+             sehir, ilce, mahalle, enlem, boylam, gorsel, fotograflar,
              ai_aciklama, dukkan_id, kullanici_id)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29)
          RETURNING *`,
         [
             baslik.trim(),
@@ -114,7 +123,8 @@ const ilanEkle = async (req, res) => {
             mahalle             || null,
             enlem               ? parseFloat(enlem)      : null,
             boylam              ? parseFloat(boylam)     : null,
-            gorsel              || null,
+            gorselUrl,
+            fotograflarArray ? JSON.stringify(fotograflarArray) : null,
             ai_aciklama         || null,
             dukkan_id           || null,
             kullanici_id,
@@ -218,12 +228,13 @@ const ilanGetir = async (req, res) => {
 // Korumalı: Sadece ilanın sahibi dükkan veya admin güncelleyebilir
 // ----------------------------------------------------------------
 const ilanGuncelle = async (req, res) => {
+  try {
     const { id } = req.params;
     const { id: kullanici_id, rol, dukkan_id } = req.kullanici;
 
     // --- 1. İlan var mı ve kime ait? ---
     const mevcutIlan = await sorgu(
-        'SELECT id, dukkan_id, kullanici_id FROM ilanlar WHERE id = $1',
+        'SELECT id, dukkan_id, kullanici_id, fiyat, onceki_fiyat FROM ilanlar WHERE id = $1',
         [id]
     );
 
@@ -233,7 +244,9 @@ const ilanGuncelle = async (req, res) => {
 
     // --- 2. Yetki: admin, ilanın sahibi kullanıcı veya aynı dükkan ---
     const ilan = mevcutIlan.rows[0];
-    const sahibi = ilan.kullanici_id === kullanici_id || (dukkan_id && ilan.dukkan_id === dukkan_id);
+    const sahibi =
+        parseInt(ilan.kullanici_id) === parseInt(kullanici_id) ||
+        (dukkan_id && parseInt(ilan.dukkan_id) === parseInt(dukkan_id));
     if (rol !== 'admin' && !sahibi) {
         return res.status(403).json({
             basarili: false,
@@ -247,7 +260,7 @@ const ilanGuncelle = async (req, res) => {
         metrekare, oda_sayisi, bina_yasi, kat, toplam_kat,
         isinma_tipi, banyo_sayisi, balkon, asansor, otopark,
         esyali, site_icerisinde, krediye_uygunluk, takas,
-        sehir, ilce, mahalle, enlem, boylam, gorsel, ai_aciklama,
+        sehir, ilce, mahalle, enlem, boylam, gorsel, fotograflar, ai_aciklama,
     } = req.body;
 
     // En az bir alan gönderilmeli
@@ -263,17 +276,26 @@ const ilanGuncelle = async (req, res) => {
     const params        = [];
     let   paramSayac    = 1;
 
-    const alanEkle = (isim, deger, tip = 'string') => {
+    const alanEkle = (isim, deger, tur = 'string') => {
         if (deger !== undefined) {
             guncellemeler.push(`${isim} = $${paramSayac++}`);
-            if (tip === 'float')   params.push(parseFloat(deger));
-            else if (tip === 'int') params.push(parseInt(deger));
+            if (tur === 'float')   params.push(parseFloat(deger));
+            else if (tur === 'int') params.push(parseInt(deger));
             else                   params.push(deger);
         }
     };
 
     alanEkle('baslik',           baslik);
     alanEkle('aciklama',         aciklama);
+
+    // Fiyat düştüyse onceki_fiyat'ı otomatik kaydet
+    if (fiyat !== undefined) {
+        const yeniFiyat   = parseFloat(fiyat);
+        const mevcutFiyat = parseFloat(ilan.fiyat);
+        guncellemeler.push(`onceki_fiyat = $${paramSayac++}`);
+        params.push(yeniFiyat < mevcutFiyat ? mevcutFiyat : null);
+    }
+
     alanEkle('fiyat',            fiyat,       'float');
     alanEkle('tip',              tip);
     alanEkle('emlak_turu',       emlak_turu);
@@ -287,7 +309,7 @@ const ilanGuncelle = async (req, res) => {
     alanEkle('balkon',           balkon);
     alanEkle('asansor',          asansor);
     alanEkle('otopark',          otopark);
-    alanEkle('esyali',            esyali);
+    alanEkle('esyali',           esyali);
     alanEkle('site_icerisinde',  site_icerisinde);
     alanEkle('krediye_uygunluk', krediye_uygunluk);
     alanEkle('takas',            takas);
@@ -297,6 +319,11 @@ const ilanGuncelle = async (req, res) => {
     alanEkle('enlem',            enlem,       'float');
     alanEkle('boylam',           boylam,      'float');
     alanEkle('gorsel',           gorsel);
+    if (fotograflar !== undefined) {
+        const arr = Array.isArray(fotograflar) ? fotograflar : [];
+        guncellemeler.push(`fotograflar = $${paramSayac++}`);
+        params.push(arr.length > 0 ? JSON.stringify(arr) : null);
+    }
     alanEkle('ai_aciklama',      ai_aciklama);
 
     params.push(id); // WHERE id = $N
@@ -314,6 +341,10 @@ const ilanGuncelle = async (req, res) => {
         mesaj: 'İlan başarıyla güncellendi.',
         ilan: guncellenenIlan.rows[0],
     });
+  } catch (err) {
+    console.error('ilanGuncelle hata:', err.message);
+    return res.status(500).json({ basarili: false, mesaj: 'İlan güncellenirken sunucu hatası oluştu.' });
+  }
 };
 
 // ----------------------------------------------------------------

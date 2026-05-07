@@ -2,15 +2,14 @@
 
 const express = require('express');
 const router = express.Router();
-const { kayitOl, girisYap, kurumsal_kayitOl } = require('../controllers/authController');
+const { kayitOl, girisYap, kurumsal_kayitOl, profilGetir, profilGuncelle, sifreGuncelle } = require('../controllers/authController');
+const { tokenDogrula } = require('../middleware/authMiddleware');
 
-// POST /api/auth/kayit           →  Bireysel kullanıcı kaydı
-router.post('/kayit', kayitOl);
-
-// POST /api/auth/kurumsal-kayit  →  Emlak ofisi + patron hesabı (transaction)
+router.post('/kayit',          kayitOl);
 router.post('/kurumsal-kayit', kurumsal_kayitOl);
-
-// POST /api/auth/giris           →  Giriş yap, JWT token al
-router.post('/giris', girisYap);
+router.post('/giris',          girisYap);
+router.get ('/profil',         tokenDogrula, profilGetir);
+router.put ('/profil',         tokenDogrula, profilGuncelle);
+router.put ('/sifre',          tokenDogrula, sifreGuncelle);
 
 module.exports = router;

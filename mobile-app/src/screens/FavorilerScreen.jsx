@@ -1,0 +1,111 @@
+import React, { useState, useCallback } from 'react';
+import {
+  View, Text, FlatList, Image, TouchableOpacity,
+  StyleSheet, ActivityIndicator, Alert,
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { useFocusEffect } from '@react-navigation/native';
+import { favorilerGetir, favoriSil } from '../services/api';
+
+const FALLBACK = 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400&q=60';
+
+const fiyatFormat = (f) =>
+  new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', maximumFractionDigits: 0 }).format(f);
+
+export default function FavorilerScreen({ navigation }) {
+  const [favoriler, setFavoriler] = useState([]);
+  const [yukleniyor, setYukleniyor] = useState(true);
+
+  useFocusEffect(
+    useCallback(() => {
+      setYukleniyor(true);
+      favorilerGetir()
+        .then(r => setFavoriler(r.data.favoriler || []))
+        .catch(() => setFavoriler([]))
+        .finally(() => setYukleniyor(false));
+    }, [])
+  );
+
+  const sil = (ilan_id, baslik) => {
+    Alert.alert('Favorilerden Çıkar', `"${baslik}" favorilerden çıkarılsın mı?`, [
+      { text: 'İptal', style: 'cancel' },
+      {
+        text: 'Çıkar', style: 'destructive', onPress: async () => {
+          await favoriSil(ilan_id).catch(() => {});
+          setFavoriler(prev => prev.filter(f => f.id !== ilan_id));
+        },
+      },
+    ]);
+  };
+
+  if (yukleniyor) {
+    return <View style={s.merkez}><ActivityIndicator size="large" color="#16a34a" /></View>;
+  }
+
+  if (favoriler.length === 0) {
+    return (
+      <View style={s.merkez}>
+        <Ionicons name="heart-outline" size={56} color="#d1d5db" />
+        <Text style={s.bosBaslik}>Henüz favori ilan yok</Text>
+        <Text style={s.bosAlt}>Beğendiğin ilanlardaki kalp ikonuna basarak buraya ekleyebilirsin.</Text>
+      </View>
+    );
+  }
+
+  return (
+    <FlatList
+      data={favoriler}
+      keyExtractor={item => String(item.id)}
+      contentContainerStyle={s.liste}
+      showsVerticalScrollIndicator={false}
+      renderItem={({ item }) => {
+        const gorsel = (Array.isArray(item.fotograflar) && item.fotograflar[0])
+          || item.gorsel || FALLBACK;
+        const konum = [item.ilce, item.sehir].filter(Boolean).join(' / ');
+        return (
+          <TouchableOpacity
+            style={s.kart}
+            activeOpacity={0.85}
+            onPress={() => navigation.navigate('IlanDetay', { id: item.id })}
+          >
+            <Image source={{ uri: gorsel }} style={s.gorsel} resizeMode="cover" />
+            <View style={[s.tipBadge, { backgroundColor: item.tip === 'Kiralık' ? '#3b82f6' : '#16a34a' }]}>
+              <Text style={s.tipText}>{item.tip}</Text>
+            </View>
+            <View style={s.icerik}>
+              <Text style={s.baslik} numberOfLines={2}>{item.baslik}</Text>
+              <Text style={s.fiyat}>{fiyatFormat(item.fiyat)}</Text>
+              {konum ? (
+                <View style={s.konumRow}>
+                  <Ionicons name="location-outline" size={13} color="#9ca3af" />
+                  <Text style={s.konumText}>{konum}</Text>
+                </View>
+              ) : null}
+            </View>
+            <TouchableOpacity style={s.kalp} onPress={() => sil(item.id, item.baslik)}>
+              <Ionicons name="heart" size={22} color="#ef4444" />
+            </TouchableOpacity>
+          </TouchableOpacity>
+        );
+      }}
+    />
+  );
+}
+
+const s = StyleSheet.create({
+  merkez:     { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 12, padding: 32, backgroundColor: '#f9fafb' },
+  bosBaslik:  { fontSize: 18, fontWeight: '800', color: '#111827', marginTop: 8 },
+  bosAlt:     { fontSize: 14, color: '#6b7280', textAlign: 'center', lineHeight: 22 },
+
+  liste:      { padding: 16, gap: 12, backgroundColor: '#f5f5f5' },
+  kart:       { backgroundColor: '#fff', borderRadius: 16, overflow: 'hidden', elevation: 2, shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 6, flexDirection: 'row', alignItems: 'center' },
+  gorsel:     { width: 110, height: 100 },
+  tipBadge:   { position: 'absolute', top: 8, left: 8, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 },
+  tipText:    { color: '#fff', fontSize: 10, fontWeight: '700' },
+  icerik:     { flex: 1, padding: 12, gap: 4 },
+  baslik:     { fontSize: 13, fontWeight: '700', color: '#111827', lineHeight: 18 },
+  fiyat:      { fontSize: 15, fontWeight: '900', color: '#16a34a' },
+  konumRow:   { flexDirection: 'row', alignItems: 'center', gap: 3, marginTop: 2 },
+  konumText:  { fontSize: 12, color: '#9ca3af' },
+  kalp:       { padding: 14 },
+});

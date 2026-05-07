@@ -6,6 +6,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { resetToAna } from '../services/navigationRef';
 
 const MenuItem = ({ icon, iconBg, label, alt, onPress, badge, danger }) => (
   <TouchableOpacity style={s.menuItem} onPress={onPress} activeOpacity={0.7}>
@@ -42,8 +43,9 @@ export default function HesabimScreen({ navigation }) {
       { text: 'İptal', style: 'cancel' },
       {
         text: 'Çıkış Yap', style: 'destructive', onPress: async () => {
-          await AsyncStorage.multiRemove(['token', 'kullanici']);
-          navigation.reset({ index: 0, routes: [{ name: 'Ana' }] });
+          await AsyncStorage.removeItem('token');
+          await AsyncStorage.removeItem('kullanici');
+          resetToAna();
         },
       },
     ]);
@@ -129,19 +131,19 @@ export default function HesabimScreen({ navigation }) {
             iconBg="#fff1f2"
             label="Favorilerim"
             alt="Beğendiğin ilanlar"
-            onPress={() => yakinda('Favorilerim')}
+            onPress={() => navigation.navigate('Favoriler')}
           />
           <MenuItem
             icon="search-outline"
             iconBg="#eff6ff"
             label="Kayıtlı Aramalarım"
-            onPress={() => yakinda('Kayıtlı Aramalar')}
+            onPress={() => navigation.navigate('KayitliAramalar')}
           />
           <MenuItem
             icon="location-outline"
             iconBg="#faf5ff"
             label="Kayıtlı Adreslerim"
-            onPress={() => yakinda('Kayıtlı Adresler')}
+            onPress={() => navigation.navigate('KayitliAdresler')}
           />
         </View>
       </View>
@@ -154,8 +156,8 @@ export default function HesabimScreen({ navigation }) {
             icon="person-outline"
             iconBg="#f0fdf4"
             label="Üyelik Bilgilerim"
-            alt="Ad, e-posta, telefon"
-            onPress={() => yakinda('Üyelik Bilgileri')}
+            alt="Ad, e-posta, telefon, şifre"
+            onPress={() => navigation.navigate('ProfilDuzenle')}
           />
           <MenuItem
             icon="notifications-outline"

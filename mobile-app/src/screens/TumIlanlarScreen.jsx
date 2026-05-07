@@ -2,10 +2,12 @@ import React, { useState, useCallback } from 'react';
 import {
   View, Text, FlatList, TouchableOpacity, StyleSheet,
   Image, ActivityIndicator, Modal, ScrollView, Linking,
+  TextInput, Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
-import { ilanlarGetir } from '../services/api';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { ilanlarGetir, kayitliAramaEkle } from '../services/api';
 
 const GORSEL_FALLBACK = 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&q=80';
 
@@ -43,6 +45,12 @@ const IlanKarti = ({ item, onPress }) => (
         <View style={{ flex: 1 }}>
           <Text style={s.baslik} numberOfLines={2}>{item.baslik}</Text>
           <Text style={s.fiyat}>{fiyatFormat(item.fiyat)}</Text>
+          {item.onceki_fiyat ? (
+            <View style={s.dususBadge}>
+              <Ionicons name="trending-down" size={12} color="#16a34a" />
+              <Text style={s.dususText}>{fiyatFormat(item.onceki_fiyat)} → {fiyatFormat(item.fiyat)}</Text>
+            </View>
+          ) : null}
           <View style={s.ozellikRow}>
             {item.oda_sayisi ? <Text style={s.ozellik}>{item.oda_sayisi}</Text> : null}
             {item.oda_sayisi && item.kat ? <Text style={s.ozellikAyrac}>|</Text> : null}
@@ -90,6 +98,8 @@ export default function TumIlanlarScreen({ route, navigation }) {
   const [filtreFiyatDustu]               = useState(baslangicFiyatDustu);
   const [siralaMod, setSiralaMod]         = useState(false);
   const [filtreMod, setFiltreMod]         = useState(false);
+  const [kaydetMod, setKaydetMod]         = useState(false);
+  const [aramaAdi, setAramaAdi]           = useState('');
 
   const getir = useCallback(async () => {
     setYukleniyor(true);
@@ -119,6 +129,30 @@ export default function TumIlanlarScreen({ route, navigation }) {
   const aktifSirala = SIRALA_SECENEKLER.find(s => s.key === sirala)?.label || 'Sırala';
   const filtreAktif = filtreTip !== 'Tümü' || filtreTur !== 'Tümü';
 
+  const aramaKaydet = async () => {
+    const token = await AsyncStorage.getItem('token');
+    if (!token) { Alert.alert('Giriş Gerekli', 'Aramayı kaydetmek için giriş yapmalısın.'); return; }
+    const otomatikAd = [filtreTip !== 'Tümü' ? filtreTip : '', filtreTur !== 'Tümü' ? filtreTur : '', sayfaBasligi]
+      .filter(Boolean).join(' - ');
+    setAramaAdi(otomatikAd);
+    setKaydetMod(true);
+  };
+
+  const aramaKaydetOnayla = async () => {
+    if (!aramaAdi.trim()) return;
+    const filtreler = {};
+    if (filtreTip !== 'Tümü') filtreler.tip = filtreTip;
+    if (filtreTur !== 'Tümü') filtreler.emlak_turu = filtreTur;
+    if (baslangicQ) filtreler.arama = baslangicQ;
+    try {
+      await kayitliAramaEkle({ baslik: aramaAdi.trim(), filtreler });
+      setKaydetMod(false);
+      Alert.alert('Kaydedildi', 'Arama "Kayıtlı Aramalarım" bölümüne eklendi.');
+    } catch {
+      Alert.alert('Hata', 'Arama kaydedilemedi.');
+    }
+  };
+
   return (
     <View style={s.container}>
       {/* Header */}
@@ -132,6 +166,9 @@ export default function TumIlanlarScreen({ route, navigation }) {
             <Text style={s.headerAlt}>{ilanlar.length} ilan</Text>
           ) : null}
         </View>
+        <TouchableOpacity style={s.geriBtn} onPress={aramaKaydet}>
+          <Ionicons name="bookmark-outline" size={20} color="#111827" />
+        </TouchableOpacity>
       </View>
 
       {/* Filtrele / Sırala / Harita */}
@@ -181,6 +218,31 @@ export default function TumIlanlarScreen({ route, navigation }) {
           }
         />
       )}
+
+      {/* Arama Kaydet Modalı */}
+      <Modal visible={kaydetMod} transparent animationType="slide" onRequestClose={() => setKaydetMod(false)}>
+        <TouchableOpacity style={s.modalArka} activeOpacity={1} onPress={() => setKaydetMod(false)} />
+        <View style={[s.modalKutu, { paddingBottom: 32 }]}>
+          <View style={s.modalBaslik}>
+            <Text style={s.modalBaslikText}>Aramayı Kaydet</Text>
+            <TouchableOpacity onPress={() => setKaydetMod(false)}>
+              <Ionicons name="close" size={22} color="#374151" />
+            </TouchableOpacity>
+          </View>
+          <Text style={[s.filtreGrupBaslik, { marginBottom: 8 }]}>Arama Adı</Text>
+          <TextInput
+            style={s.aramaAdiInput}
+            value={aramaAdi}
+            onChangeText={setAramaAdi}
+            placeholder="Aramaya bir isim ver..."
+            placeholderTextColor="#9ca3af"
+            autoFocus
+          />
+          <TouchableOpacity style={s.filtreUygula} onPress={aramaKaydetOnayla}>
+            <Text style={s.filtreUygulaText}>Kaydet</Text>
+          </TouchableOpacity>
+        </View>
+      </Modal>
 
       {/* Sıralama Modalı */}
       <Modal visible={siralaMod} transparent animationType="slide" onRequestClose={() => setSiralaMod(false)}>
@@ -311,4 +373,7 @@ const s = StyleSheet.create({
   filtreUygulaText:   { color: '#fff', fontSize: 15, fontWeight: '800' },
   filtreTemizle:      { paddingVertical: 12, alignItems: 'center', marginTop: 8 },
   filtreTemizleText:  { fontSize: 14, color: '#9ca3af', fontWeight: '600' },
+  aramaAdiInput:      { borderWidth: 1.5, borderColor: '#e5e7eb', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12, fontSize: 15, color: '#111827', marginBottom: 16 },
+  dususBadge:         { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#f0fdf4', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 4, marginBottom: 6, alignSelf: 'flex-start' },
+  dususText:          { fontSize: 11, fontWeight: '700', color: '#16a34a' },
 });

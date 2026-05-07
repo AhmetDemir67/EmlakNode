@@ -219,4 +219,93 @@ const kurumsal_kayitOl = async (req, res) => {
     }
 };
 
-module.exports = { kayitOl, girisYap, kurumsal_kayitOl };
+// ----------------------------------------------------------------
+// PROFİL GETİR
+// GET /api/auth/profil  (korumalı)
+// ----------------------------------------------------------------
+const profilGetir = async (req, res) => {
+    const { id } = req.kullanici;
+    const sonuc = await sorgu(
+        'SELECT id, ad_soyad, eposta, telefon, dogum_tarihi, il, ilce, rol, dukkan_id, olusturulma_tarihi FROM kullanicilar WHERE id = $1',
+        [id]
+    );
+    if (sonuc.rows.length === 0)
+        return res.status(404).json({ basarili: false, mesaj: 'Kullanıcı bulunamadı.' });
+
+    return res.json({ basarili: true, kullanici: sonuc.rows[0] });
+};
+
+// ----------------------------------------------------------------
+// PROFİL GÜNCELLE
+// PUT /api/auth/profil  (korumalı)
+// ----------------------------------------------------------------
+const profilGuncelle = async (req, res) => {
+    const { id } = req.kullanici;
+    const { ad_soyad, eposta, telefon, dogum_tarihi, il, ilce } = req.body;
+
+    if (!ad_soyad && !eposta && !telefon && !dogum_tarihi && !il && !ilce)
+        return res.status(400).json({ basarili: false, mesaj: 'Güncellenecek en az bir alan gönderilmeli.' });
+
+    // E-posta değişiyorsa başka kullanıcıda var mı kontrolü
+    if (eposta) {
+        const mevcut = await sorgu(
+            'SELECT id FROM kullanicilar WHERE eposta = $1 AND id != $2',
+            [eposta.toLowerCase().trim(), id]
+        );
+        if (mevcut.rows.length > 0)
+            return res.status(409).json({ basarili: false, mesaj: 'Bu e-posta adresi zaten kullanılıyor.' });
+    }
+
+    const guncellenenKullanici = await sorgu(
+        `UPDATE kullanicilar SET
+            ad_soyad     = COALESCE($1, ad_soyad),
+            eposta       = COALESCE($2, eposta),
+            telefon      = COALESCE($3, telefon),
+            dogum_tarihi = COALESCE($4, dogum_tarihi),
+            il           = COALESCE($5, il),
+            ilce         = COALESCE($6, ilce)
+         WHERE id = $7
+         RETURNING id, ad_soyad, eposta, telefon, dogum_tarihi, il, ilce, rol, dukkan_id`,
+        [
+            ad_soyad  ? ad_soyad.trim()              : null,
+            eposta    ? eposta.toLowerCase().trim()  : null,
+            telefon   ? telefon.trim()               : null,
+            dogum_tarihi || null,
+            il        ? il.trim()                    : null,
+            ilce      ? ilce.trim()                  : null,
+            id,
+        ]
+    );
+
+    return res.json({ basarili: true, mesaj: 'Profil güncellendi.', kullanici: guncellenenKullanici.rows[0] });
+};
+
+// ----------------------------------------------------------------
+// ŞİFRE GÜNCELLE
+// PUT /api/auth/sifre  (korumalı)
+// ----------------------------------------------------------------
+const sifreGuncelle = async (req, res) => {
+    const { id } = req.kullanici;
+    const { eski_sifre, yeni_sifre } = req.body;
+
+    if (!eski_sifre || !yeni_sifre)
+        return res.status(400).json({ basarili: false, mesaj: 'eski_sifre ve yeni_sifre zorunludur.' });
+
+    if (yeni_sifre.length < 6)
+        return res.status(400).json({ basarili: false, mesaj: 'Yeni şifre en az 6 karakter olmalıdır.' });
+
+    const sonuc = await sorgu('SELECT sifre FROM kullanicilar WHERE id = $1', [id]);
+    if (sonuc.rows.length === 0)
+        return res.status(404).json({ basarili: false, mesaj: 'Kullanıcı bulunamadı.' });
+
+    const eslesiyor = await bcrypt.compare(eski_sifre, sonuc.rows[0].sifre);
+    if (!eslesiyor)
+        return res.status(401).json({ basarili: false, mesaj: 'Mevcut şifre hatalı.' });
+
+    const yeniHash = await bcrypt.hash(yeni_sifre, SALT_ROUNDS);
+    await sorgu('UPDATE kullanicilar SET sifre = $1 WHERE id = $2', [yeniHash, id]);
+
+    return res.json({ basarili: true, mesaj: 'Şifre başarıyla güncellendi.' });
+};
+
+module.exports = { kayitOl, girisYap, kurumsal_kayitOl, profilGetir, profilGuncelle, sifreGuncelle };

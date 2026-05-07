@@ -7,7 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
-import api from '../services/api';
+import api, { fotografYukleAPI } from '../services/api';
 
 const TIPLER      = ['Satılık', 'Kiralık'];
 const TURLER      = ['Daire', 'Villa', 'Müstakil Ev', 'Arsa', 'İşyeri', 'Depo'];
@@ -34,7 +34,7 @@ export default function IlanVerScreen({ navigation }) {
   const [kullanici, setKullanici] = useState(null);
   const [yukleniyor, setYukleniyor] = useState(false);
   const [konumAlinıyor, setKonumAlıniyor] = useState(false);
-  const [secilenGorsel, setSecilenGorsel] = useState(null);
+  const [secilenGorseller, setSecilenGorseller] = useState([]);
   const [form, setForm] = useState({
     tip: 'Satılık', emlak_turu: 'Daire',
     baslik: '', aciklama: '', fiyat: '', metrekare: '',
@@ -52,24 +52,34 @@ export default function IlanVerScreen({ navigation }) {
   }, []);
 
   const fotografSec = async (kaynak) => {
-    let izin;
-    if (kaynak === 'kamera') {
-      izin = await ImagePicker.requestCameraPermissionsAsync();
-    } else {
-      izin = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    }
+    try {
+      let izin;
+      if (kaynak === 'kamera') {
+        izin = await ImagePicker.requestCameraPermissionsAsync();
+      } else {
+        izin = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      }
 
-    if (!izin.granted) {
-      Alert.alert('İzin Gerekli', kaynak === 'kamera' ? 'Kamera erişimi verilmedi.' : 'Galeri erişimi verilmedi.');
-      return;
-    }
+      if (!izin.granted) {
+        Alert.alert('İzin Gerekli', kaynak === 'kamera' ? 'Kamera erişimi verilmedi.' : 'Galeri erişimi verilmedi.');
+        return;
+      }
 
-    const sonuc = kaynak === 'kamera'
-      ? await ImagePicker.launchCameraAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, quality: 0.8, allowsEditing: true, aspect: [16, 9] })
-      : await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, quality: 0.8, allowsEditing: true, aspect: [16, 9] });
+      const sonuc = kaynak === 'kamera'
+        ? await ImagePicker.launchCameraAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, quality: 0.8, allowsEditing: true, aspect: [16, 9] })
+        : await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, quality: 0.8, allowsMultipleSelection: true });
 
-    if (!sonuc.canceled) {
-      setSecilenGorsel(sonuc.assets[0].uri);
+      if (!sonuc.canceled && sonuc.assets && sonuc.assets.length > 0) {
+        const yeniUrilar = sonuc.assets.map(a => a.uri);
+        setSecilenGorseller(prev => [...prev, ...yeniUrilar]);
+        Alert.alert('✓ Fotoğraf Eklendi', `${yeniUrilar.length} fotoğraf eklendi.`);
+      } else if (sonuc.canceled) {
+        // kullanıcı iptal etti, normal
+      } else {
+        Alert.alert('Uyarı', 'Fotoğraf seçilemedi, tekrar dene.');
+      }
+    } catch (err) {
+      Alert.alert('Hata', String(err));
     }
   };
 
@@ -79,6 +89,17 @@ export default function IlanVerScreen({ navigation }) {
       { text: 'Galeri', onPress: () => fotografSec('galeri') },
       { text: 'İptal', style: 'cancel' },
     ]);
+  };
+
+  const adrestenGeocode = async (sehir, ilce, mahalle) => {
+    const adres = [mahalle, ilce, sehir, 'Türkiye'].filter(Boolean).join(', ');
+    try {
+      const sonuc = await Location.geocodeAsync(adres);
+      if (sonuc && sonuc.length > 0) {
+        return { enlem: String(sonuc[0].latitude), boylam: String(sonuc[0].longitude) };
+      }
+    } catch {}
+    return null;
   };
 
   const konumAl = async () => {
@@ -119,6 +140,31 @@ export default function IlanVerScreen({ navigation }) {
     }
     setYukleniyor(true);
     try {
+      // Koordinat yoksa adresten otomatik geocode yap
+      let enlem = form.enlem;
+      let boylam = form.boylam;
+      if (!enlem && !boylam && (form.sehir || form.ilce || form.mahalle)) {
+        const koords = await adrestenGeocode(form.sehir, form.ilce, form.mahalle);
+        if (koords) {
+          enlem = koords.enlem;
+          boylam = koords.boylam;
+        }
+      }
+
+      // Seçilen fotoğrafları önce sunucuya yükle, URL'leri al
+      let fotografUrls = [];
+      if (secilenGorseller.length > 0) {
+        const formData = new FormData();
+        secilenGorseller.forEach((uri, i) => {
+          const filename = uri.split('/').pop() || `foto_${i}.jpg`;
+          const ext = filename.split('.').pop().toLowerCase();
+          const type = (ext === 'jpg' || ext === 'jpeg') ? 'image/jpeg' : `image/${ext || 'jpeg'}`;
+          formData.append('fotograflar', { uri, name: filename, type });
+        });
+        const uploadResp = await fotografYukleAPI(formData);
+        fotografUrls = uploadResp.data.urls || [];
+      }
+
       await api.post('/ilanlar', {
         ...form,
         fiyat:             parseFloat(form.fiyat),
@@ -127,9 +173,10 @@ export default function IlanVerScreen({ navigation }) {
         kat:               form.kat          ? parseInt(form.kat)          : undefined,
         toplam_kat:        form.toplam_kat   ? parseInt(form.toplam_kat)   : undefined,
         banyo_sayisi:      form.banyo_sayisi ? parseInt(form.banyo_sayisi) : undefined,
-        gorsel:            secilenGorsel || form.gorsel || undefined,
-        enlem:             form.enlem ? parseFloat(form.enlem) : undefined,
-        boylam:            form.boylam ? parseFloat(form.boylam) : undefined,
+        gorsel:            fotografUrls[0] || form.gorsel || undefined,
+        fotograflar:       fotografUrls.length > 0 ? fotografUrls : undefined,
+        enlem:             enlem ? parseFloat(enlem) : undefined,
+        boylam:            boylam ? parseFloat(boylam) : undefined,
       });
       Alert.alert('Başarılı!', 'İlanınız yayınlandı.', [
         { text: 'Tamam', onPress: () => navigation.goBack() },
@@ -183,24 +230,24 @@ export default function IlanVerScreen({ navigation }) {
         </View>
 
         {/* Fotoğraf */}
-        <Text style={s.grupBaslik}>Fotoğraf</Text>
-        <TouchableOpacity style={s.fotografBtn} onPress={fotografSecModal}>
-          {secilenGorsel ? (
-            <Image source={{ uri: secilenGorsel }} style={s.onizleme} resizeMode="cover" />
-          ) : (
-            <View style={s.fotografPlaceholder}>
-              <Ionicons name="camera-outline" size={36} color="#9ca3af" />
-              <Text style={s.fotografPlaceholderText}>Fotoğraf Ekle</Text>
-              <Text style={s.fotografPlaceholderAlt}>Kamera veya galeriden seç</Text>
+        <Text style={s.grupBaslik}>Fotoğraf ({secilenGorseller.length} seçildi)</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ height: 100 }} contentContainerStyle={{ gap: 10, alignItems: 'center' }}>
+          {secilenGorseller.map((uri, idx) => (
+            <View key={idx} style={s.fotografKucuk}>
+              <Image source={{ uri }} style={s.fotografKucukGorsel} resizeMode="cover" />
+              <TouchableOpacity
+                style={s.fotografKucukSil}
+                onPress={() => setSecilenGorseller(prev => prev.filter((_, i) => i !== idx))}
+              >
+                <Ionicons name="close-circle" size={20} color="#ef4444" />
+              </TouchableOpacity>
             </View>
-          )}
-        </TouchableOpacity>
-        {secilenGorsel && (
-          <TouchableOpacity style={s.fotografKaldir} onPress={() => setSecilenGorsel(null)}>
-            <Ionicons name="trash-outline" size={14} color="#ef4444" />
-            <Text style={s.fotografKaldirText}>Fotoğrafı Kaldır</Text>
+          ))}
+          <TouchableOpacity style={s.fotografEkleBtn} onPress={fotografSecModal}>
+            <Ionicons name="camera-outline" size={28} color="#9ca3af" />
+            <Text style={s.fotografEkleBtnText}>Ekle</Text>
           </TouchableOpacity>
-        )}
+        </ScrollView>
 
         {/* Temel Bilgiler */}
         <Text style={s.grupBaslik}>İlan Bilgileri</Text>
@@ -377,6 +424,11 @@ const s = StyleSheet.create({
   toggleTextAktif:         { color: '#fff' },
   gondBtn:                 { alignItems: 'center', justifyContent: 'center', backgroundColor: '#16a34a', paddingVertical: 16, borderRadius: 16, marginTop: 24 },
   gondBtnText:             { color: '#fff', fontSize: 16, fontWeight: '800' },
+  fotografKucuk:           { width: 90, height: 90, borderRadius: 10, overflow: 'hidden', position: 'relative' },
+  fotografKucukGorsel:     { width: 90, height: 90 },
+  fotografKucukSil:        { position: 'absolute', top: 2, right: 2, backgroundColor: '#fff', borderRadius: 10 },
+  fotografEkleBtn:         { width: 90, height: 90, borderRadius: 10, borderWidth: 2, borderColor: '#e5e7eb', borderStyle: 'dashed', justifyContent: 'center', alignItems: 'center', gap: 4, backgroundColor: '#fafafa' },
+  fotografEkleBtnText:     { fontSize: 11, fontWeight: '600', color: '#9ca3af' },
   girisGerekli:            { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 16, padding: 40, backgroundColor: '#f9fafb' },
   girisBaslik:             { fontSize: 18, fontWeight: '800', color: '#111827' },
   girisBtn:                { backgroundColor: '#16a34a', paddingHorizontal: 40, paddingVertical: 14, borderRadius: 14 },

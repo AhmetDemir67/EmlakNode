@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, TextInput,
   StyleSheet, Image, ActivityIndicator, Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useFocusEffect } from '@react-navigation/native';
 import { ilanlarGetir, fiyatiDusenIlanlar } from '../services/api';
 
 const { width } = Dimensions.get('window');
@@ -25,6 +26,12 @@ const IlanKarti = ({ ilan, onPress }) => (
     </View>
     <View style={s.ilanBilgi}>
       <Text style={s.ilanFiyat}>{fiyatFormat(ilan.fiyat)}</Text>
+      {ilan.onceki_fiyat ? (
+        <View style={s.dususBadge}>
+          <Ionicons name="trending-down" size={10} color="#16a34a" />
+          <Text style={s.dususBadgeText}>{fiyatFormat(ilan.onceki_fiyat)} → {fiyatFormat(ilan.fiyat)}</Text>
+        </View>
+      ) : null}
       <Text style={s.ilanBaslik} numberOfLines={1}>{ilan.baslik}</Text>
       <View style={s.ilanAlt}>
         <Ionicons name="location-outline" size={11} color="#9ca3af" />
@@ -49,17 +56,20 @@ export default function KesifScreen({ navigation }) {
   const [arama, setArama]             = useState('');
   const [aktifTab, setAktifTab]       = useState('satilik');
 
-  useEffect(() => {
-    Promise.all([
-      fiyatiDusenIlanlar('Satılık'),
-      fiyatiDusenIlanlar('Kiralık'),
-      ilanlarGetir({ limit: 6 }),
-    ]).then(([s, k, son]) => {
-      setSatiliklar(s.data.ilanlar || []);
-      setKiraliklar(k.data.ilanlar || []);
-      setSonIlanlar(son.data.ilanlar || []);
-    }).catch(() => {}).finally(() => setYukleniyor(false));
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      setYukleniyor(true);
+      Promise.all([
+        fiyatiDusenIlanlar('Satılık'),
+        fiyatiDusenIlanlar('Kiralık'),
+        ilanlarGetir({ limit: 6 }),
+      ]).then(([s, k, son]) => {
+        setSatiliklar(s.data.ilanlar || []);
+        setKiraliklar(k.data.ilanlar || []);
+        setSonIlanlar(son.data.ilanlar || []);
+      }).catch(() => {}).finally(() => setYukleniyor(false));
+    }, [])
+  );
 
   const aramaYap = () => {
     if (arama.trim()) navigation.navigate('IlanAra', { arama: arama.trim() });
@@ -127,33 +137,44 @@ export default function KesifScreen({ navigation }) {
         ))}
       </View>
 
-      {/* Son İlanlar */}
-      <View style={s.evBolumu}>
-        <View style={s.evBolumIcerik}>
-          <Ionicons name="home" size={20} color="#16a34a" />
-          <Text style={s.evBolumBaslik}>Ev mi arıyorsun?</Text>
+      {/* Fiyatı Düşen Bölümü */}
+      <View style={s.bolumHeader}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+          <Ionicons name="trending-down" size={18} color="#16a34a" />
+          <Text style={s.bolumBaslikKucuk}>FİYATI DÜŞEN İLANLAR</Text>
         </View>
-        <TouchableOpacity onPress={() => navigation.navigate('TumIlanlar', {})}>
+        <TouchableOpacity onPress={() => navigation.navigate('TumIlanlar', {
+          fiyat_dustu: true,
+          tip: aktifTab === 'satilik' ? 'Satılık' : 'Kiralık',
+          baslik: aktifTab === 'satilik' ? 'Fiyatı Düşen Satılıklar' : 'Fiyatı Düşen Kiralıklar',
+        })}>
           <Text style={s.tumunuGor}>Tümünü Gör</Text>
         </TouchableOpacity>
       </View>
 
       {/* Satılık / Kiralık tab */}
       <View style={s.tabRow}>
-        {[{ key: 'satilik', label: 'Fiyatı Düşen Satılıklar' }, { key: 'kiralik', label: 'Fiyatı Düşen Kiralıklar' }].map(t => (
+        {[{ key: 'satilik', label: 'Satılık' }, { key: 'kiralik', label: 'Kiralık' }].map(t => (
           <TouchableOpacity
             key={t.key}
             onPress={() => setAktifTab(t.key)}
             style={[s.tabBtn, aktifTab === t.key && s.tabBtnAktif]}
           >
-            <Text style={[s.tabText, aktifTab === t.key && s.tabTextAktif]}>{t.label}</Text>
+            <Text style={[s.tabText, aktifTab === t.key && s.tabTextAktif]}>
+              {t.key === 'satilik' ? 'Fiyatı Düşen Satılıklar' : 'Fiyatı Düşen Kiralıklar'}
+            </Text>
           </TouchableOpacity>
         ))}
       </View>
 
-      {/* İlan Grid */}
+      {/* İlan Carousel */}
       {yukleniyor ? (
         <ActivityIndicator size="large" color="#16a34a" style={{ marginTop: 32, marginBottom: 32 }} />
+      ) : goruntelenecek.length === 0 ? (
+        <View style={s.bosKarti}>
+          <Ionicons name="trending-down-outline" size={36} color="#d1d5db" />
+          <Text style={s.bosKartiText}>Henüz fiyatı düşen ilan yok</Text>
+        </View>
       ) : (
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.ilanlarCarousel}>
           {goruntelenecek.map(ilan => (
@@ -165,6 +186,17 @@ export default function KesifScreen({ navigation }) {
           ))}
         </ScrollView>
       )}
+
+      {/* Son İlanlar */}
+      <View style={s.evBolumu}>
+        <View style={s.evBolumIcerik}>
+          <Ionicons name="home" size={20} color="#16a34a" />
+          <Text style={s.evBolumBaslik}>Ev mi arıyorsun?</Text>
+        </View>
+        <TouchableOpacity onPress={() => navigation.navigate('TumIlanlar', {})}>
+          <Text style={s.tumunuGor}>Tümünü Gör</Text>
+        </TouchableOpacity>
+      </View>
 
       {/* İlginizi Çekebilecek İlanlar */}
       <View style={s.bolumHeader}>
@@ -231,4 +263,8 @@ const s = StyleSheet.create({
   ilanKonum:        { fontSize: 11, color: '#9ca3af', flex: 1 },
   ilanChipler:      { flexDirection: 'row', flexWrap: 'wrap', gap: 4, marginTop: 6 },
   chip:             { fontSize: 10, backgroundColor: '#f3f4f6', color: '#6b7280', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6, fontWeight: '600' },
+  dususBadge:       { flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: '#f0fdf4', borderRadius: 6, paddingHorizontal: 6, paddingVertical: 3, marginTop: 3, alignSelf: 'flex-start' },
+  dususBadgeText:   { fontSize: 9, fontWeight: '700', color: '#16a34a' },
+  bosKarti:         { alignItems: 'center', paddingVertical: 32, gap: 8, marginHorizontal: 16 },
+  bosKartiText:     { fontSize: 13, color: '#9ca3af', fontWeight: '600' },
 });

@@ -1,8 +1,9 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { resetToAna } from './navigationRef';
 
 // Geliştirme: bilgisayarın IP'si (Android emülatör için 10.0.2.2, gerçek cihaz için LAN IP)
-export const API_URL = 'http://10.0.2.2:3000/api';
+export const API_URL = 'http://10.14.11.101:3000/api';
 
 const api = axios.create({ baseURL: API_URL });
 
@@ -11,6 +12,23 @@ api.interceptors.request.use(async (config) => {
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
+
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const status = error.response?.status;
+    const mesaj  = error.response?.data?.mesaj || '';
+    if (
+      (status === 401 || status === 403) &&
+      (mesaj.includes('Oturum') || mesaj.includes('token') || mesaj.includes('Token') || mesaj.includes('Yetkisiz'))
+    ) {
+      await AsyncStorage.removeItem('token');
+      await AsyncStorage.removeItem('kullanici');
+      resetToAna();
+    }
+    return Promise.reject(error);
+  }
+);
 
 export const ilanlarGetir        = (params)  => api.get('/ilanlar', { params });
 export const fiyatiDusenIlanlar = (tip)     => api.get('/ilanlar', { params: { fiyat_dustu: true, tip, limit: 20 } });
@@ -21,5 +39,34 @@ export const kayitOl         = (data)    => api.post('/auth/kayit', data);
 
 export const kullaniciilanlarim = (kullanici_id) =>
   api.get('/ilanlar', { params: { kullanici_id, limit: 100 } });
+
+export const ilanSil      = (id)       => api.delete(`/ilanlar/${id}`);
+export const ilanGuncelle = (id, data) => api.put(`/ilanlar/${id}`, data);
+
+export const fotografYukleAPI = (formData) =>
+  api.post('/upload', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+    transformRequest: (data) => data,
+  });
+
+export const profilGetir      = ()     => api.get('/auth/profil');
+export const profilGuncelle   = (data) => api.put('/auth/profil', data);
+export const sifreGuncelle    = (data) => api.put('/auth/sifre', data);
+
+// Favoriler
+export const favorilerGetir  = ()         => api.get('/favoriler');
+export const favoriEkle      = (ilan_id)  => api.post('/favoriler', { ilan_id });
+export const favoriSil       = (ilan_id)  => api.delete(`/favoriler/${ilan_id}`);
+export const favoriKontrol   = (ilan_id)  => api.get(`/favoriler/kontrol/${ilan_id}`);
+
+// Kayıtlı Aramalar
+export const kayitliAramalarGetir = ()         => api.get('/favoriler/aramalar');
+export const kayitliAramaEkle     = (data)     => api.post('/favoriler/aramalar', data);
+export const kayitliAramaSil      = (id)       => api.delete(`/favoriler/aramalar/${id}`);
+
+// Kayıtlı Adresler
+export const kayitliAdreslerGetir = ()         => api.get('/favoriler/adresler');
+export const kayitliAdresEkle     = (data)     => api.post('/favoriler/adresler', data);
+export const kayitliAdresSil      = (id)       => api.delete(`/favoriler/adresler/${id}`);
 
 export default api;
