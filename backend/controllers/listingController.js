@@ -8,6 +8,7 @@ const { sorgu } = require('../config/db');
 // Korumalı: tokenDogrula middleware gerekli
 // ----------------------------------------------------------------
 const ilanEkle = async (req, res) => {
+  try {
     // --- 1. Token'dan kullanıcı bilgilerini al ---
     const { id: kullanici_id, dukkan_id, rol } = req.kullanici;
 
@@ -137,6 +138,10 @@ const ilanEkle = async (req, res) => {
         mesaj: 'İlan başarıyla oluşturuldu.',
         ilan: yeniIlan.rows[0],
     });
+  } catch (err) {
+    console.error('ilanEkle hata:', err.message);
+    return res.status(500).json({ basarili: false, mesaj: 'İlan eklenirken sunucu hatası: ' + err.message });
+  }
 };
 
 // ----------------------------------------------------------------
@@ -177,9 +182,11 @@ const ilanlariGetir = async (req, res) => {
     const ilanlar = await sorgu(
         `SELECT i.*, i.onceki_fiyat, d.dukkan_adi,
                 COALESCE(i.sehir, d.sehir) AS sehir,
-                COALESCE(i.ilce, d.ilce)   AS ilce
+                COALESCE(i.ilce, d.ilce)   AS ilce,
+                k.telefon AS sahip_telefon
          FROM ilanlar i
          LEFT JOIN dukkanlar d ON i.dukkan_id = d.id
+         LEFT JOIN kullanicilar k ON i.kullanici_id = k.id
          ${whereClause}
          ORDER BY i.olusturulma_tarihi DESC
          LIMIT $${paramSayac++} OFFSET $${paramSayac}`,
@@ -201,10 +208,17 @@ const ilanlariGetir = async (req, res) => {
 const ilanGetir = async (req, res) => {
     const { id } = req.params;
 
+    await sorgu(
+        'UPDATE ilanlar SET goruntuleme_sayisi = COALESCE(goruntuleme_sayisi, 0) + 1 WHERE id = $1',
+        [id]
+    ).catch(() => {});
+
     const sonuc = await sorgu(
-        `SELECT i.*, d.dukkan_adi, d.sehir AS dukkan_sehir, d.ilce AS dukkan_ilce, d.vergi_no
+        `SELECT i.*, d.dukkan_adi, d.sehir AS dukkan_sehir, d.ilce AS dukkan_ilce, d.vergi_no,
+                k.telefon AS sahip_telefon
          FROM ilanlar i
          LEFT JOIN dukkanlar d ON i.dukkan_id = d.id
+         LEFT JOIN kullanicilar k ON i.kullanici_id = k.id
          WHERE i.id = $1`,
         [id]
     );
@@ -353,6 +367,7 @@ const ilanGuncelle = async (req, res) => {
 // Korumalı: Sadece ilanın sahibi dükkan veya admin silebilir
 // ----------------------------------------------------------------
 const ilanSil = async (req, res) => {
+  try {
     const { id } = req.params;
     const { id: kullanici_id, rol, dukkan_id } = req.kullanici;
 
@@ -368,7 +383,9 @@ const ilanSil = async (req, res) => {
 
     // --- 2. Yetki: admin, ilanın sahibi kullanıcı veya aynı dükkan ---
     const ilan = mevcutIlan.rows[0];
-    const sahibi = ilan.kullanici_id === kullanici_id || (dukkan_id && ilan.dukkan_id === dukkan_id);
+    const sahibi =
+        parseInt(ilan.kullanici_id) === parseInt(kullanici_id) ||
+        (dukkan_id && parseInt(ilan.dukkan_id) === parseInt(dukkan_id));
     if (rol !== 'admin' && !sahibi) {
         return res.status(403).json({
             basarili: false,
@@ -381,8 +398,12 @@ const ilanSil = async (req, res) => {
 
     return res.status(200).json({
         basarili: true,
-        mesaj: `"${mevcutIlan.rows[0].baslik}" ilanı başarıyla silindi.`,
+        mesaj: `"${ilan.baslik}" ilanı başarıyla silindi.`,
     });
+  } catch (err) {
+    console.error('ilanSil hata:', err.message);
+    return res.status(500).json({ basarili: false, mesaj: 'Sunucu hatası oluştu.' });
+  }
 };
 
 // ----------------------------------------------------------------
@@ -395,7 +416,7 @@ const GECERLI_DURUMLAR = ['aktif', 'pasif', 'satildi', 'kiralandı'];
 const ilanDurumGuncelle = async (req, res) => {
     const { id }     = req.params;
     const { durum }  = req.body;
-    const { rol, dukkan_id } = req.kullanici;
+    const { id: kullanici_id, rol, dukkan_id } = req.kullanici;
 
     if (!durum || !GECERLI_DURUMLAR.includes(durum)) {
         return res.status(400).json({
@@ -405,7 +426,7 @@ const ilanDurumGuncelle = async (req, res) => {
     }
 
     const mevcutIlan = await sorgu(
-        'SELECT id, dukkan_id FROM ilanlar WHERE id = $1',
+        'SELECT id, dukkan_id, kullanici_id FROM ilanlar WHERE id = $1',
         [id]
     );
 
@@ -413,7 +434,11 @@ const ilanDurumGuncelle = async (req, res) => {
         return res.status(404).json({ basarili: false, mesaj: 'İlan bulunamadı.' });
     }
 
-    if (rol !== 'admin' && mevcutIlan.rows[0].dukkan_id !== dukkan_id) {
+    const ilan = mevcutIlan.rows[0];
+    const sahibi =
+        parseInt(ilan.kullanici_id) === parseInt(kullanici_id) ||
+        (dukkan_id && parseInt(ilan.dukkan_id) === parseInt(dukkan_id));
+    if (rol !== 'admin' && !sahibi) {
         return res.status(403).json({ basarili: false, mesaj: 'Bu ilanı güncelleme yetkiniz yok.' });
     }
 

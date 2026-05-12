@@ -1,15 +1,23 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import {
-  Home, Plus, LogOut, User, Loader2, CheckCircle2, AlertCircle, X,
+  Home, Plus, LogOut, Loader2, CheckCircle2, AlertCircle, X,
   Eye, Trash2, Pencil, ChevronRight, ChevronLeft, Building2, FileText,
   MapPin, BedDouble, Square, Bath, Layers, ChevronDown, MessageSquare,
   Bookmark, Heart, UserCircle, LayoutGrid, PlusCircle, TrendingUp,
-  Clock, CheckCircle, PauseCircle, Menu,
+  Clock, CheckCircle, PauseCircle, Menu, Send, Lock, Store, Users,
+  TrendingDown, ArrowLeft, BarChart2, ImagePlus,
 } from 'lucide-react';
 import {
   ilanEkle, ilanGuncelle, ilanSil, benimIlanlarim,
   kullaniciilanlarim, ilanDurumGuncelle,
+  profilGuncelle, sifreGuncelle,
+  favorilerGetir, favoriSil,
+  konusmalariGetir, mesajlariGetir, mesajGonder,
+  dukkanGetir, dukkanGuncelle, danismanlarGetir, istatistiklerGetir,
+  kayitliAramalarGetir, kayitliAramaSil,
+  fotografYukleAPI, okunmamisSayisi,
 } from '../services/api';
 import { ILLER, ILCELER } from '../data/turkiyeAdresler';
 
@@ -20,7 +28,7 @@ const BOSLUK = {
   fiyat: '', metrekare: '', oda_sayisi: '', bina_yasi: '', kat: '', toplam_kat: '',
   isinma_tipi: '', banyo_sayisi: '', balkon: false, asansor: false, otopark: false,
   esyali: false, site_icerisinde: false, krediye_uygunluk: false, takas: false,
-  sehir: '', ilce: '', mahalle: '', gorsel: '',
+  sehir: '', ilce: '', mahalle: '', gorsel: '', fotograflar: [],
 };
 const ADIMLAR = ['İlan Tipi', 'Özellikler', 'Konum & Fiyat'];
 
@@ -28,7 +36,20 @@ const fiyatFormat = (f) => f
   ? new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', maximumFractionDigits: 0 }).format(f)
   : '—';
 
-// ── Form bileşenleri ─────────────────────────────────────────────
+const tarihKisa = (t) => {
+  if (!t) return '';
+  const d = new Date(t);
+  const fark = Math.floor((Date.now() - d) / 1000);
+  if (fark < 60)     return 'az önce';
+  if (fark < 3600)   return `${Math.floor(fark / 60)} dk`;
+  if (fark < 86400)  return `${Math.floor(fark / 3600)} sa`;
+  if (fark < 604800) return `${Math.floor(fark / 86400)} gün`;
+  return d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' });
+};
+
+const GORSEL_FALLBACK = 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=600&q=80';
+
+// ── Küçük form bileşenleri ───────────────────────────────────────
 const Inp = ({ label, name, type = 'text', value, onChange, placeholder, zorunlu }) => (
   <div>
     <label className="block text-xs font-semibold text-gray-500 mb-1">
@@ -61,6 +82,71 @@ const Toggle = ({ label, name, value, onChange }) => (
     {label}
   </button>
 );
+
+const FotoYukleme = ({ secilenler, onSecilenler, mevcutlar = [], onMevcutSil }) => {
+  const inputRef = useRef(null);
+  const [surukle, setSurukle] = useState(false);
+  const [onizlemeler, setOnizlemeler] = useState([]);
+
+  useEffect(() => {
+    const urls = secilenler.map(f => URL.createObjectURL(f));
+    setOnizlemeler(urls);
+    return () => urls.forEach(u => URL.revokeObjectURL(u));
+  }, [secilenler]);
+
+  const dosyaEkle = (files) => {
+    const gorseller = Array.from(files).filter(f => f.type.startsWith('image/'));
+    if (gorseller.length > 0) onSecilenler(p => [...p, ...gorseller]);
+  };
+
+  const sil = (i) => onSecilenler(p => p.filter((_, idx) => idx !== i));
+
+  return (
+    <div>
+      <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Fotoğraflar</p>
+
+      {(mevcutlar.length > 0 || onizlemeler.length > 0) && (
+        <div className="flex flex-wrap gap-2 mb-3">
+          {mevcutlar.map((url, i) => (
+            <div key={`m-${i}`} className="relative w-20 h-20 rounded-xl overflow-hidden border border-gray-200 group flex-shrink-0">
+              <img src={url} alt="" className="w-full h-full object-cover" />
+              <button type="button" onClick={() => onMevcutSil(url)}
+                className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                <X size={16} className="text-white" />
+              </button>
+            </div>
+          ))}
+          {onizlemeler.map((url, i) => (
+            <div key={`n-${i}`} className="relative w-20 h-20 rounded-xl overflow-hidden border-2 border-green-500 group flex-shrink-0">
+              <img src={url} alt="" className="w-full h-full object-cover" />
+              <div className="absolute top-0.5 left-0.5 bg-green-600 text-white text-[9px] font-bold px-1 py-0.5 rounded leading-none">YENİ</div>
+              <button type="button" onClick={() => sil(i)}
+                className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                <X size={16} className="text-white" />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div
+        onDragOver={e => { e.preventDefault(); setSurukle(true); }}
+        onDragLeave={() => setSurukle(false)}
+        onDrop={e => { e.preventDefault(); setSurukle(false); dosyaEkle(e.dataTransfer.files); }}
+        onClick={() => inputRef.current?.click()}
+        className={`border-2 border-dashed rounded-xl p-5 text-center cursor-pointer transition-all ${
+          surukle ? 'border-green-500 bg-green-50' : 'border-gray-200 hover:border-green-400 hover:bg-green-50/40'
+        }`}
+      >
+        <ImagePlus size={22} className={`mx-auto mb-1.5 ${surukle ? 'text-green-500' : 'text-gray-400'}`} />
+        <p className="text-sm font-semibold text-gray-600">Fotoğraf ekle</p>
+        <p className="text-xs text-gray-400 mt-0.5">Sürükle-bırak veya tıkla · JPG, PNG, WEBP · Max 15MB</p>
+      </div>
+      <input ref={inputRef} type="file" multiple accept="image/jpeg,image/jpg,image/png,image/webp"
+        className="hidden" onChange={e => { dosyaEkle(e.target.files); e.target.value = ''; }} />
+    </div>
+  );
+};
 
 const AramaDropdown = ({ label, value, secenekler, onChange, disabled }) => {
   const [acik, setAcik]   = useState(false);
@@ -111,15 +197,10 @@ const AramaDropdown = ({ label, value, secenekler, onChange, disabled }) => {
   );
 };
 
-// ── Sidebar nav öğesi ────────────────────────────────────────────
 const NavItem = ({ id, icon: Icon, label, aktif, onClick, sub = false, badge }) => (
   <button onClick={() => onClick(id)}
-    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
-      sub ? 'pl-8' : ''
-    } ${
-      aktif
-        ? 'bg-green-600 text-white shadow-sm'
-        : 'text-slate-300 hover:bg-white/10 hover:text-white'
+    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${sub ? 'pl-8' : ''} ${
+      aktif ? 'bg-green-600 text-white shadow-sm' : 'text-slate-300 hover:bg-white/10 hover:text-white'
     }`}
   >
     <Icon size={sub ? 14 : 16} className="flex-shrink-0" />
@@ -134,26 +215,67 @@ const NavItem = ({ id, icon: Icon, label, aktif, onClick, sub = false, badge }) 
 
 // ────────────────────────────────────────────────────────────────
 export default function Dashboard() {
-  const navigate     = useNavigate();
+  const navigate       = useNavigate();
   const [searchParams] = useSearchParams();
-  const kullanici    = kullaniciBilgi();
+  const kullanici      = kullaniciBilgi();
+  const kurumsal       = !!kullanici.dukkan_id;
 
   const basTurkce = (str = '') =>
     str.split(' ').map(s => s.charAt(0).toUpperCase()).slice(0, 2).join('');
 
-  // URL'den başlangıç sekmesi oku
   const urlSekme = searchParams.get('sekme');
-  const [menu, setMenu]             = useState(urlSekme || 'anasayfa');
-  const [sidebarAcik, setSidebar]   = useState(false);
-  const [adim, setAdim]             = useState(0);
-  const [form, setForm]             = useState(BOSLUK);
-  const [yukleniyor, setYukleniyor] = useState(false);
-  const [mesaj, setMesaj]           = useState(null);
-  const [hata, setHata]             = useState(null);
-  const [limitAsimi, setLimitAsimi] = useState(false);
-  const [ilanlar, setIlanlar]       = useState([]);
+  const [menu, setMenu]               = useState(urlSekme || 'anasayfa');
+  const [sidebarAcik, setSidebar]     = useState(false);
+  const [adim, setAdim]               = useState(0);
+  const [form, setForm]               = useState(BOSLUK);
+  const [yukleniyor, setYukleniyor]   = useState(false);
+  const [limitAsimi, setLimitAsimi]   = useState(false);
+  const [ilanlar, setIlanlar]         = useState([]);
   const [listeleniyor, setListeleniyor] = useState(false);
-  const [duzenle, setDuzenle]       = useState(null);
+  const [duzenle, setDuzenle]         = useState(null);
+  const [secilenGorseller, setSecilenGorseller] = useState([]);
+
+  // Mesajlar
+  const [konusmalar, setKonusmalar]       = useState([]);
+  const [seciliKonusma, setSeciliKonusma] = useState(null);
+  const [konusmaYuk, setKonusmaYuk]       = useState(false);
+  const [mesajListesi, setMesajListesi]   = useState([]);
+  const [yeniMesaj, setYeniMesaj]         = useState('');
+  const [mesajGond, setMesajGond]         = useState(false);
+  const mesajListRef = useRef(null);
+
+  // Favoriler
+  const [favoriler, setFavoriler] = useState([]);
+  const [favYuk, setFavYuk]       = useState(false);
+
+  // Kayıtlı Aramalar
+  const [aramalar, setAramalar] = useState([]);
+  const [aramaYuk, setAramaYuk] = useState(false);
+
+  // Üyelik düzenleme
+  const [profilForm, setProfilForm]   = useState({ ad_soyad: kullanici.ad_soyad || '', eposta: kullanici.eposta || '', telefon: kullanici.telefon || '' });
+  const [profilDuzenle, setProfilDuz] = useState(false);
+  const [profilKayit, setProfilKayit] = useState(false);
+  const [sifreForm, setSifreForm]     = useState({ eski_sifre: '', yeni_sifre: '', yeni_sifre2: '' });
+  const [sifreAcik, setSifreAcik]     = useState(false);
+  const [sifreKayit, setSifreKayit]   = useState(false);
+
+  // Kurumsal: Dükkan
+  const [dukkan, setDukkan]           = useState(null);
+  const [dukkanForm, setDukkanForm]   = useState({ dukkan_adi: '', sehir: '', ilce: '' });
+  const [dukkanDuz, setDukkanDuz]     = useState(false);
+  const [dukkanKayit, setDukkanKayit] = useState(false);
+  const [dukkanYuk, setDukkanYuk]     = useState(false);
+
+  // Kurumsal: Danışmanlar
+  const [danismanlar, setDanismanlar] = useState([]);
+  const [danisYuk, setDanisYuk]       = useState(false);
+
+  // Kurumsal: İstatistikler
+  const [ist, setIst]   = useState(null);
+  const [istYuk, setIstYuk] = useState(false);
+
+  const [okunmamis, setOkunmamis] = useState(0);
 
   const cikis = () => {
     localStorage.removeItem('token');
@@ -168,10 +290,8 @@ export default function Dashboard() {
       if (name === 'sehir') yeni.ilce = '';
       return yeni;
     });
-    setHata(null);
   };
 
-  // İlanları çek
   const ilanlarıGetir = async () => {
     setListeleniyor(true);
     try {
@@ -179,131 +299,242 @@ export default function Dashboard() {
         ? await benimIlanlarim(kullanici.dukkan_id)
         : await kullaniciilanlarim(kullanici.id);
       setIlanlar(r.data.ilanlar || []);
-    } catch {
-      setIlanlar([]);
-    } finally {
-      setListeleniyor(false);
-    }
+    } catch { setIlanlar([]); }
+    finally { setListeleniyor(false); }
   };
 
   useEffect(() => {
     if (['anasayfa', 'ilanlar', 'ilanlar-aktif', 'ilanlar-pasif'].includes(menu)) {
       ilanlarıGetir();
     }
+    if (menu === 'mesajlar') {
+      setKonusmaYuk(true);
+      konusmalariGetir().then(r => setKonusmalar(r.data.konusmalar || [])).catch(() => {}).finally(() => setKonusmaYuk(false));
+    }
+    if (menu === 'favoriler') {
+      setFavYuk(true);
+      favorilerGetir().then(r => setFavoriler(r.data.favoriler || [])).catch(() => {}).finally(() => setFavYuk(false));
+    }
+    if (menu === 'aramalar') {
+      setAramaYuk(true);
+      kayitliAramalarGetir().then(r => setAramalar(r.data.aramalar || [])).catch(() => {}).finally(() => setAramaYuk(false));
+    }
+    if (menu === 'dukkan' && kullanici.dukkan_id) {
+      setDukkanYuk(true);
+      dukkanGetir(kullanici.dukkan_id).then(r => {
+        const d = r.data.dukkan;
+        setDukkan(d);
+        setDukkanForm({ dukkan_adi: d.dukkan_adi || '', sehir: d.sehir || '', ilce: d.ilce || '' });
+      }).catch(() => {}).finally(() => setDukkanYuk(false));
+    }
+    if (menu === 'danismanlar' && kullanici.dukkan_id) {
+      setDanisYuk(true);
+      danismanlarGetir(kullanici.dukkan_id).then(r => setDanismanlar(r.data.danismanlar || [])).catch(() => {}).finally(() => setDanisYuk(false));
+    }
+    if (menu === 'istatistikler' && kullanici.dukkan_id) {
+      setIstYuk(true);
+      istatistiklerGetir(kullanici.dukkan_id).then(r => setIst(r.data.istatistikler)).catch(() => {}).finally(() => setIstYuk(false));
+    }
   }, [menu]);
+
+  useEffect(() => {
+    if (!localStorage.getItem('token')) return;
+    okunmamisSayisi().then(r => setOkunmamis(r.data.sayi || 0)).catch(() => {});
+    const iv = setInterval(() => {
+      okunmamisSayisi().then(r => setOkunmamis(r.data.sayi || 0)).catch(() => {});
+    }, 30000);
+    return () => clearInterval(iv);
+  }, []);
+
+  const konusmaAc = async (konusma) => {
+    setSeciliKonusma(konusma);
+    if (konusma.okunmamis_sayi > 0) {
+      setKonusmalar(prev => prev.map(k => k.id === konusma.id ? { ...k, okunmamis_sayi: 0 } : k));
+      setOkunmamis(prev => Math.max(0, prev - konusma.okunmamis_sayi));
+    }
+    try {
+      const r = await mesajlariGetir(konusma.id);
+      setMesajListesi(r.data.mesajlar || []);
+      setTimeout(() => {
+        if (mesajListRef.current) mesajListRef.current.scrollTop = mesajListRef.current.scrollHeight;
+      }, 100);
+    } catch { setMesajListesi([]); }
+  };
+
+  const mesajGonderFn = async () => {
+    const t = yeniMesaj.trim();
+    if (!t || mesajGond || !seciliKonusma) return;
+    setMesajGond(true);
+    setYeniMesaj('');
+    try {
+      const r = await mesajGonder({ konusma_id: seciliKonusma.id, metin: t });
+      setMesajListesi(prev => [...prev, r.data.mesaj]);
+      setTimeout(() => {
+        if (mesajListRef.current) mesajListRef.current.scrollTop = mesajListRef.current.scrollHeight;
+      }, 100);
+    } catch { setYeniMesaj(t); }
+    finally { setMesajGond(false); }
+  };
 
   const submit = async (e) => {
     e.preventDefault();
     if (!form.baslik || !form.fiyat || !form.metrekare) {
-      setHata('Başlık, fiyat ve metrekare zorunludur.'); return;
+      toast.error('Başlık, fiyat ve metrekare zorunludur.'); return;
     }
     try {
-      setYukleniyor(true); setHata(null); setLimitAsimi(false);
-      if (duzenle) {
-        await ilanGuncelle(duzenle.id, form);
-        setMesaj('İlan başarıyla güncellendi!'); setDuzenle(null);
-      } else {
-        const r = await ilanEkle(form);
-        setMesaj(`"${r.data.ilan.baslik}" yayınlandı!`);
+      setYukleniyor(true); setLimitAsimi(false);
+
+      let mevcutUrls = Array.isArray(form.fotograflar) && form.fotograflar.length > 0
+        ? form.fotograflar
+        : (form.gorsel ? [form.gorsel] : []);
+
+      if (secilenGorseller.length > 0) {
+        const fd = new FormData();
+        secilenGorseller.forEach(f => fd.append('fotograflar', f));
+        const uploadResp = await fotografYukleAPI(fd);
+        const yeniUrller = uploadResp.data.urls || [];
+        mevcutUrls = [...mevcutUrls, ...yeniUrller];
       }
-      setForm(BOSLUK); setAdim(0); setMenu('ilanlar');
+
+      const ilanData = {
+        ...form,
+        gorsel: mevcutUrls[0] || '',
+        fotograflar: mevcutUrls,
+      };
+
+      if (duzenle) {
+        await ilanGuncelle(duzenle.id, ilanData);
+        toast.success('İlan başarıyla güncellendi!'); setDuzenle(null);
+      } else {
+        const r = await ilanEkle(ilanData);
+        toast.success(`"${r.data.ilan.baslik}" yayınlandı!`);
+      }
+      setForm(BOSLUK); setAdim(0); setMenu('ilanlar'); setSecilenGorseller([]);
     } catch (err) {
       if (err.response?.data?.limit_asimi) setLimitAsimi(true);
-      else setHata(err.response?.data?.mesaj || 'Bir hata oluştu.');
+      else toast.error(err.response?.data?.mesaj || 'Bir hata oluştu.');
     } finally { setYukleniyor(false); }
   };
 
-  const sil = async (id, baslik) => {
-    if (!confirm(`"${baslik}" ilanını silmek istiyor musunuz?`)) return;
+  const sil = async (id) => {
     try {
       await ilanSil(id);
       setIlanlar(p => p.filter(i => i.id !== id));
-      setMesaj('İlan silindi.');
-    } catch { setHata('Silme başarısız.'); }
+      toast.success('İlan silindi.');
+    } catch (err) {
+      toast.error(err.response?.data?.mesaj || `Silme başarısız. (${err.response?.status || err.message})`);
+    }
+  };
+
+  const silOnay = (id, baslik) => {
+    toast((t) => (
+      <div>
+        <p className="text-sm mb-3">
+          <span className="font-bold">"{baslik}"</span> silinsin mi?
+        </p>
+        <div className="flex gap-2">
+          <button
+            onClick={() => { toast.dismiss(t.id); sil(id); }}
+            className="flex-1 bg-red-500 hover:bg-red-600 text-white text-xs font-bold py-1.5 rounded-lg transition-colors"
+          >Evet, Sil</button>
+          <button
+            onClick={() => toast.dismiss(t.id)}
+            className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold py-1.5 rounded-lg transition-colors"
+          >İptal</button>
+        </div>
+      </div>
+    ), { duration: 8000 });
   };
 
   const durumDegistir = async (id, yeniDurum) => {
     try {
       await ilanDurumGuncelle(id, yeniDurum);
       setIlanlar(p => p.map(i => i.id === id ? { ...i, durum: yeniDurum } : i));
-    } catch { setHata('Durum güncellenemedi.'); }
+    } catch { toast.error('Durum güncellenemedi.'); }
   };
 
   const duzenleBaslat = (ilan) => {
+    const mevcutFotolar = Array.isArray(ilan.fotograflar) && ilan.fotograflar.length > 0
+      ? ilan.fotograflar
+      : (ilan.gorsel ? [ilan.gorsel] : []);
     setDuzenle(ilan);
-    setForm({ ...BOSLUK, ...ilan, balkon: !!ilan.balkon, asansor: !!ilan.asansor, otopark: !!ilan.otopark, esyali: !!ilan.esyali, site_icerisinde: !!ilan.site_icerisinde });
+    setForm({ ...BOSLUK, ...ilan, balkon: !!ilan.balkon, asansor: !!ilan.asansor, otopark: !!ilan.otopark, esyali: !!ilan.esyali, site_icerisinde: !!ilan.site_icerisinde, fotograflar: mevcutFotolar });
+    setSecilenGorseller([]);
     setAdim(0); setMenu('yeni'); setDuzenle(ilan);
   };
 
   const menuDegistir = (id) => {
-    setMenu(id); setDuzenle(null); setMesaj(null); setHata(null);
-    setLimitAsimi(false); setSidebar(false);
+    setMenu(id); setDuzenle(null); setLimitAsimi(false); setSidebar(false);
+    setSeciliKonusma(null); setProfilDuz(false); setSifreAcik(false); setDukkanDuz(false);
+    setSecilenGorseller([]);
   };
 
-  // Filtreli ilanlar
   const aktifIlanlar = ilanlar.filter(i => !i.durum || i.durum === 'aktif');
   const pasifIlanlar = ilanlar.filter(i => i.durum && i.durum !== 'aktif');
-
   const goruntulenenIlanlar =
     menu === 'ilanlar-aktif' ? aktifIlanlar :
     menu === 'ilanlar-pasif' ? pasifIlanlar :
     ilanlar;
 
-  // Başlık
   const baslikMap = {
     anasayfa: 'Anasayfa',
     ilanlar: 'İlanlarım',
     'ilanlar-aktif': 'Aktif İlanlar',
     'ilanlar-pasif': 'Pasif İlanlar',
     yeni: duzenle ? 'İlan Düzenle' : 'İlan Ver',
-    mesajlar: 'Mesajlarım',
+    mesajlar: seciliKonusma ? `${seciliKonusma.karsi_ad || 'Konuşma'}` : 'Mesajlarım',
     aramalar: 'Kayıtlı Aramalarım',
     favoriler: 'Favori İlanlarım',
-    uyelik: 'Üyelik Bilgileri',
+    uyelik: 'Üyelik & Hesap',
+    dukkan: 'Dükkan Bilgileri',
+    danismanlar: 'Danışmanlarım',
+    istatistikler: 'İstatistikler',
   };
 
   // ── Sidebar ──────────────────────────────────────────────────
   const Sidebar = () => (
     <aside className="w-64 flex-shrink-0 bg-slate-800 flex flex-col h-screen sticky top-0 overflow-y-auto">
-      {/* Logo */}
       <div className="px-5 py-4 border-b border-slate-700">
         <Link to="/" className="flex items-center gap-2">
           <div className="bg-green-600 p-1.5 rounded-lg"><Home size={16} className="text-white" /></div>
           <span className="text-base font-bold text-white">Emlak<span className="text-green-400">Node</span></span>
         </Link>
       </div>
-
-      {/* Kullanıcı */}
       <div className="px-4 py-4 border-b border-slate-700 flex items-center gap-3">
         <div className="w-10 h-10 rounded-xl bg-green-600 flex items-center justify-center text-white font-extrabold text-sm flex-shrink-0">
           {basTurkce(kullanici.ad_soyad)}
         </div>
         <div className="overflow-hidden">
           <p className="text-sm font-bold text-white truncate">{kullanici.ad_soyad || 'Kullanıcı'}</p>
-          <p className="text-xs text-slate-400 capitalize">{kullanici.rol || 'bireysel'}</p>
+          <p className="text-xs text-slate-400">{kurumsal ? 'Kurumsal' : 'Bireysel'}</p>
         </div>
       </div>
-
-      {/* Nav */}
       <nav className="flex-1 px-3 py-4 space-y-1">
         <NavItem id="anasayfa" icon={LayoutGrid} label="Anasayfa" aktif={menu === 'anasayfa'} onClick={menuDegistir} />
 
         <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-3 pt-4 pb-1">İlanlarım</p>
-        <NavItem id="ilanlar" icon={FileText} label="Tüm İlanlar" aktif={menu === 'ilanlar'} onClick={menuDegistir} badge={ilanlar.length || null} />
-        <NavItem id="ilanlar-aktif" icon={CheckCircle} label="Aktif İlanlar" aktif={menu === 'ilanlar-aktif'} onClick={menuDegistir} sub badge={aktifIlanlar.length || null} />
-        <NavItem id="ilanlar-pasif" icon={PauseCircle} label="Pasif İlanlar" aktif={menu === 'ilanlar-pasif'} onClick={menuDegistir} sub badge={pasifIlanlar.length || null} />
-
+        <NavItem id="ilanlar"       icon={FileText}   label="Tüm İlanlar"   aktif={menu === 'ilanlar'}       onClick={menuDegistir} badge={ilanlar.length || null} />
+        <NavItem id="ilanlar-aktif" icon={CheckCircle} label="Aktif"        aktif={menu === 'ilanlar-aktif'} onClick={menuDegistir} sub badge={aktifIlanlar.length || null} />
+        <NavItem id="ilanlar-pasif" icon={PauseCircle} label="Pasif"        aktif={menu === 'ilanlar-pasif'} onClick={menuDegistir} sub badge={pasifIlanlar.length || null} />
         <div className="pt-1">
           <NavItem id="yeni" icon={PlusCircle} label={duzenle ? 'İlan Düzenle' : 'İlan Ver'} aktif={menu === 'yeni'} onClick={menuDegistir} />
         </div>
 
+        {kurumsal && (
+          <>
+            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-3 pt-4 pb-1">Dükkan</p>
+            <NavItem id="dukkan"        icon={Store}    label="Dükkan Bilgileri" aktif={menu === 'dukkan'}        onClick={menuDegistir} />
+            <NavItem id="danismanlar"   icon={Users}    label="Danışmanlarım"    aktif={menu === 'danismanlar'}   onClick={menuDegistir} />
+            <NavItem id="istatistikler" icon={BarChart2} label="İstatistikler"   aktif={menu === 'istatistikler'} onClick={menuDegistir} />
+          </>
+        )}
+
         <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-3 pt-4 pb-1">Hesabım</p>
-        <NavItem id="mesajlar"  icon={MessageSquare} label="Mesajlarım"         aktif={menu === 'mesajlar'}  onClick={menuDegistir} />
+        <NavItem id="mesajlar"  icon={MessageSquare} label="Mesajlarım"         aktif={menu === 'mesajlar'}  onClick={menuDegistir} badge={okunmamis || null} />
         <NavItem id="aramalar"  icon={Bookmark}      label="Kayıtlı Aramalarım" aktif={menu === 'aramalar'}  onClick={menuDegistir} />
         <NavItem id="favoriler" icon={Heart}          label="Favori İlanlarım"   aktif={menu === 'favoriler'} onClick={menuDegistir} />
-        <NavItem id="uyelik"    icon={UserCircle}     label="Üyelik"             aktif={menu === 'uyelik'}    onClick={menuDegistir} />
+        <NavItem id="uyelik"    icon={UserCircle}     label="Üyelik & Hesap"     aktif={menu === 'uyelik'}    onClick={menuDegistir} />
       </nav>
-
       <div className="px-3 pb-4 border-t border-slate-700 pt-3">
         <Link to="/" className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:bg-white/10 hover:text-white transition-all">
           <Eye size={16} /> Siteye Dön
@@ -318,20 +549,6 @@ export default function Dashboard() {
   // ── Uyarı kutuları ───────────────────────────────────────────
   const Uyarilar = () => (
     <div className="space-y-3 mb-6">
-      {mesaj && (
-        <div className="flex items-center gap-3 bg-green-50 border border-green-200 rounded-xl p-4">
-          <CheckCircle2 size={18} className="text-green-500 flex-shrink-0" />
-          <p className="text-green-800 text-sm font-medium flex-1">{mesaj}</p>
-          <button onClick={() => setMesaj(null)}><X size={15} className="text-green-400" /></button>
-        </div>
-      )}
-      {hata && (
-        <div className="flex items-center gap-3 bg-red-50 border border-red-200 rounded-xl p-4">
-          <AlertCircle size={18} className="text-red-400 flex-shrink-0" />
-          <p className="text-red-700 text-sm flex-1">{hata}</p>
-          <button onClick={() => setHata(null)}><X size={15} className="text-red-400" /></button>
-        </div>
-      )}
       {limitAsimi && (
         <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 flex items-start gap-4">
           <div className="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center flex-shrink-0">
@@ -340,22 +557,20 @@ export default function Dashboard() {
           <div className="flex-1">
             <p className="font-bold text-amber-800 mb-1">İlan Limitine Ulaştınız</p>
             <p className="text-sm text-amber-700 mb-3">
-              Bireysel hesaplar en fazla <strong>3 ilan</strong> ekleyebilir. Daha fazla ilan vermek için kurumsal hesap açmanız gerekmektedir.
+              Bireysel hesaplar en fazla <strong>3 ilan</strong> ekleyebilir.
             </p>
             <Link to="/kayit" state={{ tab: 'kurumsal' }}
               className="inline-flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-white text-sm font-bold px-4 py-2 rounded-xl transition-colors">
               Kurumsal Hesap Aç
             </Link>
           </div>
-          <button onClick={() => setLimitAsimi(false)} className="text-amber-400 hover:text-amber-600">
-            <X size={16} />
-          </button>
+          <button onClick={() => setLimitAsimi(false)} className="text-amber-400 hover:text-amber-600"><X size={16} /></button>
         </div>
       )}
     </div>
   );
 
-  // ── İlan kartı (liste görünümü) ──────────────────────────────
+  // ── İlan kartı (liste) ───────────────────────────────────────
   const IlanKarti = ({ ilan }) => (
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex hover:shadow-md transition-all">
       <div className="w-32 h-28 flex-shrink-0 bg-slate-100 relative">
@@ -388,7 +603,7 @@ export default function Dashboard() {
         </div>
         <select value={ilan.durum || 'aktif'} onChange={e => durumDegistir(ilan.id, e.target.value)}
           className={`mt-2 text-xs font-bold px-2.5 py-1.5 rounded-lg border cursor-pointer focus:outline-none transition-all ${
-            ilan.durum === 'pasif'     ? 'bg-gray-100 text-gray-500 border-gray-200'
+            ilan.durum === 'pasif'      ? 'bg-gray-100 text-gray-500 border-gray-200'
             : ilan.durum === 'satildi'  ? 'bg-red-50 text-red-600 border-red-200'
             : ilan.durum === 'kiralandı'? 'bg-blue-50 text-blue-600 border-blue-200'
             :                            'bg-green-50 text-green-700 border-green-200'
@@ -404,7 +619,7 @@ export default function Dashboard() {
             className="p-2 rounded-lg border border-gray-200 text-gray-400 hover:text-blue-500 hover:border-blue-200 transition-all"><Eye size={14} /></Link>
           <button onClick={() => duzenleBaslat(ilan)}
             className="p-2 rounded-lg border border-gray-200 text-gray-400 hover:text-green-600 hover:border-green-300 transition-all"><Pencil size={14} /></button>
-          <button onClick={() => sil(ilan.id, ilan.baslik)}
+          <button onClick={() => silOnay(ilan.id, ilan.baslik)}
             className="p-2 rounded-lg border border-gray-200 text-gray-400 hover:text-red-500 hover:border-red-200 transition-all"><Trash2 size={14} /></button>
         </div>
       </div>
@@ -414,27 +629,25 @@ export default function Dashboard() {
   // ── ANASAYFA ─────────────────────────────────────────────────
   const Anasayfa = () => (
     <div className="space-y-6">
-      {/* Karşılama */}
-      <div className="bg-gradient-to-r from-green-600 to-green-500 rounded-2xl p-6 text-white">
-        <p className="text-green-100 text-sm mb-1">Hoş geldiniz 👋</p>
-        <h2 className="text-2xl font-extrabold">{kullanici.ad_soyad}</h2>
-        <p className="text-green-200 text-sm mt-1 capitalize">{kullanici.rol || 'Bireysel'} Hesap · {kullanici.eposta}</p>
+      <div className="bg-gradient-to-r from-gray-900 via-slate-800 to-green-900 rounded-2xl p-6 text-white flex items-center gap-5">
+        <div className="w-16 h-16 rounded-2xl bg-white/15 border border-white/20 flex items-center justify-center text-white font-extrabold text-xl flex-shrink-0">
+          {basTurkce(kullanici.ad_soyad)}
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-green-300 text-xs font-semibold uppercase tracking-wider mb-1">Hoş geldiniz</p>
+          <h2 className="text-2xl font-extrabold truncate">{kullanici.ad_soyad}</h2>
+          <p className="text-slate-400 text-sm mt-1">{kurumsal ? '🏢 Kurumsal Hesap' : '👤 Bireysel Hesap'} · {kullanici.eposta}</p>
+        </div>
       </div>
-
-      {/* Stat kartları */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { label: 'Toplam İlan',  value: ilanlar.length,        icon: FileText,   renk: 'bg-blue-50 text-blue-600' },
-          { label: 'Aktif İlan',   value: aktifIlanlar.length,   icon: CheckCircle, renk: 'bg-green-50 text-green-600' },
-          { label: 'Pasif İlan',   value: pasifIlanlar.length,   icon: PauseCircle, renk: 'bg-gray-50 text-gray-500' },
-          { label: 'İlan Hakkı',
-            value: kullanici.dukkan_id ? '∞' : `${ilanlar.length}/3`,
-            icon: TrendingUp, renk: 'bg-amber-50 text-amber-500' },
+          { label: 'Toplam İlan',  value: ilanlar.length,       icon: FileText,    renk: 'bg-blue-50 text-blue-600' },
+          { label: 'Aktif İlan',   value: aktifIlanlar.length,  icon: CheckCircle, renk: 'bg-green-50 text-green-600' },
+          { label: 'Pasif İlan',   value: pasifIlanlar.length,  icon: PauseCircle, renk: 'bg-gray-50 text-gray-500' },
+          { label: 'İlan Hakkı',   value: kurumsal ? '∞' : `${ilanlar.length}/3`, icon: TrendingUp, renk: 'bg-amber-50 text-amber-500' },
         ].map(({ label, value, icon: Icon, renk }) => (
           <div key={label} className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm flex items-center gap-4">
-            <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${renk}`}>
-              <Icon size={20} />
-            </div>
+            <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${renk}`}><Icon size={20} /></div>
             <div>
               <p className="text-2xl font-extrabold text-gray-900">{value}</p>
               <p className="text-xs text-gray-400 mt-0.5">{label}</p>
@@ -442,8 +655,6 @@ export default function Dashboard() {
           </div>
         ))}
       </div>
-
-      {/* Son ilanlar */}
       {ilanlar.length > 0 && (
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
           <div className="px-5 py-4 border-b border-gray-50 flex items-center justify-between">
@@ -468,9 +679,7 @@ export default function Dashboard() {
           </div>
         </div>
       )}
-
-      {/* Bireysel kullanıcı için ilan hakkı bilgisi */}
-      {!kullanici.dukkan_id && (
+      {!kurumsal && (
         <div className="bg-blue-50 border border-blue-100 rounded-2xl p-5 flex items-start gap-4">
           <AlertCircle size={20} className="text-blue-400 mt-0.5 flex-shrink-0" />
           <div>
@@ -513,19 +722,209 @@ export default function Dashboard() {
     </div>
   );
 
-  // ── Placeholder sayfalar ─────────────────────────────────────
-  const Placeholder = ({ icon: Icon, baslik, aciklama }) => (
-    <div className="flex flex-col items-center justify-center py-24 text-center">
-      <div className="w-20 h-20 bg-green-50 rounded-2xl flex items-center justify-center mb-5">
-        <Icon size={36} className="text-green-400" />
-      </div>
-      <h3 className="text-xl font-bold text-gray-700 mb-2">{baslik}</h3>
-      <p className="text-sm text-gray-400 max-w-xs">{aciklama}</p>
-      <span className="mt-4 inline-block bg-green-100 text-green-700 text-xs font-bold px-3 py-1.5 rounded-full">Yakında</span>
+  // ── FAVORİLER ────────────────────────────────────────────────
+  const Favoriler = () => (
+    <div className="space-y-4">
+      {favYuk ? (
+        <div className="flex justify-center py-16"><Loader2 size={28} className="text-green-500 animate-spin" /></div>
+      ) : favoriler.length === 0 ? (
+        <div className="bg-white rounded-2xl p-14 text-center border border-gray-100 shadow-sm">
+          <Heart size={40} className="text-gray-200 mx-auto mb-3" />
+          <p className="font-semibold text-gray-500">Favori ilanınız yok</p>
+          <Link to="/" className="mt-4 inline-block px-5 py-2 bg-green-600 text-white rounded-xl text-sm font-bold hover:bg-green-700 transition-all">
+            İlanlara Göz At
+          </Link>
+        </div>
+      ) : (
+        <>
+          <p className="text-sm text-gray-500">{favoriler.length} favori ilan</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {favoriler.map(fav => {
+              const ilan = fav.ilan || fav;
+              return (
+                <div key={fav.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden group hover:shadow-md transition-all">
+                  <div className="relative h-36 overflow-hidden bg-gray-100">
+                    <img src={ilan.gorsel || GORSEL_FALLBACK} alt={ilan.baslik}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      onError={e => { e.currentTarget.src = GORSEL_FALLBACK; }}
+                    />
+                    <span className={`absolute top-2 left-2 text-white text-[10px] font-bold px-2 py-0.5 rounded-md ${ilan.tip === 'Kiralık' ? 'bg-blue-500' : 'bg-green-600'}`}>
+                      {ilan.tip || 'Satılık'}
+                    </span>
+                  </div>
+                  <div className="p-3">
+                    <p className="text-sm font-bold text-gray-900 line-clamp-2 group-hover:text-green-700 transition-colors">{ilan.baslik}</p>
+                    {(ilan.ilce || ilan.sehir) && (
+                      <p className="text-xs text-gray-400 mt-1 flex items-center gap-1">
+                        <MapPin size={10} className="text-green-500" />
+                        {[ilan.ilce, ilan.sehir].filter(Boolean).join(' / ')}
+                      </p>
+                    )}
+                    <p className="text-green-700 font-extrabold text-sm mt-1">{fiyatFormat(ilan.fiyat)}</p>
+                    <div className="flex gap-2 mt-2">
+                      <Link to={`/ilan/${ilan.id}`}
+                        className="flex-1 text-center text-xs font-bold border border-green-200 text-green-600 hover:bg-green-50 py-1.5 rounded-lg transition-colors">
+                        Detay
+                      </Link>
+                      <button onClick={async () => {
+                          await favoriSil(ilan.id).catch(() => {});
+                          setFavoriler(p => p.filter(f => f.id !== fav.id));
+                        }}
+                        className="flex-1 text-xs font-bold border border-red-100 text-red-400 hover:bg-red-50 py-1.5 rounded-lg transition-colors">
+                        Kaldır
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </>
+      )}
     </div>
   );
 
-  // ── Üyelik ───────────────────────────────────────────────────
+  // ── MESAJLAR ─────────────────────────────────────────────────
+  const MesajlarListesi = () => (
+    <div>
+      {konusmaYuk ? (
+        <div className="flex justify-center py-16"><Loader2 size={28} className="text-green-500 animate-spin" /></div>
+      ) : konusmalar.length === 0 ? (
+        <div className="bg-white rounded-2xl p-14 text-center border border-gray-100 shadow-sm">
+          <MessageSquare size={40} className="text-gray-200 mx-auto mb-3" />
+          <p className="font-semibold text-gray-500">Henüz mesajınız yok</p>
+          <p className="text-xs text-gray-400 mt-2">İlan sayfalarından mesaj gönderebilirsiniz.</p>
+        </div>
+      ) : (
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden divide-y divide-gray-50">
+          {konusmalar.map(k => {
+            const okunmamis = parseInt(k.okunmamis) > 0;
+            return (
+              <button key={k.id} onClick={() => konusmaAc(k)}
+                className="w-full flex items-center gap-4 p-4 hover:bg-gray-50 transition-colors text-left">
+                <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-base font-extrabold flex-shrink-0 ${okunmamis ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                  {basTurkce(k.karsi_ad || 'K')}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between">
+                    <p className={`text-sm ${okunmamis ? 'font-extrabold text-gray-900' : 'font-semibold text-gray-800'}`}>{k.karsi_ad || 'Kullanıcı'}</p>
+                    <p className="text-xs text-gray-400 ml-2 flex-shrink-0">{tarihKisa(k.son_tarih)}</p>
+                  </div>
+                  {k.ilan_baslik && <p className="text-xs text-gray-400 mt-0.5 truncate">🏠 {k.ilan_baslik}</p>}
+                  <div className="flex items-center justify-between mt-0.5">
+                    <p className={`text-xs truncate flex-1 ${okunmamis ? 'text-gray-800 font-semibold' : 'text-gray-500'}`}>{k.son_mesaj || 'Konuşma başlatıldı'}</p>
+                    {okunmamis && (
+                      <span className="bg-green-600 text-white text-[10px] font-bold min-w-[18px] h-[18px] rounded-full flex items-center justify-center px-1 ml-2 flex-shrink-0">{k.okunmamis}</span>
+                    )}
+                  </div>
+                </div>
+                <ChevronRight size={14} className="text-gray-300 flex-shrink-0" />
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+
+  const KonusmaDetay = () => (
+    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col" style={{ height: 'calc(100vh - 180px)', minHeight: 400 }}>
+      <div className="px-4 py-3 border-b border-gray-100 flex items-center gap-3 bg-white">
+        <button onClick={() => setSeciliKonusma(null)} className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors">
+          <ArrowLeft size={18} className="text-gray-600" />
+        </button>
+        <div className="w-9 h-9 bg-gray-100 rounded-xl flex items-center justify-center text-sm font-extrabold text-gray-600 flex-shrink-0">
+          {basTurkce(seciliKonusma?.karsi_ad || 'K')}
+        </div>
+        <div>
+          <p className="text-sm font-bold text-gray-900">{seciliKonusma?.karsi_ad || 'Kullanıcı'}</p>
+          {seciliKonusma?.ilan_baslik && <p className="text-xs text-gray-400">🏠 {seciliKonusma.ilan_baslik}</p>}
+        </div>
+      </div>
+      <div ref={mesajListRef} className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50">
+        {mesajListesi.length === 0 && (
+          <p className="text-center text-xs text-gray-400 pt-8">Henüz mesaj yok</p>
+        )}
+        {mesajListesi.map(m => {
+          const benden = parseInt(m.gonderen_id) === parseInt(kullanici.id);
+          return (
+            <div key={m.id} className={`flex ${benden ? 'justify-end' : 'justify-start'}`}>
+              <div className={`max-w-[70%] px-4 py-2.5 rounded-2xl ${benden ? 'bg-green-600 text-white rounded-br-sm' : 'bg-white border border-gray-100 text-gray-800 rounded-bl-sm shadow-sm'}`}>
+                <p className="text-sm leading-relaxed">{m.metin}</p>
+                <p className={`text-[10px] mt-1 text-right ${benden ? 'text-white/60' : 'text-gray-400'}`}>
+                  {new Date(m.olusturulma).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
+                  {benden && (m.okundu ? ' ✓✓' : ' ✓')}
+                </p>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      <div className="p-3 border-t border-gray-100 flex items-end gap-2 bg-white">
+        <textarea
+          value={yeniMesaj}
+          onChange={e => setYeniMesaj(e.target.value)}
+          onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); mesajGonderFn(); } }}
+          placeholder="Mesajınızı yazın..."
+          rows={1}
+          className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-green-500 resize-none"
+          style={{ maxHeight: 100 }}
+        />
+        <button onClick={mesajGonderFn} disabled={!yeniMesaj.trim() || mesajGond}
+          className="w-10 h-10 bg-green-600 hover:bg-green-700 disabled:bg-gray-200 text-white rounded-xl flex items-center justify-center flex-shrink-0 transition-colors">
+          {mesajGond ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
+        </button>
+      </div>
+    </div>
+  );
+
+  // ── KAYITLI ARAMALAR ─────────────────────────────────────────
+  const KayitliAramalar = () => (
+    <div className="space-y-4">
+      {aramaYuk ? (
+        <div className="flex justify-center py-16"><Loader2 size={28} className="text-green-500 animate-spin" /></div>
+      ) : aramalar.length === 0 ? (
+        <div className="bg-white rounded-2xl p-14 text-center border border-gray-100 shadow-sm">
+          <Bookmark size={40} className="text-gray-200 mx-auto mb-3" />
+          <p className="font-semibold text-gray-500">Kayıtlı aramanız yok</p>
+          <p className="text-xs text-gray-400 mt-2">Arama sayfasında filtreleri kaydedebilirsiniz.</p>
+        </div>
+      ) : (
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden divide-y divide-gray-50">
+          {aramalar.map(a => (
+            <div key={a.id} className="flex items-center gap-4 p-4">
+              <div className="w-10 h-10 bg-purple-50 rounded-xl flex items-center justify-center flex-shrink-0">
+                <Bookmark size={18} className="text-purple-500" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-gray-800 truncate">{a.baslik || a.sehir || 'Arama'}</p>
+                <p className="text-xs text-gray-400 mt-0.5">
+                  {[a.tip, a.sehir, a.ilce].filter(Boolean).join(' · ')}
+                  {a.min_fiyat && ` · Min: ${fiyatFormat(a.min_fiyat)}`}
+                  {a.max_fiyat && ` · Max: ${fiyatFormat(a.max_fiyat)}`}
+                </p>
+              </div>
+              <div className="flex gap-2 flex-shrink-0">
+                <Link to={`/?${new URLSearchParams(Object.fromEntries(Object.entries(a).filter(([k, v]) => v && !['id', 'kullanici_id', 'baslik', 'olusturulma'].includes(k) && typeof v !== 'object'))).toString()}`}
+                  className="p-2 rounded-lg border border-gray-200 text-gray-400 hover:text-green-600 hover:border-green-300 transition-all" title="İlanlarda Ara">
+                  <Eye size={14} />
+                </Link>
+                <button onClick={async () => {
+                    await kayitliAramaSil(a.id).catch(() => {});
+                    setAramalar(p => p.filter(x => x.id !== a.id));
+                  }}
+                  className="p-2 rounded-lg border border-gray-200 text-gray-400 hover:text-red-500 hover:border-red-200 transition-all" title="Sil">
+                  <Trash2 size={14} />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+
+  // ── ÜYELİK ──────────────────────────────────────────────────
   const Uyelik = () => (
     <div className="max-w-lg space-y-4">
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
@@ -535,31 +934,310 @@ export default function Dashboard() {
           </div>
           <div>
             <h3 className="text-xl font-extrabold text-white">{kullanici.ad_soyad}</h3>
-            <p className="text-slate-300 text-sm mt-1 capitalize">{kullanici.rol} Hesap</p>
+            <p className="text-slate-300 text-sm mt-1">{kurumsal ? 'Kurumsal Hesap' : 'Bireysel Hesap'}</p>
           </div>
         </div>
-        <div className="divide-y divide-gray-50">
-          {[
-            { label: 'Ad Soyad', value: kullanici.ad_soyad },
-            { label: 'E-posta',  value: kullanici.eposta },
-            { label: 'Hesap Tipi', value: kullanici.dukkan_id ? 'Kurumsal (Patron)' : 'Bireysel' },
-            { label: 'Toplam İlan', value: `${ilanlar.length} ilan` },
-          ].map(({ label, value }) => (
-            <div key={label} className="px-6 py-4 flex items-center justify-between">
-              <span className="text-sm text-gray-400 font-medium">{label}</span>
-              <span className="text-sm font-semibold text-gray-800">{value || '—'}</span>
+        {!profilDuzenle ? (
+          <>
+            <div className="divide-y divide-gray-50">
+              {[
+                { label: 'Ad Soyad',    value: kullanici.ad_soyad },
+                { label: 'E-posta',     value: kullanici.eposta },
+                { label: 'Telefon',     value: kullanici.telefon || '—' },
+                { label: 'Hesap Tipi',  value: kurumsal ? 'Kurumsal' : 'Bireysel' },
+                { label: 'Toplam İlan', value: `${ilanlar.length} ilan` },
+              ].map(({ label, value }) => (
+                <div key={label} className="px-6 py-4 flex items-center justify-between">
+                  <span className="text-sm text-gray-400 font-medium">{label}</span>
+                  <span className="text-sm font-semibold text-gray-800">{value || '—'}</span>
+                </div>
+              ))}
             </div>
-          ))}
+            <div className="p-4 border-t border-gray-100">
+              <button onClick={() => setProfilDuz(true)}
+                className="w-full flex items-center justify-center gap-2 py-2.5 border border-green-200 text-green-600 hover:bg-green-50 font-semibold rounded-xl transition-all text-sm">
+                <Pencil size={14} /> Profili Düzenle
+              </button>
+            </div>
+          </>
+        ) : (
+          <div className="p-5 space-y-4">
+            <h4 className="font-bold text-gray-900 text-sm">Profil Bilgilerini Düzenle</h4>
+            <Inp label="Ad Soyad" name="ad_soyad" value={profilForm.ad_soyad}
+              onChange={e => setProfilForm(f => ({ ...f, ad_soyad: e.target.value }))} zorunlu />
+            <Inp label="E-posta" name="eposta" type="email" value={profilForm.eposta}
+              onChange={e => setProfilForm(f => ({ ...f, eposta: e.target.value }))} zorunlu />
+            <Inp label="Telefon" name="telefon" value={profilForm.telefon || ''}
+              onChange={e => setProfilForm(f => ({ ...f, telefon: e.target.value }))} placeholder="0555 555 55 55" />
+            <div className="flex gap-2 pt-2">
+              <button onClick={() => setProfilDuz(false)}
+                className="flex-1 py-2.5 border border-gray-200 text-gray-600 rounded-xl font-semibold text-sm hover:bg-gray-50 transition-all">
+                İptal
+              </button>
+              <button disabled={profilKayit} onClick={async () => {
+                  if (!profilForm.ad_soyad.trim() || !profilForm.eposta.trim()) { toast.error('Ad soyad ve e-posta zorunludur.'); return; }
+                  setProfilKayit(true);
+                  try {
+                    const r = await profilGuncelle(profilForm);
+                    const yeniK = { ...kullanici, ...(r.data.kullanici || profilForm) };
+                    localStorage.setItem('kullanici', JSON.stringify(yeniK));
+                    setProfilDuz(false);
+                    toast.success('Profil güncellendi!');
+                  } catch (err) { toast.error(err.response?.data?.mesaj || 'Güncelleme başarısız.'); }
+                  finally { setProfilKayit(false); }
+                }}
+                className="flex-1 py-2.5 bg-green-600 hover:bg-green-700 disabled:opacity-60 text-white rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2">
+                {profilKayit ? <><Loader2 size={14} className="animate-spin" />Kaydediliyor…</> : <><CheckCircle2 size={14} />Kaydet</>}
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Şifre değiştir */}
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+        <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Lock size={16} className="text-gray-500" />
+            <h3 className="font-bold text-gray-900 text-sm">Şifre Değiştir</h3>
+          </div>
+          {!sifreAcik && (
+            <button onClick={() => setSifreAcik(true)} className="text-xs text-green-600 font-semibold hover:underline">Değiştir</button>
+          )}
         </div>
+        {sifreAcik && (
+          <div className="p-5 space-y-4">
+            <Inp label="Mevcut Şifre" name="eski" type="password" value={sifreForm.eski_sifre}
+              onChange={e => setSifreForm(f => ({ ...f, eski_sifre: e.target.value }))} placeholder="••••••••" zorunlu />
+            <Inp label="Yeni Şifre" name="yeni" type="password" value={sifreForm.yeni_sifre}
+              onChange={e => setSifreForm(f => ({ ...f, yeni_sifre: e.target.value }))} placeholder="En az 6 karakter" zorunlu />
+            <Inp label="Yeni Şifre (Tekrar)" name="yeni2" type="password" value={sifreForm.yeni_sifre2}
+              onChange={e => setSifreForm(f => ({ ...f, yeni_sifre2: e.target.value }))} placeholder="••••••••" zorunlu />
+            <div className="flex gap-2 pt-2">
+              <button onClick={() => { setSifreAcik(false); setSifreForm({ eski_sifre: '', yeni_sifre: '', yeni_sifre2: '' }); }}
+                className="flex-1 py-2.5 border border-gray-200 text-gray-600 rounded-xl font-semibold text-sm hover:bg-gray-50 transition-all">
+                İptal
+              </button>
+              <button disabled={sifreKayit} onClick={async () => {
+                  if (sifreForm.yeni_sifre !== sifreForm.yeni_sifre2) { toast.error('Yeni şifreler eşleşmiyor.'); return; }
+                  if (sifreForm.yeni_sifre.length < 6) { toast.error('Şifre en az 6 karakter olmalıdır.'); return; }
+                  setSifreKayit(true);
+                  try {
+                    await sifreGuncelle({ eski_sifre: sifreForm.eski_sifre, yeni_sifre: sifreForm.yeni_sifre });
+                    setSifreAcik(false);
+                    setSifreForm({ eski_sifre: '', yeni_sifre: '', yeni_sifre2: '' });
+                    toast.success('Şifre başarıyla güncellendi!');
+                  } catch (err) { toast.error(err.response?.data?.mesaj || 'Şifre güncellenemedi.'); }
+                  finally { setSifreKayit(false); }
+                }}
+                className="flex-1 py-2.5 bg-green-600 hover:bg-green-700 disabled:opacity-60 text-white rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2">
+                {sifreKayit ? <><Loader2 size={14} className="animate-spin" />Kaydediliyor…</> : <><Lock size={14} />Güncelle</>}
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
+
+  // ── DÜKKAN BİLGİLERİ (Kurumsal) ─────────────────────────────
+  const DukkanBilgileri = () => {
+    if (dukkanYuk) return <div className="flex justify-center py-16"><Loader2 size={28} className="text-green-500 animate-spin" /></div>;
+    if (!dukkan) return <div className="text-center py-16 text-gray-400 text-sm">Dükkan bilgisi yüklenemedi.</div>;
+    return (
+      <div className="max-w-lg space-y-4">
+        <div className="bg-blue-600 rounded-2xl p-6 text-white text-center">
+          <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mx-auto mb-3">
+            <Store size={32} className="text-blue-600" />
+          </div>
+          <h2 className="text-xl font-extrabold">{dukkan.dukkan_adi}</h2>
+          <p className="text-blue-100 text-sm mt-1">
+            {[dukkan.ilce, dukkan.sehir].filter(Boolean).join(', ') || 'Konum belirtilmemiş'}
+          </p>
+        </div>
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          <div className="px-5 py-4 border-b border-gray-100">
+            <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Lisans Bilgileri</p>
+          </div>
+          <div className="divide-y divide-gray-50">
+            {[{ label: 'Vergi No', value: dukkan.vergi_no || '—' }, { label: 'Yetki Belge No', value: dukkan.yetki_belge_no || '—' }].map(({ label, value }) => (
+              <div key={label} className="px-5 py-4 flex items-center justify-between">
+                <span className="text-sm text-gray-400">{label}</span>
+                <span className="text-sm font-semibold text-gray-800">{value}</span>
+              </div>
+            ))}
+          </div>
+          <p className="px-5 py-3 text-xs text-gray-400 bg-gray-50">* Bu bilgiler değiştirilemez.</p>
+        </div>
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+            <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Ofis Bilgileri</p>
+            {!dukkanDuz && (
+              <button onClick={() => setDukkanDuz(true)}
+                className="flex items-center gap-1.5 text-xs font-semibold text-blue-600 border border-blue-200 hover:bg-blue-50 px-3 py-1.5 rounded-lg transition-all">
+                <Pencil size={12} /> Düzenle
+              </button>
+            )}
+          </div>
+          {!dukkanDuz ? (
+            <div className="divide-y divide-gray-50">
+              {[{ label: 'Dükkan Adı', value: dukkan.dukkan_adi }, { label: 'Şehir', value: dukkan.sehir || '—' }, { label: 'İlçe', value: dukkan.ilce || '—' }].map(({ label, value }) => (
+                <div key={label} className="px-5 py-4 flex items-center justify-between">
+                  <span className="text-sm text-gray-400">{label}</span>
+                  <span className="text-sm font-semibold text-gray-800">{value}</span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="p-5 space-y-4">
+              <Inp label="Dükkan / Ofis Adı" name="dukkan_adi" value={dukkanForm.dukkan_adi}
+                onChange={e => setDukkanForm(f => ({ ...f, dukkan_adi: e.target.value }))} zorunlu />
+              <Inp label="Şehir" name="sehir" value={dukkanForm.sehir}
+                onChange={e => setDukkanForm(f => ({ ...f, sehir: e.target.value }))} placeholder="İstanbul" />
+              <Inp label="İlçe" name="ilce" value={dukkanForm.ilce}
+                onChange={e => setDukkanForm(f => ({ ...f, ilce: e.target.value }))} placeholder="Kadıköy" />
+              <div className="flex gap-2 pt-2">
+                <button onClick={() => { setDukkanForm({ dukkan_adi: dukkan.dukkan_adi || '', sehir: dukkan.sehir || '', ilce: dukkan.ilce || '' }); setDukkanDuz(false); }}
+                  className="flex-1 py-2.5 border border-gray-200 text-gray-600 rounded-xl font-semibold text-sm hover:bg-gray-50 transition-all">
+                  İptal
+                </button>
+                <button disabled={dukkanKayit} onClick={async () => {
+                    if (!dukkanForm.dukkan_adi.trim()) { toast.error('Dükkan adı zorunludur.'); return; }
+                    setDukkanKayit(true);
+                    try {
+                      const r = await dukkanGuncelle(kullanici.dukkan_id, dukkanForm);
+                      setDukkan(r.data.dukkan);
+                      setDukkanDuz(false);
+                      toast.success('Dükkan bilgileri güncellendi!');
+                    } catch (err) { toast.error(err.response?.data?.mesaj || 'Güncelleme başarısız.'); }
+                    finally { setDukkanKayit(false); }
+                  }}
+                  className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2">
+                  {dukkanKayit ? <><Loader2 size={14} className="animate-spin" />Kaydediliyor…</> : <><CheckCircle2 size={14} />Kaydet</>}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  // ── DANIŞMANLAR (Kurumsal) ───────────────────────────────────
+  const Danismanlar = () => {
+    if (danisYuk) return <div className="flex justify-center py-16"><Loader2 size={28} className="text-green-500 animate-spin" /></div>;
+    return (
+      <div className="space-y-4">
+        <p className="text-sm text-gray-500">{danismanlar.length} danışman</p>
+        {danismanlar.length === 0 ? (
+          <div className="bg-white rounded-2xl p-14 text-center border border-gray-100 shadow-sm">
+            <Users size={40} className="text-gray-200 mx-auto mb-3" />
+            <p className="font-semibold text-gray-500">Henüz danışman yok</p>
+          </div>
+        ) : (
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden divide-y divide-gray-50">
+            {danismanlar.map(d => (
+              <div key={d.id} className="flex items-center gap-4 p-4">
+                <div className="w-11 h-11 bg-blue-50 rounded-xl flex items-center justify-center text-sm font-extrabold text-blue-700 flex-shrink-0">
+                  {basTurkce(d.ad_soyad || 'D')}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-gray-800 truncate">{d.ad_soyad}</p>
+                  <p className="text-xs text-gray-400 mt-0.5">{d.eposta}</p>
+                </div>
+                <span className="text-xs font-semibold bg-blue-50 text-blue-600 px-2.5 py-1 rounded-full capitalize">
+                  {d.rol || 'Danışman'}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // ── İSTATİSTİKLER (Kurumsal) ─────────────────────────────────
+  const Istatistikler = () => {
+    if (istYuk) return <div className="flex justify-center py-16"><Loader2 size={28} className="text-green-500 animate-spin" /></div>;
+    if (!ist) return <div className="text-center py-16 text-gray-400 text-sm">Veri yüklenemedi.</div>;
+
+    const Cubuk = ({ label, sayi, toplam, renk }) => {
+      const oran = toplam > 0 ? (sayi / toplam) : 0;
+      return (
+        <div className="space-y-1.5">
+          <div className="flex items-center justify-between text-xs">
+            <span className="font-semibold text-gray-700">{label}</span>
+            <span className="font-extrabold text-gray-900">{sayi ?? 0}</span>
+          </div>
+          <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+            <div className="h-full rounded-full" style={{ width: `${Math.round(oran * 100)}%`, backgroundColor: renk }} />
+          </div>
+          <p className="text-[10px] text-gray-400">%{Math.round(oran * 100)}</p>
+        </div>
+      );
+    };
+
+    return (
+      <div className="space-y-4">
+        <div className="bg-gradient-to-r from-green-600 to-green-500 rounded-2xl p-6 text-white flex items-center gap-6">
+          <div className="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center flex-shrink-0">
+            <Home size={24} className="text-white" />
+          </div>
+          <div>
+            <p className="text-4xl font-extrabold">{ist.toplam ?? 0}</p>
+            <p className="text-green-100 text-sm">Toplam İlan</p>
+          </div>
+          <div className="w-px h-10 bg-white/30" />
+          <div>
+            <p className="text-4xl font-extrabold">{ist.danismanlar ?? 0}</p>
+            <p className="text-green-100 text-sm">Danışman</p>
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          {[
+            { label: 'Aktif',        value: ist.aktif,       border: 'border-l-green-500',  bg: 'bg-green-50 text-green-600' },
+            { label: 'Pasif',        value: ist.pasif,       border: 'border-l-orange-400', bg: 'bg-orange-50 text-orange-500' },
+            { label: 'Satıldı',      value: ist.satildi,     border: 'border-l-purple-500', bg: 'bg-purple-50 text-purple-600' },
+            { label: 'Fiyat Düştü',  value: ist.fiyat_dustu, border: 'border-l-red-400',    bg: 'bg-red-50 text-red-500' },
+          ].map(({ label, value, border, bg }) => (
+            <div key={label} className={`bg-white rounded-2xl border border-gray-100 shadow-sm p-5 border-l-4 ${border} flex items-center gap-4`}>
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${bg}`}>
+                <BarChart2 size={18} />
+              </div>
+              <div>
+                <p className="text-2xl font-extrabold text-gray-900">{value ?? 0}</p>
+                <p className="text-xs text-gray-400">{label}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-5">
+          <h3 className="font-bold text-gray-900 text-sm flex items-center gap-2"><BarChart2 size={15} className="text-green-500" />Dağılım</h3>
+          <Cubuk label="Satılık" sayi={ist.satilik} toplam={ist.toplam} renk="#16a34a" />
+          <Cubuk label="Kiralık" sayi={ist.kiralik} toplam={ist.toplam} renk="#3b82f6" />
+          <Cubuk label="Aktif"   sayi={ist.aktif}   toplam={ist.toplam} renk="#16a34a" />
+          <Cubuk label="Pasif"   sayi={ist.pasif}   toplam={ist.toplam} renk="#f97316" />
+          <Cubuk label="Satıldı" sayi={ist.satildi} toplam={ist.toplam} renk="#8b5cf6" />
+        </div>
+        {ist.fiyat_dustu > 0 && (
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex items-center gap-4 border-l-4 border-l-red-400">
+            <TrendingDown size={24} className="text-red-400 flex-shrink-0" />
+            <div>
+              <p className="font-bold text-gray-900 text-sm">{ist.fiyat_dustu} ilan fiyatı düşürüldü</p>
+              <p className="text-xs text-gray-500 mt-1">
+                Aktif ilanların %{Math.round((ist.fiyat_dustu / (ist.toplam || 1)) * 100)}'inde fiyat indirimi var
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
 
   // ── İLAN FORMU ───────────────────────────────────────────────
   const IlanFormu = () => (
     <form onSubmit={submit} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
       <div className="p-6 space-y-6">
-
         {adim === 0 && (
           <div className="space-y-6">
             <div>
@@ -604,16 +1282,21 @@ export default function Dashboard() {
               <Inp label="Toplam Kat" name="toplam_kat" type="number" value={form.toplam_kat} onChange={handleChange} placeholder="8" />
               <Inp label="Banyo Sayısı" name="banyo_sayisi" type="number" value={form.banyo_sayisi} onChange={handleChange} placeholder="1" />
               <Sel label="Isıtma" name="isinma_tipi" value={form.isinma_tipi} onChange={handleChange} opts={['Kombi','Doğalgaz','Merkezi','Klima','Soba','Yok']} />
-              <Inp label="Görsel URL" name="gorsel" value={form.gorsel} onChange={handleChange} placeholder="https://..." />
             </div>
+            <FotoYukleme
+              secilenler={secilenGorseller}
+              onSecilenler={setSecilenGorseller}
+              mevcutlar={Array.isArray(form.fotograflar) ? form.fotograflar : (form.gorsel ? [form.gorsel] : [])}
+              onMevcutSil={(url) => setForm(f => ({
+                ...f,
+                fotograflar: (Array.isArray(f.fotograflar) ? f.fotograflar : []).filter(u => u !== url),
+                gorsel: f.gorsel === url ? ((Array.isArray(f.fotograflar) ? f.fotograflar : []).filter(u => u !== url)[0] || '') : f.gorsel,
+              }))}
+            />
             <div>
               <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Özellikler</p>
               <div className="flex flex-wrap gap-2">
-                {[
-                  ['balkon','Balkon'],['asansor','Asansör'],['otopark','Otopark'],
-                  ['esyali','Eşyalı'],['site_icerisinde','Site İçinde'],
-                  ['krediye_uygunluk','Krediye Uygun'],['takas','Takas'],
-                ].map(([n, l]) => (
+                {[['balkon','Balkon'],['asansor','Asansör'],['otopark','Otopark'],['esyali','Eşyalı'],['site_icerisinde','Site İçinde'],['krediye_uygunluk','Krediye Uygun'],['takas','Takas']].map(([n, l]) => (
                   <Toggle key={n} name={n} label={l} value={form[n]} onChange={handleChange} />
                 ))}
               </div>
@@ -657,7 +1340,6 @@ export default function Dashboard() {
           </div>
         )}
       </div>
-
       <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-between bg-gray-50">
         <button type="button" onClick={() => adim > 0 && setAdim(a => a - 1)} disabled={adim === 0}
           className="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-600 hover:bg-gray-100 disabled:opacity-30 transition-all">
@@ -670,7 +1352,9 @@ export default function Dashboard() {
             </button>
           : <button type="submit" disabled={yukleniyor}
               className="flex items-center gap-2 px-8 py-2.5 bg-green-600 hover:bg-green-700 disabled:opacity-60 text-white rounded-xl text-sm font-bold shadow-md transition-all">
-              {yukleniyor ? <><Loader2 size={15} className="animate-spin" />Kaydediliyor…</> : <><CheckCircle2 size={15} />{duzenle ? 'Güncelle' : 'Yayınla'}</>}
+              {yukleniyor
+                ? <><Loader2 size={15} className="animate-spin" />{secilenGorseller.length > 0 ? 'Fotoğraflar yükleniyor…' : 'Kaydediliyor…'}</>
+                : <><CheckCircle2 size={15} />{duzenle ? 'Güncelle' : 'Yayınla'}</>}
             </button>
         }
       </div>
@@ -680,22 +1364,17 @@ export default function Dashboard() {
   // ── RENDER ───────────────────────────────────────────────────
   return (
     <div className="flex min-h-screen bg-slate-50 font-sans">
-      {/* Desktop Sidebar */}
       <div className="hidden lg:block">
         <Sidebar />
       </div>
 
-      {/* Mobil Sidebar Overlay */}
       {sidebarAcik && (
         <div className="fixed inset-0 z-50 lg:hidden">
           <div className="absolute inset-0 bg-black/50" onClick={() => setSidebar(false)} />
-          <div className="absolute left-0 top-0 bottom-0 w-64">
-            <Sidebar />
-          </div>
+          <div className="absolute left-0 top-0 bottom-0 w-64"><Sidebar /></div>
         </div>
       )}
 
-      {/* Main */}
       <div className="flex-1 min-w-0">
         {/* Topbar */}
         <div className="bg-white border-b border-gray-100 px-6 py-4 sticky top-0 z-10 flex items-center justify-between">
@@ -704,7 +1383,14 @@ export default function Dashboard() {
               <Menu size={20} />
             </button>
             <div>
-              <h1 className="text-base font-extrabold text-gray-900">{baslikMap[menu]}</h1>
+              <div className="flex items-center gap-2">
+                {menu === 'mesajlar' && seciliKonusma && (
+                  <button onClick={() => setSeciliKonusma(null)} className="p-1 rounded-lg hover:bg-gray-100 transition-colors">
+                    <ArrowLeft size={16} className="text-gray-600" />
+                  </button>
+                )}
+                <h1 className="text-base font-extrabold text-gray-900">{baslikMap[menu] || menu}</h1>
+              </div>
               {menu === 'yeni' && (
                 <div className="flex gap-1.5 mt-1">
                   {ADIMLAR.map((a, i) => (
@@ -730,10 +1416,13 @@ export default function Dashboard() {
           {menu === 'anasayfa'      && <Anasayfa />}
           {(menu === 'ilanlar' || menu === 'ilanlar-aktif' || menu === 'ilanlar-pasif') && <IlanListesi liste={goruntulenenIlanlar} />}
           {menu === 'yeni'          && <IlanFormu />}
-          {menu === 'mesajlar'      && <Placeholder icon={MessageSquare} baslik="Mesajlarım" aciklama="Gelen mesajlarınızı bu bölümden görüntüleyebileceksiniz." />}
-          {menu === 'aramalar'      && <Placeholder icon={Bookmark}      baslik="Kayıtlı Aramalarım" aciklama="Kaydettiğiniz aramalar ve filtreler burada görünecek." />}
-          {menu === 'favoriler'     && <Placeholder icon={Heart}          baslik="Favori İlanlarım" aciklama="Favorilediğiniz ilanlar bu bölümde listelenir." />}
+          {menu === 'mesajlar'      && (seciliKonusma ? <KonusmaDetay /> : <MesajlarListesi />)}
+          {menu === 'aramalar'      && <KayitliAramalar />}
+          {menu === 'favoriler'     && <Favoriler />}
           {menu === 'uyelik'        && <Uyelik />}
+          {kurumsal && menu === 'dukkan'        && <DukkanBilgileri />}
+          {kurumsal && menu === 'danismanlar'   && <Danismanlar />}
+          {kurumsal && menu === 'istatistikler' && <Istatistikler />}
         </div>
       </div>
     </div>

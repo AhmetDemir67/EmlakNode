@@ -10,6 +10,7 @@ import { ilanlarGetir } from '../services/api';
 import {
   TrendingUp, Loader2, AlertCircle, RefreshCw,
   SlidersHorizontal, X, LayoutGrid, Map,
+  Building2, Users, MapPin, Shield,
 } from 'lucide-react';
 
 const BOSLUK_FILTRE = {
@@ -138,6 +139,28 @@ const Home = () => {
   return (
     <>
       <Hero onAra={heroAra} onHaritaAra={() => setGorunum('harita')} />
+
+      {/* Stats / Trust Bar */}
+      <div className="bg-white border-b border-gray-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 text-center">
+            {[
+              { value: '10.000+', label: 'Aktif İlan',     Icon: Building2 },
+              { value: '5.000+',  label: 'Mutlu Müşteri',  Icon: Users },
+              { value: '81',      label: 'İl Kapsamı',     Icon: MapPin },
+              { value: '7/24',    label: 'Güvenli Platform', Icon: Shield },
+            ].map(({ value, label, Icon }) => (
+              <div key={label} className="flex flex-col items-center gap-1.5">
+                <div className="w-10 h-10 bg-green-50 rounded-xl flex items-center justify-center">
+                  <Icon size={18} className="text-green-600" />
+                </div>
+                <span className="text-xl font-black text-gray-900">{value}</span>
+                <span className="text-xs text-gray-500 font-medium">{label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
 
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
 

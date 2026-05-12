@@ -3,7 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { resetToAna } from './navigationRef';
 
 // Geliştirme: bilgisayarın IP'si (Android emülatör için 10.0.2.2, gerçek cihaz için LAN IP)
-export const API_URL = 'http://10.14.11.101:3000/api';
+export const API_URL = 'http://10.14.12.193:3000/api';
 
 const api = axios.create({ baseURL: API_URL });
 
@@ -36,18 +36,25 @@ export const ilanDetayGetir  = (id)      => api.get(`/ilanlar/${id}`);
 
 export const girisYap        = (data)    => api.post('/auth/giris', data);
 export const kayitOl         = (data)    => api.post('/auth/kayit', data);
+export const kurumsalKayitOl = (data)    => api.post('/auth/kurumsal-kayit', data);
 
 export const kullaniciilanlarim = (kullanici_id) =>
   api.get('/ilanlar', { params: { kullanici_id, limit: 100 } });
 
-export const ilanSil      = (id)       => api.delete(`/ilanlar/${id}`);
-export const ilanGuncelle = (id, data) => api.put(`/ilanlar/${id}`, data);
+export const ilanSil           = (id)        => api.delete(`/ilanlar/${id}`);
+export const ilanGuncelle      = (id, data)  => api.put(`/ilanlar/${id}`, data);
+export const ilanDurumGuncelle = (id, durum) => api.patch(`/ilanlar/${id}/durum`, { durum });
 
 export const fotografYukleAPI = (formData) =>
   api.post('/upload', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
-    transformRequest: (data) => data,
   });
+
+// Dükkan
+export const dukkanGetir       = (id)     => api.get(`/dukkanlar/${id}`);
+export const dukkanGuncelle    = (id, d)  => api.put(`/dukkanlar/${id}`, d);
+export const danismanlarGetir  = (id)     => api.get(`/dukkanlar/${id}/danismanlar`);
+export const istatistiklerGetir = (id)   => api.get(`/dukkanlar/${id}/istatistikler`);
 
 export const profilGetir      = ()     => api.get('/auth/profil');
 export const profilGuncelle   = (data) => api.put('/auth/profil', data);
@@ -68,5 +75,11 @@ export const kayitliAramaSil      = (id)       => api.delete(`/favoriler/aramala
 export const kayitliAdreslerGetir = ()         => api.get('/favoriler/adresler');
 export const kayitliAdresEkle     = (data)     => api.post('/favoriler/adresler', data);
 export const kayitliAdresSil      = (id)       => api.delete(`/favoriler/adresler/${id}`);
+
+// Mesajlar
+export const konusmalariGetir   = ()                    => api.get('/mesajlar');
+export const mesajlariGetir     = (konusmaId)           => api.get(`/mesajlar/${konusmaId}`);
+export const mesajGonder        = (data)                => api.post('/mesajlar', data);
+export const okunmamisSayisi    = ()                    => api.get('/mesajlar/okunmamis');
 
 export default api;

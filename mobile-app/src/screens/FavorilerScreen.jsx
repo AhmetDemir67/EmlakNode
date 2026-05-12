@@ -53,11 +53,16 @@ export default function FavorilerScreen({ navigation }) {
   }
 
   return (
-    <FlatList
-      data={favoriler}
-      keyExtractor={item => String(item.id)}
-      contentContainerStyle={s.liste}
-      showsVerticalScrollIndicator={false}
+    <View style={{ flex: 1, backgroundColor: '#f5f5f5' }}>
+      <View style={s.topBant}>
+        <Ionicons name="heart" size={14} color="#ef4444" />
+        <Text style={s.topBantText}>{favoriler.length} favori ilan</Text>
+      </View>
+      <FlatList
+        data={favoriler}
+        keyExtractor={item => String(item.id)}
+        contentContainerStyle={s.liste}
+        showsVerticalScrollIndicator={false}
       renderItem={({ item }) => {
         const gorsel = (Array.isArray(item.fotograflar) && item.fotograflar[0])
           || item.gorsel || FALLBACK;
@@ -89,6 +94,7 @@ export default function FavorilerScreen({ navigation }) {
         );
       }}
     />
+    </View>
   );
 }
 
@@ -97,6 +103,8 @@ const s = StyleSheet.create({
   bosBaslik:  { fontSize: 18, fontWeight: '800', color: '#111827', marginTop: 8 },
   bosAlt:     { fontSize: 14, color: '#6b7280', textAlign: 'center', lineHeight: 22 },
 
+  topBant:    { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#fff1f2', paddingHorizontal: 16, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#fecaca' },
+  topBantText:{ fontSize: 13, fontWeight: '600', color: '#ef4444' },
   liste:      { padding: 16, gap: 12, backgroundColor: '#f5f5f5' },
   kart:       { backgroundColor: '#fff', borderRadius: 16, overflow: 'hidden', elevation: 2, shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 6, flexDirection: 'row', alignItems: 'center' },
   gorsel:     { width: 110, height: 100 },

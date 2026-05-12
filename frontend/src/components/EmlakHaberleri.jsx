@@ -78,13 +78,9 @@ const EmlakHaberleri = () => (
 
       <div className="flex items-center justify-between mb-7">
         <h2 className="text-2xl font-extrabold text-gray-900">Emlak Haberleri</h2>
-        <a
-          href="#"
-          onClick={e => e.preventDefault()}
-          className="text-green-600 hover:text-green-700 text-sm font-semibold flex items-center gap-1 transition-colors"
-        >
+        <span className="text-gray-300 text-sm font-semibold flex items-center gap-1 cursor-default select-none">
           Tüm Haberler <ArrowRight size={14} />
-        </a>
+        </span>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

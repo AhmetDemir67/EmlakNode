@@ -4,13 +4,14 @@ import {
   StyleSheet, KeyboardAvoidingView, Platform, Alert, ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { girisYap } from '../services/api';
 
 export default function GirisScreen({ navigation }) {
-  const [eposta, setEposta]       = useState('');
-  const [sifre, setSifre]         = useState('');
-  const [gizle, setGizle]         = useState(true);
+  const [eposta, setEposta]         = useState('');
+  const [sifre, setSifre]           = useState('');
+  const [gizle, setGizle]           = useState(true);
   const [yukleniyor, setYukleniyor] = useState(false);
 
   const giris = async () => {
@@ -27,27 +28,53 @@ export default function GirisScreen({ navigation }) {
   };
 
   return (
-    <KeyboardAvoidingView style={s.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <View style={s.icerik}>
-        {/* Logo */}
-        <View style={s.logo}>
-          <View style={s.logoIkon}><Ionicons name="home" size={28} color="#fff" /></View>
-          <Text style={s.logoText}>Emlak<Text style={{ color: '#16a34a' }}>Node</Text></Text>
+    <View style={s.container}>
+      <LinearGradient
+        colors={['#14532d', '#16a34a', '#22c55e']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={s.ustKisim}
+      >
+        <View style={s.logoWrap}>
+          <View style={s.logoIkon}>
+            <Ionicons name="home" size={30} color="#fff" />
+          </View>
+          <Text style={s.logoText}>Emlak<Text style={{ color: '#bbf7d0' }}>Node</Text></Text>
         </View>
-        <Text style={s.altBaslik}>Hesabınıza giriş yapın</Text>
+        <Text style={s.slogan}>Hayalindeki evi bul</Text>
+        <Text style={s.altSlogan}>Binlerce ilan, güvenilir danışmanlar</Text>
+      </LinearGradient>
 
-        {/* Form */}
+      <KeyboardAvoidingView
+        style={s.altKisim}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        <Text style={s.formBaslik}>Giriş Yapın</Text>
+
         <View style={s.form}>
           <View style={s.inputWrap}>
             <Ionicons name="mail-outline" size={18} color="#9ca3af" style={s.inputIkon} />
-            <TextInput style={s.input} placeholder="E-posta adresiniz" placeholderTextColor="#9ca3af"
-              value={eposta} onChangeText={setEposta} keyboardType="email-address" autoCapitalize="none" />
+            <TextInput
+              style={s.input}
+              placeholder="E-posta adresiniz"
+              placeholderTextColor="#9ca3af"
+              value={eposta}
+              onChangeText={setEposta}
+              keyboardType="email-address"
+              autoCapitalize="none"
+            />
           </View>
 
           <View style={s.inputWrap}>
             <Ionicons name="lock-closed-outline" size={18} color="#9ca3af" style={s.inputIkon} />
-            <TextInput style={s.input} placeholder="Şifreniz" placeholderTextColor="#9ca3af"
-              value={sifre} onChangeText={setSifre} secureTextEntry={gizle} />
+            <TextInput
+              style={s.input}
+              placeholder="Şifreniz"
+              placeholderTextColor="#9ca3af"
+              value={sifre}
+              onChangeText={setSifre}
+              secureTextEntry={gizle}
+            />
             <TouchableOpacity onPress={() => setGizle(!gizle)} style={{ padding: 4 }}>
               <Ionicons name={gizle ? 'eye-off-outline' : 'eye-outline'} size={18} color="#9ca3af" />
             </TouchableOpacity>
@@ -63,21 +90,25 @@ export default function GirisScreen({ navigation }) {
 
         <TouchableOpacity onPress={() => navigation.navigate('Kayit')} style={s.kayitLink}>
           <Text style={s.kayitText}>
-            Hesabın yok mu?{'  '}<Text style={{ color: '#16a34a', fontWeight: '700' }}>Kayıt Ol</Text>
+            Hesabın yok mu?{'  '}
+            <Text style={{ color: '#16a34a', fontWeight: '700' }}>Kayıt Ol</Text>
           </Text>
         </TouchableOpacity>
-      </View>
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
+    </View>
   );
 }
 
 const s = StyleSheet.create({
-  container:  { flex: 1, backgroundColor: '#fff' },
-  icerik:     { flex: 1, justifyContent: 'center', padding: 28 },
-  logo:       { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 8 },
-  logoIkon:   { width: 52, height: 52, backgroundColor: '#16a34a', borderRadius: 16, justifyContent: 'center', alignItems: 'center' },
-  logoText:   { fontSize: 32, fontWeight: '900', color: '#111827' },
-  altBaslik:  { fontSize: 15, color: '#6b7280', marginBottom: 32 },
+  container:  { flex: 1, backgroundColor: '#16a34a' },
+  ustKisim:   { paddingTop: 64, paddingBottom: 52, paddingHorizontal: 28, alignItems: 'center' },
+  logoWrap:   { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 18 },
+  logoIkon:   { width: 56, height: 56, backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 18, justifyContent: 'center', alignItems: 'center' },
+  logoText:   { fontSize: 32, fontWeight: '900', color: '#fff' },
+  slogan:     { fontSize: 17, fontWeight: '700', color: '#fff', marginBottom: 6 },
+  altSlogan:  { fontSize: 13, color: '#bbf7d0' },
+  altKisim:   { flex: 1, backgroundColor: '#fff', borderTopLeftRadius: 32, borderTopRightRadius: 32, paddingHorizontal: 28, paddingTop: 32, paddingBottom: 24 },
+  formBaslik: { fontSize: 20, fontWeight: '800', color: '#111827', marginBottom: 24 },
   form:       { gap: 14 },
   inputWrap:  { flexDirection: 'row', alignItems: 'center', borderWidth: 1.5, borderColor: '#e5e7eb', borderRadius: 14, paddingHorizontal: 14, paddingVertical: 4, backgroundColor: '#fafafa' },
   inputIkon:  { marginRight: 10 },

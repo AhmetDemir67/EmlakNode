@@ -1,0 +1,2 @@
+ALTER TABLE ilanlar
+  ADD COLUMN IF NOT EXISTS goruntuleme_sayisi INTEGER NOT NULL DEFAULT 0;

@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import toast from 'react-hot-toast';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import { divIcon } from 'leaflet';
@@ -6,10 +7,10 @@ import {
   MapPin, BedDouble, Square, Building2, Thermometer,
   Layers, ArrowLeft, Heart, Share2, Phone, User,
   Calendar, CheckCircle2, Loader2, AlertCircle, Home,
-  ChevronRight, Eye, Maximize2, X, Map, MessageCircle,
-  Shield, Flag, ExternalLink, Bath, Car, Trees, Sofa, Hash,
+  ChevronLeft, ChevronRight, Eye, Maximize2, X, Map, MessageCircle,
+  Shield, Flag, ExternalLink, Bath, Car, Trees, Sofa, Hash, Send,
 } from 'lucide-react';
-import { ilanDetayGetir, ilanlarGetir } from '../services/api';
+import { ilanDetayGetir, ilanlarGetir, favoriEkle, favoriSil, favoriKontrol, mesajGonder } from '../services/api';
 
 // ── Fiyat formatlayıcı ──────────────────────────────────────────
 const fiyatFormatla = (fiyat) =>
@@ -71,8 +72,27 @@ const KonumHaritasi = ({ ilan, tam = false, onKapat }) => {
         </button>
       </div>
       <div className="flex-1 relative">
-        {yukleniyor && <div className="absolute inset-0 bg-slate-800 flex items-center justify-center z-10"><Loader2 size={28} className="animate-spin text-green-400" /></div>}
-        {!yukleniyor && !konum && <div className="absolute inset-0 bg-slate-800 flex items-center justify-center z-10"><MapPin size={32} className="text-slate-500" /></div>}
+        {yukleniyor && (
+          <div className="absolute inset-0 bg-slate-800 flex flex-col items-center justify-center z-10 gap-3">
+            <Loader2 size={28} className="animate-spin text-green-400" />
+            <p className="text-slate-400 text-sm">Konum yükleniyor…</p>
+          </div>
+        )}
+        {!yukleniyor && !konum && (
+          <div className="absolute inset-0 bg-slate-800 flex flex-col items-center justify-center z-10 gap-4 text-center px-6">
+            <div className="w-16 h-16 bg-slate-700 rounded-2xl flex items-center justify-center">
+              <MapPin size={28} className="text-slate-400" />
+            </div>
+            <div>
+              <p className="text-white font-semibold">Konum Bulunamadı</p>
+              <p className="text-slate-400 text-sm mt-1">Bu ilan için harita koordinatı mevcut değil.</p>
+            </div>
+            <button onClick={onKapat}
+              className="mt-2 px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white text-sm font-bold rounded-xl transition-colors">
+              Geri Dön
+            </button>
+          </div>
+        )}
         {konum && (
           <MapContainer center={konum} zoom={16} style={{ height: '100%', width: '100%' }} scrollWheelZoom={true}>
             <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution="&copy; OpenStreetMap" />
@@ -166,9 +186,22 @@ const ListingDetail = () => {
   const [yukleniyor, setYukleniyor]   = useState(true);
   const [hata, setHata]               = useState(null);
   const [begenildi, setBegenildi]     = useState(false);
+  const [favYukleniyor, setFavYuk]    = useState(false);
+  const [telefonGoster, setTelGoster] = useState(false);
+  const [mesajModAcik, setMesajMod]   = useState(false);
+  const [mesajMetni, setMesajMetni]   = useState('');
+  const [mesajGond, setMesajGond]     = useState(false);
+  const [mesajGondOk, setMesajGondOk] = useState(false);
   const [haritaAcik, setHaritaAcik]   = useState(false);
-  const [firmaIlanlar, setFirmaIlanlar] = useState([]);
+  const [aktifFoto, setAktifFoto]     = useState(0);
+  const [firmaIlanlar, setFirmaIlanlar]   = useState([]);
   const [benzerIlanlar, setBenzerIlanlar] = useState([]);
+  const [bildirModal, setBildirModal]     = useState(false);
+  const [bildirNeden, setBildirNeden]     = useState('');
+  const [bildirGond, setBildirGond]       = useState(false);
+  const firmaRef = useRef(null);
+
+  const girisYapilmis = !!localStorage.getItem('token');
 
   useEffect(() => {
     const detayGetir = async () => {
@@ -183,6 +216,11 @@ const ListingDetail = () => {
           const ofisYanit = await ilanlarGetir({ dukkan_id: veri.dukkan_id, limit: 4 });
           setFirmaIlanlar((ofisYanit.data.ilanlar || []).filter(i => String(i.id) !== String(id)).slice(0, 3));
         }
+        // Favori kontrolü
+        if (localStorage.getItem('token')) {
+          favoriKontrol(id).then(r => setBegenildi(r.data.favori || false)).catch(() => {});
+        }
+
         // Benzer ilanlar — önce aynı tip+şehir, yeterli değilse sadece şehir
         if (veri.sehir) {
           const exclude = (liste) => liste.filter(i => String(i.id) !== String(id));
@@ -225,6 +263,9 @@ const ListingDetail = () => {
   if (!ilan) return null;
 
   const gorselUrl = ilan.gorsel || GORSEL_FALLBACK;
+  const galeri    = Array.isArray(ilan.fotograflar) && ilan.fotograflar.length > 0
+    ? ilan.fotograflar
+    : [gorselUrl];
   const tip       = ilan.tip || 'Satılık';
   const tipRenk   = tip === 'Satılık' ? 'bg-green-600' : 'bg-blue-500';
   const adSoyad   = ilan.dukkan_adi || 'Emlak Ofisi';
@@ -279,16 +320,28 @@ const ListingDetail = () => {
             </nav>
             <div className="flex items-center gap-2 ml-4 flex-shrink-0">
               <button
-                onClick={() => setBegenildi(!begenildi)}
+                disabled={favYukleniyor}
+                onClick={async () => {
+                  if (!girisYapilmis) { navigate('/login'); return; }
+                  setFavYuk(true);
+                  try {
+                    if (begenildi) { await favoriSil(id); setBegenildi(false); }
+                    else { await favoriEkle(id); setBegenildi(true); }
+                  } catch { /* sessiz hata */ }
+                  finally { setFavYuk(false); }
+                }}
                 className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-xl border transition-all ${
                   begenildi ? 'bg-red-50 border-red-200 text-red-500' : 'bg-white border-slate-200 text-slate-500 hover:border-red-200 hover:text-red-400'
                 }`}
               >
-                <Heart size={13} className={begenildi ? 'fill-red-500' : ''} />
-                <span className="hidden sm:inline">Favori</span>
+                {favYukleniyor ? <Loader2 size={13} className="animate-spin" /> : <Heart size={13} className={begenildi ? 'fill-red-500' : ''} />}
+                <span className="hidden sm:inline">{begenildi ? 'Favoride' : 'Favori'}</span>
               </button>
               <button
-                onClick={() => { navigator.clipboard?.writeText(window.location.href); }}
+                onClick={() => {
+                  navigator.clipboard?.writeText(window.location.href);
+                  toast.success('İlan linki panoya kopyalandı!');
+                }}
                 className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-500 hover:border-slate-300 transition-all"
               >
                 <Share2 size={13} />
@@ -309,6 +362,11 @@ const ListingDetail = () => {
             <span className="flex items-center gap-1 text-xs text-slate-400 border border-slate-200 px-2.5 py-1 rounded-full">
               <Hash size={10} /> İlan No: {ilan.id}
             </span>
+            {ilan.goruntuleme_sayisi > 0 && (
+              <span className="flex items-center gap-1 text-xs text-slate-400 border border-slate-200 px-2.5 py-1 rounded-full">
+                <Eye size={10} /> {ilan.goruntuleme_sayisi.toLocaleString('tr-TR')} görüntülenme
+              </span>
+            )}
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 leading-tight">{ilan.baslik}</h1>
           {(ilan.ilce || ilan.sehir) && (
@@ -325,40 +383,74 @@ const ListingDetail = () => {
           {/* ── SOL: Ana İçerik ──────────────────────────────────── */}
           <div className="lg:col-span-8 space-y-5">
 
-            {/* Görsel */}
-            <div className="relative rounded-2xl overflow-hidden bg-slate-200 group shadow-sm">
+            {/* Görsel Galerisi */}
+            <div className="relative rounded-2xl overflow-hidden bg-slate-200 shadow-sm">
               <img
-                src={gorselUrl}
+                src={galeri[aktifFoto] || GORSEL_FALLBACK}
                 alt={ilan.baslik}
-                className="w-full h-72 sm:h-[420px] object-cover group-hover:scale-[1.01] transition-transform duration-500"
+                className="w-full h-72 sm:h-[420px] object-cover transition-opacity duration-200"
                 onError={e => { e.currentTarget.src = GORSEL_FALLBACK; }}
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
-              {/* Alt bilgi şeridi */}
-              <div className="absolute bottom-0 left-0 right-0 p-4 flex items-end justify-between">
-                <div className="flex gap-2 flex-wrap">
-                  {ilan.oda_sayisi && (
-                    <span className="bg-white/90 backdrop-blur-sm text-slate-700 text-xs font-semibold px-3 py-1.5 rounded-full flex items-center gap-1.5">
-                      <BedDouble size={11} className="text-green-600" /> {ilan.oda_sayisi}
-                    </span>
-                  )}
-                  {ilan.metrekare && (
-                    <span className="bg-white/90 backdrop-blur-sm text-slate-700 text-xs font-semibold px-3 py-1.5 rounded-full flex items-center gap-1.5">
-                      <Square size={11} className="text-green-600" /> {ilan.metrekare} m²
-                    </span>
-                  )}
-                  {ilan.kat != null && (
-                    <span className="bg-white/90 backdrop-blur-sm text-slate-700 text-xs font-semibold px-3 py-1.5 rounded-full flex items-center gap-1.5">
-                      <Layers size={11} className="text-green-600" /> {ilan.kat}. Kat
-                    </span>
-                  )}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none" />
+
+              {/* Önceki / Sonraki oklar */}
+              {galeri.length > 1 && (
+                <>
+                  <button
+                    onClick={() => setAktifFoto(i => (i - 1 + galeri.length) % galeri.length)}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full w-9 h-9 flex items-center justify-center transition-colors z-10"
+                  >
+                    <ChevronLeft size={18} />
+                  </button>
+                  <button
+                    onClick={() => setAktifFoto(i => (i + 1) % galeri.length)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full w-9 h-9 flex items-center justify-center transition-colors z-10"
+                  >
+                    <ChevronRight size={18} />
+                  </button>
+                  <div className="absolute top-3 right-3 bg-black/55 text-white text-xs font-bold px-2.5 py-1 rounded-full">
+                    {aktifFoto + 1} / {galeri.length}
+                  </div>
+                </>
+              )}
+
+              {/* Alt bölüm: thumbnail şeridi + bilgi chips */}
+              <div className="absolute bottom-0 left-0 right-0 p-4 flex flex-col gap-2">
+                {galeri.length > 1 && (
+                  <div className="flex gap-1.5 overflow-x-auto pb-0.5" style={{ scrollbarWidth: 'none' }}>
+                    {galeri.map((url, i) => (
+                      <button key={i} type="button" onClick={() => setAktifFoto(i)}
+                        className={`flex-shrink-0 w-12 h-9 rounded-lg overflow-hidden border-2 transition-all ${i === aktifFoto ? 'border-white shadow-lg' : 'border-transparent opacity-60 hover:opacity-90'}`}>
+                        <img src={url} alt="" className="w-full h-full object-cover" onError={e => { e.currentTarget.src = GORSEL_FALLBACK; }} />
+                      </button>
+                    ))}
+                  </div>
+                )}
+                <div className="flex items-end justify-between">
+                  <div className="flex gap-2 flex-wrap">
+                    {ilan.oda_sayisi && (
+                      <span className="bg-white/90 backdrop-blur-sm text-slate-700 text-xs font-semibold px-3 py-1.5 rounded-full flex items-center gap-1.5">
+                        <BedDouble size={11} className="text-green-600" /> {ilan.oda_sayisi}
+                      </span>
+                    )}
+                    {ilan.metrekare && (
+                      <span className="bg-white/90 backdrop-blur-sm text-slate-700 text-xs font-semibold px-3 py-1.5 rounded-full flex items-center gap-1.5">
+                        <Square size={11} className="text-green-600" /> {ilan.metrekare} m²
+                      </span>
+                    )}
+                    {ilan.kat != null && (
+                      <span className="bg-white/90 backdrop-blur-sm text-slate-700 text-xs font-semibold px-3 py-1.5 rounded-full flex items-center gap-1.5">
+                        <Layers size={11} className="text-green-600" /> {ilan.kat}. Kat
+                      </span>
+                    )}
+                  </div>
+                  <button
+                    onClick={() => setHaritaAcik(true)}
+                    className="bg-white/90 backdrop-blur-sm hover:bg-white text-slate-700 hover:text-green-700 text-xs font-semibold px-3 py-1.5 rounded-full flex items-center gap-1.5 transition-colors"
+                  >
+                    <Map size={11} className="text-green-600" /> Haritada Gör
+                  </button>
                 </div>
-                <button
-                  onClick={() => setHaritaAcik(true)}
-                  className="bg-white/90 backdrop-blur-sm hover:bg-white text-slate-700 hover:text-green-700 text-xs font-semibold px-3 py-1.5 rounded-full flex items-center gap-1.5 transition-colors"
-                >
-                  <Map size={11} className="text-green-600" /> Haritada Gör
-                </button>
               </div>
             </div>
 
@@ -448,16 +540,21 @@ const ListingDetail = () => {
             <div className="sticky top-16 space-y-4">
 
               {/* Fiyat + İletişim kartı */}
-              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
-                {/* Fiyat */}
-                <div className="mb-4">
-                  <p className="text-3xl font-extrabold text-green-600">{fiyatFormatla(ilan.fiyat)}</p>
+              <div className="rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                {/* Gradient fiyat başlığı */}
+                <div className="bg-gradient-to-r from-gray-900 via-slate-800 to-green-900 p-5">
+                  <div className="flex items-center gap-2 mb-2 flex-wrap">
+                    <span className={`${tipRenk} text-white text-xs font-bold px-2.5 py-1 rounded-full`}>{tip}</span>
+                    {ilan.emlak_turu && <span className="bg-white/20 text-white/90 text-xs font-semibold px-2.5 py-1 rounded-full">{ilan.emlak_turu}</span>}
+                  </div>
+                  <p className="text-3xl font-extrabold text-white">{fiyatFormatla(ilan.fiyat)}</p>
                   {ilan.metrekare && (
-                    <p className="text-xs text-slate-400 mt-0.5">
+                    <p className="text-xs text-green-300 mt-0.5">
                       {Math.round(ilan.fiyat / ilan.metrekare).toLocaleString('tr-TR')} ₺/m²
                     </p>
                   )}
                 </div>
+                <div className="bg-white p-5 pt-4">
 
                 {/* Danışman */}
                 <div className="flex items-center gap-3 mb-4 pb-4 border-b border-slate-100">
@@ -472,14 +569,28 @@ const ListingDetail = () => {
 
                 {/* Butonlar */}
                 <div className="space-y-2.5">
-                  <button className="w-full flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-xl transition-all hover:shadow-lg hover:shadow-green-200 active:scale-[.98] text-sm">
-                    <Phone size={15} /> Telefona Bak
-                  </button>
-                  <button className="w-full flex items-center justify-center gap-2 border-2 border-green-600 text-green-600 hover:bg-green-50 font-bold py-3 px-4 rounded-xl transition-all text-sm">
+                  {telefonGoster && (ilan.sahip_telefon || ilan.kullanici_telefon) ? (
+                    <a href={`tel:${ilan.sahip_telefon || ilan.kullanici_telefon}`}
+                      className="w-full flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-xl transition-all text-sm">
+                      <Phone size={15} /> {ilan.sahip_telefon || ilan.kullanici_telefon}
+                    </a>
+                  ) : (
+                    <button onClick={() => setTelGoster(true)}
+                      className="w-full flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-xl transition-all hover:shadow-lg hover:shadow-green-200 active:scale-[.98] text-sm">
+                      <Phone size={15} /> Telefona Bak
+                    </button>
+                  )}
+                  <button onClick={() => {
+                      if (!girisYapilmis) { navigate('/login'); return; }
+                      setMesajMod(true);
+                    }}
+                    className="w-full flex items-center justify-center gap-2 border-2 border-green-600 text-green-600 hover:bg-green-50 font-bold py-3 px-4 rounded-xl transition-all text-sm">
                     <MessageCircle size={15} /> Mesaj Gönder
                   </button>
                   {ilan.dukkan_id && (
-                    <button className="w-full flex items-center justify-center gap-2 border border-slate-200 text-slate-600 hover:border-green-400 hover:text-green-600 hover:bg-green-50 font-semibold py-2.5 px-4 rounded-xl transition-all text-sm">
+                    <button
+                      onClick={() => firmaRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                      className="w-full flex items-center justify-center gap-2 border border-slate-200 text-slate-600 hover:border-green-400 hover:text-green-600 hover:bg-green-50 font-semibold py-2.5 px-4 rounded-xl transition-all text-sm">
                       <ExternalLink size={14} /> Firma Profiline Git
                     </button>
                   )}
@@ -491,6 +602,7 @@ const ListingDetail = () => {
                       <Map size={14} /> Haritada Göster
                     </button>
                   )}
+                </div>
                 </div>
               </div>
 
@@ -504,7 +616,9 @@ const ListingDetail = () => {
                   </div>
                 </div>
                 <div className="border-t border-slate-50 pt-3">
-                  <button className="flex items-center gap-2 text-xs text-red-400 hover:text-red-600 font-semibold transition-colors">
+                  <button
+                    onClick={() => setBildirModal(true)}
+                    className="flex items-center gap-2 text-xs text-red-400 hover:text-red-600 font-semibold transition-colors">
                     <Flag size={13} /> Hatalı İlan Bildir
                   </button>
                 </div>
@@ -524,12 +638,14 @@ const ListingDetail = () => {
 
         {/* ══ FİRMA KÜNYESİ ══════════════════════════════════════════ */}
         {(ilan.dukkan_adi || firmaIlanlar.length > 0) && (
-          <div className="mt-8 bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+          <div ref={firmaRef} className="mt-8 bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
             <div className="p-6 border-b border-slate-100">
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-extrabold text-slate-900">Firma Künyesi</h2>
                 {firmaIlanlar.length > 0 && (
-                  <button className="text-sm text-green-600 hover:underline font-semibold flex items-center gap-1">
+                  <button
+                    onClick={() => navigate(`/ilanlar?dukkan_id=${ilan.dukkan_id}`)}
+                    className="text-sm text-green-600 hover:underline font-semibold flex items-center gap-1">
                     Diğer İlanlarını Gör <ChevronRight size={14} />
                   </button>
                 )}
@@ -666,6 +782,102 @@ const ListingDetail = () => {
         )}
 
       </div>
+
+      {/* ══ HATALI İLAN BİLDİR MODALI ════════════════════════════ */}
+      {bildirModal && (
+        <div className="fixed inset-0 z-[9998] flex items-end sm:items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => { if (!bildirGond) setBildirModal(false); }} />
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="font-extrabold text-gray-900 flex items-center gap-2">
+                <Flag size={16} className="text-red-400" /> Hatalı İlan Bildir
+              </h3>
+              <button onClick={() => setBildirModal(false)} className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors">
+                <X size={18} className="text-gray-500" />
+              </button>
+            </div>
+            <p className="text-xs text-gray-400">Bu ilanı şüpheli veya hatalı bulduğunuz sebebi belirtin.</p>
+            <div className="space-y-2">
+              {['Yanlış fiyat veya bilgi', 'Sahte / dolandırıcı ilan', 'Uygunsuz içerik', 'Mükerrer (kopya) ilan', 'Diğer'].map(secenek => (
+                <label key={secenek} className="flex items-center gap-3 p-3 rounded-xl border border-slate-100 hover:border-red-200 hover:bg-red-50 cursor-pointer transition-all">
+                  <input
+                    type="radio" name="bildirNeden" value={secenek}
+                    checked={bildirNeden === secenek}
+                    onChange={() => setBildirNeden(secenek)}
+                    className="accent-red-500"
+                  />
+                  <span className="text-sm text-slate-700">{secenek}</span>
+                </label>
+              ))}
+            </div>
+            <button
+              disabled={!bildirNeden || bildirGond}
+              onClick={async () => {
+                setBildirGond(true);
+                await new Promise(r => setTimeout(r, 800));
+                setBildirGond(false);
+                setBildirModal(false);
+                setBildirNeden('');
+                toast.success('Bildiriminiz alındı. Teşekkürler!');
+              }}
+              className="w-full flex items-center justify-center gap-2 bg-red-500 hover:bg-red-600 disabled:opacity-50 text-white font-bold py-3 rounded-xl transition-all text-sm"
+            >
+              {bildirGond ? <><Loader2 size={15} className="animate-spin" />Gönderiliyor…</> : <><Flag size={15} />Bildir</>}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ══ MESAJ GÖNDER MODALI ═══════════════════════════════════ */}
+      {mesajModAcik && (
+        <div className="fixed inset-0 z-[9998] flex items-end sm:items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => { if (!mesajGond) setMesajMod(false); }} />
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="font-extrabold text-gray-900">Mesaj Gönder</h3>
+              <button onClick={() => setMesajMod(false)} className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors">
+                <X size={18} className="text-gray-500" />
+              </button>
+            </div>
+            <p className="text-xs text-gray-400 truncate">🏠 {ilan.baslik}</p>
+            {mesajGondOk ? (
+              <div className="flex flex-col items-center gap-3 py-6">
+                <CheckCircle2 size={40} className="text-green-500" />
+                <p className="font-semibold text-gray-800">Mesajınız gönderildi!</p>
+                <p className="text-xs text-gray-400">Yanıtları Mesajlarım bölümünden takip edebilirsiniz.</p>
+                <button onClick={() => { setMesajMod(false); setMesajGondOk(false); setMesajMetni(''); }}
+                  className="mt-2 px-5 py-2 bg-green-600 text-white rounded-xl text-sm font-bold hover:bg-green-700 transition-colors">
+                  Tamam
+                </button>
+              </div>
+            ) : (
+              <>
+                <textarea
+                  value={mesajMetni}
+                  onChange={e => setMesajMetni(e.target.value)}
+                  placeholder="Mesajınızı yazın..."
+                  rows={4}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 resize-none"
+                />
+                <button disabled={!mesajMetni.trim() || mesajGond}
+                  onClick={async () => {
+                    const t = mesajMetni.trim();
+                    if (!t) return;
+                    setMesajGond(true);
+                    try {
+                      await mesajGonder({ ilan_id: ilan.id, alici_id: ilan.kullanici_id, metin: t });
+                      setMesajGondOk(true);
+                    } catch { toast.error('Mesaj gönderilemedi, tekrar deneyin.'); }
+                    finally { setMesajGond(false); }
+                  }}
+                  className="w-full flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 disabled:opacity-60 text-white font-bold py-3 rounded-xl transition-all text-sm">
+                  {mesajGond ? <><Loader2 size={15} className="animate-spin" />Gönderiliyor…</> : <><Send size={15} />Gönder</>}
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* ══ TAM EKRAN HARİTA MODALI ════════════════════════════════ */}
       {haritaAcik && (

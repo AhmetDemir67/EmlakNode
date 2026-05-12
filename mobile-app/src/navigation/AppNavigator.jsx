@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
 import { TouchableOpacity, StyleSheet } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { okunmamisSayisi } from '../services/api';
 
 import KesifScreen      from '../screens/KesifScreen';
 import IlanAraScreen    from '../screens/IlanAraScreen';
@@ -20,7 +22,12 @@ import ProfilDuzenleScreen    from '../screens/ProfilDuzenleScreen';
 import FavorilerScreen        from '../screens/FavorilerScreen';
 import KayitliAramalarScreen  from '../screens/KayitliAramalarScreen';
 import KayitliAdreslerScreen  from '../screens/KayitliAdreslerScreen';
-import IlanDuzenleScreen      from '../screens/IlanDuzenleScreen';
+import IlanDuzenleScreen        from '../screens/IlanDuzenleScreen';
+import DukkanBilgileriScreen    from '../screens/DukkanBilgileriScreen';
+import DanismanlarimScreen      from '../screens/DanismanlarimScreen';
+import IstatistiklerScreen      from '../screens/IstatistiklerScreen';
+import EmlakDegerlemeScreen     from '../screens/EmlakDegerlemeScreen';
+import KonusmaScreen            from '../screens/KonusmaScreen';
 import { navigationRef }      from '../services/navigationRef';
 
 const Tab   = createBottomTabNavigator();
@@ -39,6 +46,22 @@ const IlanVerButon = ({ onPress }) => (
 );
 
 function TabNavigator() {
+  const [okunmamis, setOkunmamis] = useState(null);
+
+  useEffect(() => {
+    const fetchUnread = async () => {
+      try {
+        const token = await AsyncStorage.getItem('token');
+        if (!token) { setOkunmamis(null); return; }
+        const r = await okunmamisSayisi();
+        setOkunmamis(r.data.sayi > 0 ? r.data.sayi : null);
+      } catch { setOkunmamis(null); }
+    };
+    fetchUnread();
+    const interval = setInterval(fetchUnread, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -74,7 +97,7 @@ function TabNavigator() {
           tabBarButton: (props) => <IlanVerButon onPress={props.onPress} />,
         }}
       />
-      <Tab.Screen name="Mesajlar" component={MesajlarScreen} options={{ title: 'Mesajlarım', headerShown: true, headerTitle: 'Mesajlarım', ...HEADER }} />
+      <Tab.Screen name="Mesajlar" component={MesajlarScreen} options={{ title: 'Mesajlarım', headerShown: true, headerTitle: 'Mesajlarım', ...HEADER, tabBarBadge: okunmamis }} />
       <Tab.Screen name="Hesabim"  component={HesabimScreen}  options={{ title: 'Hesabım', headerShown: false }} />
     </Tab.Navigator>
   );
@@ -95,7 +118,12 @@ export default function AppNavigator() {
         <Stack.Screen name="Favoriler"        component={FavorilerScreen}       options={{ headerShown: true, title: 'Favorilerim', ...HEADER }} />
         <Stack.Screen name="KayitliAramalar"  component={KayitliAramalarScreen} options={{ headerShown: true, title: 'Kayıtlı Aramalarım', ...HEADER }} />
         <Stack.Screen name="KayitliAdresler"  component={KayitliAdreslerScreen} options={{ headerShown: true, title: 'Kayıtlı Adreslerim', ...HEADER }} />
-        <Stack.Screen name="IlanDuzenle"      component={IlanDuzenleScreen}     options={{ headerShown: true, title: 'İlanı Düzenle', ...HEADER }} />
+        <Stack.Screen name="IlanDuzenle"       component={IlanDuzenleScreen}      options={{ headerShown: true, title: 'İlanı Düzenle',     ...HEADER }} />
+        <Stack.Screen name="DukkanBilgileri"  component={DukkanBilgileriScreen}  options={{ headerShown: true, title: 'Dükkan Bilgilerim',  ...HEADER }} />
+        <Stack.Screen name="Danismanlarim"    component={DanismanlarimScreen}    options={{ headerShown: true, title: 'Danışmanlarım',       ...HEADER }} />
+        <Stack.Screen name="Istatistikler"    component={IstatistiklerScreen}    options={{ headerShown: true, title: 'İstatistikler',       ...HEADER }} />
+        <Stack.Screen name="EmlakDegerleme"   component={EmlakDegerlemeScreen}   options={{ headerShown: false }} />
+        <Stack.Screen name="Konusma"          component={KonusmaScreen}          options={{ headerShown: false }} />
       </Stack.Navigator>
     </NavigationContainer>
   );

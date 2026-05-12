@@ -12,6 +12,8 @@ const { baglantiTestEt } = require('./config/db');
 const authRoutes      = require('./routes/auth');
 const ilanRoutes      = require('./routes/listings');
 const favorilerRoutes = require('./routes/favoriler');
+const dukkanRoutes    = require('./routes/dukkan');
+const mesajRoutes     = require('./routes/mesajlar');
 
 const app = express();
 
@@ -73,6 +75,8 @@ app.post('/api/upload', upload.array('fotograflar', 50), (req, res) => {
 app.use('/api/auth',      authRoutes);
 app.use('/api/ilanlar',  ilanRoutes);
 app.use('/api/favoriler', favorilerRoutes);
+app.use('/api/dukkanlar', dukkanRoutes);
+app.use('/api/mesajlar',  mesajRoutes);
 
 // ----------------------------------------------------------------
 // Global Hata Yakalayıcı

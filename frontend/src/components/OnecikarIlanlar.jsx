@@ -102,8 +102,7 @@ const OnecikarIlanlar = ({ ilanlar = [] }) => {
         <div className="flex items-center justify-between mb-5">
           <h2 className="text-2xl font-extrabold text-gray-900">Ev Mi Arıyorsun?</h2>
           <a
-            href="/"
-            onClick={e => e.preventDefault()}
+            href="/ilanlar"
             className="text-green-600 hover:text-green-700 text-sm font-semibold flex items-center gap-1 transition-colors"
           >
             Tüm İlanlar <ArrowRight size={14} />

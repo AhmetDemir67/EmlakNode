@@ -4,6 +4,7 @@ import {
   TextInput, StyleSheet, Alert, ActivityIndicator, Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
@@ -66,8 +67,8 @@ export default function IlanVerScreen({ navigation }) {
       }
 
       const sonuc = kaynak === 'kamera'
-        ? await ImagePicker.launchCameraAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, quality: 0.8, allowsEditing: true, aspect: [16, 9] })
-        : await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, quality: 0.8, allowsMultipleSelection: true });
+        ? await ImagePicker.launchCameraAsync({ mediaTypes: ['images'], quality: 0.8, allowsEditing: true, aspect: [16, 9] })
+        : await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.8, allowsMultipleSelection: true });
 
       if (!sonuc.canceled && sonuc.assets && sonuc.assets.length > 0) {
         const yeniUrilar = sonuc.assets.map(a => a.uri);
@@ -154,17 +155,21 @@ export default function IlanVerScreen({ navigation }) {
       // Seçilen fotoğrafları önce sunucuya yükle, URL'leri al
       let fotografUrls = [];
       if (secilenGorseller.length > 0) {
+        console.log('Foto yukleniyor, adet:', secilenGorseller.length);
         const formData = new FormData();
         secilenGorseller.forEach((uri, i) => {
           const filename = uri.split('/').pop() || `foto_${i}.jpg`;
           const ext = filename.split('.').pop().toLowerCase();
           const type = (ext === 'jpg' || ext === 'jpeg') ? 'image/jpeg' : `image/${ext || 'jpeg'}`;
+          console.log('Foto:', filename, type);
           formData.append('fotograflar', { uri, name: filename, type });
         });
         const uploadResp = await fotografYukleAPI(formData);
         fotografUrls = uploadResp.data.urls || [];
+        console.log('Foto yuklendi:', fotografUrls);
       }
 
+      console.log('Ilan post ediliyor...');
       await api.post('/ilanlar', {
         ...form,
         fiyat:             parseFloat(form.fiyat),
@@ -182,7 +187,12 @@ export default function IlanVerScreen({ navigation }) {
         { text: 'Tamam', onPress: () => navigation.goBack() },
       ]);
     } catch (err) {
-      const mesaj = err.response?.data?.mesaj || 'Bir hata oluştu.';
+      console.error('=== ILAN VER HATA ===');
+      console.error('mesaj:', err.message);
+      console.error('status:', err.response?.status);
+      console.error('data:', JSON.stringify(err.response?.data));
+      console.error('code:', err.code);
+      const mesaj = err.response?.data?.mesaj || err.message || 'Bir hata oluştu.';
       const limitAsimi = err.response?.data?.limit_asimi;
       Alert.alert(
         limitAsimi ? 'İlan Limiti' : 'Hata',
@@ -203,9 +213,33 @@ export default function IlanVerScreen({ navigation }) {
     );
   }
 
+  const kurumsal       = !!kullanici?.dukkan_id;
+  const bireyselLimit  = !kurumsal;
+
   return (
     <ScrollView style={s.container} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+      <LinearGradient colors={['#14532d', '#16a34a']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={s.formHeader}>
+        <View style={s.formHeaderIkon}>
+          <Ionicons name="home-outline" size={32} color="#fff" />
+        </View>
+        <View style={{ flex: 1 }}>
+          <Text style={s.formHeaderBaslik}>Yeni İlan Ver</Text>
+          <Text style={s.formHeaderAlt}>
+            {kullanici?.dukkan_id ? 'Kurumsal hesap — sınırsız ilan' : 'Bireysel hesap — 3 ilan hakkı'}
+          </Text>
+        </View>
+      </LinearGradient>
       <View style={s.icerik}>
+
+        {/* Bireysel limit göstergesi */}
+        {bireyselLimit && (
+          <View style={s.limitBilgi}>
+            <Ionicons name="information-circle-outline" size={18} color="#f97316" />
+            <Text style={s.limitBilgiText}>
+              Bireysel hesabınızla en fazla <Text style={{ fontWeight: '900', color: '#f97316' }}>3 ilan</Text> yayınlayabilirsiniz.
+            </Text>
+          </View>
+        )}
 
         {/* İlan Tipi */}
         <Text style={s.grupBaslik}>İlan Tipi</Text>
@@ -389,7 +423,13 @@ export default function IlanVerScreen({ navigation }) {
 
 const s = StyleSheet.create({
   container:               { flex: 1, backgroundColor: '#f9fafb' },
+  formHeader:              { flexDirection: 'row', alignItems: 'center', gap: 16, paddingHorizontal: 20, paddingTop: 52, paddingBottom: 20 },
+  formHeaderIkon:          { width: 56, height: 56, borderRadius: 28, backgroundColor: 'rgba(255,255,255,0.2)', justifyContent: 'center', alignItems: 'center' },
+  formHeaderBaslik:        { fontSize: 20, fontWeight: '900', color: '#fff' },
+  formHeaderAlt:           { fontSize: 12, color: 'rgba(255,255,255,0.8)', marginTop: 2 },
   icerik:                  { padding: 16 },
+  limitBilgi:              { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#fff7ed', borderRadius: 12, padding: 12, marginBottom: 8, borderWidth: 1, borderColor: '#fed7aa' },
+  limitBilgiText:          { flex: 1, fontSize: 13, color: '#92400e', lineHeight: 18 },
   grupBaslik:              { fontSize: 12, fontWeight: '700', color: '#6b7280', textTransform: 'uppercase', letterSpacing: 0.6, marginTop: 20, marginBottom: 10 },
   secimRow:                { flexDirection: 'row', gap: 10 },
   secimBtn:                { flex: 1, paddingVertical: 14, borderRadius: 14, borderWidth: 2, borderColor: '#e5e7eb', alignItems: 'center' },

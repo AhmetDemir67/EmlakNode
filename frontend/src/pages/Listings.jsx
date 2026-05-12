@@ -267,17 +267,36 @@ const Listings = () => {
         </div>
       </div>
 
+      {/* ── Gradient Hero ──────────────────────────────────────── */}
+      <div className="bg-gradient-to-r from-gray-900 via-slate-800 to-green-900 py-7">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between flex-wrap gap-4">
+          <div>
+            <h1 className="text-2xl font-black text-white">{etiket} İlanları</h1>
+            {!yukleniyor && !hata && (
+              <p className="text-green-300 text-sm mt-1 font-medium">
+                {ilanlar.length} ilan listeleniyor
+              </p>
+            )}
+          </div>
+          {aktifFiltreSayisi > 0 && (
+            <div className="flex items-center gap-2 flex-wrap">
+              {filtreler.tip && <span className="bg-white/10 border border-white/20 text-white text-xs font-semibold px-3 py-1.5 rounded-full">{filtreler.tip}</span>}
+              {filtreler.emlak_turu && <span className="bg-white/10 border border-white/20 text-white text-xs font-semibold px-3 py-1.5 rounded-full">{filtreler.emlak_turu}</span>}
+              {filtreler.sehir && <span className="bg-white/10 border border-white/20 text-white text-xs font-semibold px-3 py-1.5 rounded-full">{filtreler.sehir}</span>}
+              <button onClick={filtreTemizle} className="text-xs text-red-300 hover:text-red-200 font-semibold flex items-center gap-1">
+                <X size={12} /> Temizle
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
 
         {/* ── Başlık + mobil filtre butonu ───────────────────── */}
         <div className="flex items-center justify-between mb-5 gap-3 flex-wrap">
           <div>
-            <h1 className="text-xl font-extrabold text-gray-900">{etiket} İlanları</h1>
-            {!yukleniyor && !hata && (
-              <p className="text-sm text-gray-400 mt-0.5">
-                <span className="font-bold text-green-600">{ilanlar.length}</span> ilan listeleniyor
-              </p>
-            )}
+            {yukleniyor && <p className="text-sm text-gray-400">Yükleniyor…</p>}
           </div>
           <button
             onClick={() => setMobilFiltre(true)}

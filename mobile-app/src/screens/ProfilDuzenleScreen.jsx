@@ -4,6 +4,7 @@ import {
   StyleSheet, Alert, ActivityIndicator, KeyboardAvoidingView, Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { profilGetir, profilGuncelle, sifreGuncelle } from '../services/api';
 
@@ -118,13 +119,13 @@ export default function ProfilDuzenleScreen({ navigation }) {
       <View style={s.container}>
 
         {/* Header */}
-        <View style={s.header}>
+        <LinearGradient colors={['#14532d', '#16a34a']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={s.header}>
           <TouchableOpacity style={s.geriBtn} onPress={() => navigation.goBack()}>
-            <Ionicons name="chevron-back" size={24} color="#111827" />
+            <Ionicons name="chevron-back" size={24} color="#fff" />
           </TouchableOpacity>
           <Text style={s.headerBaslik}>Üyelik Bilgilerim</Text>
           <View style={{ width: 40 }} />
-        </View>
+        </LinearGradient>
 
         {/* Tab Seçici */}
         <View style={s.tabRow}>
@@ -293,11 +294,10 @@ const s = StyleSheet.create({
   container:      { flex: 1, backgroundColor: '#f5f5f5' },
   merkez:         { flex: 1, justifyContent: 'center', alignItems: 'center' },
 
-  header:         { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff',
-                    paddingHorizontal: 8, paddingVertical: 12, paddingTop: 48,
-                    borderBottomWidth: 1, borderBottomColor: '#f0f0f0' },
+  header:         { flexDirection: 'row', alignItems: 'center',
+                    paddingHorizontal: 8, paddingVertical: 12, paddingTop: 48 },
   geriBtn:        { width: 40, height: 40, justifyContent: 'center', alignItems: 'center' },
-  headerBaslik:   { flex: 1, textAlign: 'center', fontSize: 17, fontWeight: '700', color: '#111827' },
+  headerBaslik:   { flex: 1, textAlign: 'center', fontSize: 17, fontWeight: '700', color: '#fff' },
 
   tabRow:         { flexDirection: 'row', backgroundColor: '#fff', marginHorizontal: 16, marginTop: 16,
                     borderRadius: 14, padding: 4, gap: 4,

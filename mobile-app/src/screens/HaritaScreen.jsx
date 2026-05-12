@@ -81,8 +81,7 @@ const haritaHTML = (ilanlar, merkez, zoom) => {
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.css"/>
 <style>
   * { margin:0; padding:0; box-sizing:border-box; }
   html,body,#map { width:100%; height:100%; }
@@ -101,31 +100,44 @@ const haritaHTML = (ilanlar, merkez, zoom) => {
 </head>
 <body>
 <div id="map"></div>
+<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.js"></script>
 <script>
-var map = L.map('map', { zoomControl:true }).setView([${merkez[0]},${merkez[1]}], ${zoom});
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  attribution:'© OpenStreetMap', maxZoom:19
-}).addTo(map);
-
 var ilanlar = ${JSON.stringify(markers)};
-ilanlar.forEach(function(ilan) {
-  var icon = L.divIcon({
-    className:'',
-    html:'<div class="fiyat-marker' + (ilan.tip==='Kiralık'?' kiralik':'') + '">' + ilan.fiyat + '</div>',
-    iconAnchor:[0,0]
+var merkez = [${merkez[0]},${merkez[1]}];
+var zoom = ${zoom};
+
+function initMap() {
+  var map = L.map('map', { zoomControl:true }).setView(merkez, zoom);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution:'© OpenStreetMap', maxZoom:19
+  }).addTo(map);
+  ilanlar.forEach(function(ilan) {
+    var icon = L.divIcon({
+      className:'',
+      html:'<div class="fiyat-marker' + (ilan.tip==='Kiralık'?' kiralik':'') + '">' + ilan.fiyat + '</div>',
+      iconAnchor:[0,0]
+    });
+    var marker = L.marker([ilan.lat, ilan.lng], { icon: icon }).addTo(map);
+    var popup = L.popup({ maxWidth:220 }).setContent(
+      '<div class="popup-baslik">' + ilan.baslik + '</div>' +
+      '<div class="popup-fiyat">' + ilan.fiyat + '</div>' +
+      '<div class="popup-konum">' + ilan.konum + '</div>' +
+      '<button class="popup-btn" onclick="detayGit(' + ilan.id + ')">Detayı Gör →</button>'
+    );
+    marker.bindPopup(popup);
   });
-  var marker = L.marker([ilan.lat, ilan.lng], { icon: icon }).addTo(map);
-  var popup = L.popup({ maxWidth:220 }).setContent(
-    '<div class="popup-baslik">' + ilan.baslik + '</div>' +
-    '<div class="popup-fiyat">' + ilan.fiyat + '</div>' +
-    '<div class="popup-konum">' + ilan.konum + '</div>' +
-    '<button class="popup-btn" onclick="detayGit(' + ilan.id + ')">Detayı Gör →</button>'
-  );
-  marker.bindPopup(popup);
-});
+}
 
 function detayGit(id) {
   window.ReactNativeWebView.postMessage(JSON.stringify({ tip:'detay', id:id }));
+}
+
+if (typeof L !== 'undefined') {
+  initMap();
+} else {
+  document.addEventListener('DOMContentLoaded', function() {
+    if (typeof L !== 'undefined') initMap();
+  });
 }
 </script>
 </body>
@@ -137,6 +149,7 @@ export default function HaritaScreen({ route, navigation }) {
   const [ilanlar, setIlanlar]       = useState([]);
   const [yukleniyor, setYukleniyor] = useState(true);
   const [haritaHazir, setHaritaHazir] = useState(false);
+  const haritaHazirRef = useRef(false);
 
   useEffect(() => {
     const yukle = async () => {
@@ -151,6 +164,10 @@ export default function HaritaScreen({ route, navigation }) {
         setIlanlar(koordinatli);
       } catch {}
       setYukleniyor(false);
+      // Harita onLoadEnd gelmezse 5 saniye sonra zorla göster
+      setTimeout(() => {
+        if (!haritaHazirRef.current) setHaritaHazir(true);
+      }, 5000);
     };
     yukle();
   }, []);
@@ -184,7 +201,7 @@ export default function HaritaScreen({ route, navigation }) {
           ref={webRef}
           style={[s.harita, !haritaHazir && { opacity: 0 }]}
           source={{ html: haritaHTML(ilanlarKonumlu, merkez, zoom) }}
-          onLoad={() => setHaritaHazir(true)}
+          onLoadEnd={() => { haritaHazirRef.current = true; setHaritaHazir(true); }}
           onMessage={onMessage}
           javaScriptEnabled
           domStorageEnabled

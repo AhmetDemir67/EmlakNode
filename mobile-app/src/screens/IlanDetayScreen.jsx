@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import {
   View, Text, ScrollView, Image, TouchableOpacity,
-  StyleSheet, ActivityIndicator, Linking, FlatList,
+  StyleSheet, ActivityIndicator, Linking, FlatList, Alert,
   Dimensions, Share, Modal, StatusBar, SafeAreaView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -9,7 +9,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   ilanDetayGetir, ilanlarGetir,
   favoriEkle, favoriSil, favoriKontrol,
-  kayitliAdreslerGetir,
+  kayitliAdreslerGetir, mesajGonder,
 } from '../services/api';
 
 const { width, height } = Dimensions.get('window');
@@ -79,6 +79,7 @@ export default function IlanDetayScreen({ route, navigation }) {
   const [emlakciilanlar, setEmlakciilanlar] = useState([]);
   const [benzerilanlar, setBenzerilanlar]   = useState([]);
   const [adresler, setAdresler]             = useState([]);
+  const [benimId, setBenimId]               = useState(null);
   const flatRef     = useRef(null);
   const lightboxRef = useRef(null);
 
@@ -101,11 +102,12 @@ export default function IlanDetayScreen({ route, navigation }) {
       .catch(() => setIlan(null))
       .finally(() => setYukleniyor(false));
 
-    // Favori kontrolü
+    // Favori kontrolü + benim id
     AsyncStorage.getItem('token').then(token => {
       if (!token) return;
       favoriKontrol(id).then(r => setFavori(r.data.favori || false)).catch(() => {});
     });
+    AsyncStorage.getItem('kullanici').then(v => { if (v) setBenimId(JSON.parse(v).id); });
 
     // Kayıtlı adresler
     AsyncStorage.getItem('token').then(token => {
@@ -148,6 +150,7 @@ export default function IlanDetayScreen({ route, navigation }) {
 
   const bilgiler = [
     { label: 'İlan Numarası',      value: ilan.id },
+    { label: 'Görüntülenme',       value: ilan.goruntuleme_sayisi > 0 ? `${Number(ilan.goruntuleme_sayisi).toLocaleString('tr-TR')} kez` : null },
     { label: 'İlan Tarihi',        value: tarihFormat(ilan.olusturulma_tarihi) },
     { label: 'Türü',               value: turKategori(ilan.emlak_turu) },
     { label: 'Kategorisi',         value: ilan.tip },
@@ -280,6 +283,22 @@ export default function IlanDetayScreen({ route, navigation }) {
 
         {/* FİYAT / ÖZET / KONUM */}
         <View style={s.fiyatWrap}>
+          <View style={s.tipRow}>
+            <View style={[s.ilanTipBadge, { backgroundColor: ilan.tip === 'Kiralık' ? '#3b82f6' : '#16a34a' }]}>
+              <Text style={s.ilanTipText}>{ilan.tip || 'Satılık'}</Text>
+            </View>
+            {ilan.emlak_turu ? (
+              <View style={s.ilanTurBadge}>
+                <Text style={s.ilanTurText}>{ilan.emlak_turu}</Text>
+              </View>
+            ) : null}
+            {ilan.goruntuleme_sayisi > 0 ? (
+              <View style={s.goruntulemeChip}>
+                <Ionicons name="eye-outline" size={12} color="#9ca3af" />
+                <Text style={s.goruntulemeText}>{Number(ilan.goruntuleme_sayisi).toLocaleString('tr-TR')} görüntüleme</Text>
+              </View>
+            ) : null}
+          </View>
           <Text style={s.fiyat}>{fiyatFormat(ilan.fiyat)}</Text>
           <View style={s.chipRow}>
             {ilan.oda_sayisi ? <Text style={s.chip}>{ilan.oda_sayisi}</Text> : null}
@@ -435,7 +454,18 @@ export default function IlanDetayScreen({ route, navigation }) {
         {/* HATALI İLAN BİLDİR */}
         <View style={s.bildir}>
           <Text style={s.bildirText}>İlanla ilgili şikayetlerinizi bize bildirebilirsiniz</Text>
-          <TouchableOpacity style={s.bildirBtn}>
+          <TouchableOpacity style={s.bildirBtn} onPress={() =>
+            Alert.alert(
+              'Hatalı İlan Bildir',
+              'Bu ilanı şüpheli veya hatalı buluyorsanız destek ekibimize bildirebilirsiniz.',
+              [
+                { text: 'İptal', style: 'cancel' },
+                { text: 'Bildir', style: 'destructive', onPress: () =>
+                    Alert.alert('Bildiriminiz Alındı', 'Teşekkürler! Ekibimiz en kısa sürede inceleyecektir.')
+                },
+              ]
+            )
+          }>
             <Ionicons name="flag-outline" size={15} color="#ef4444" />
             <Text style={s.bildirBtnText}>Hatalı İlan Bildir</Text>
           </TouchableOpacity>
@@ -459,16 +489,40 @@ export default function IlanDetayScreen({ route, navigation }) {
       <View style={s.altBar}>
         <TouchableOpacity
           style={s.whatsappBtn}
-          onPress={() => Linking.openURL(`https://wa.me/${ilan.telefon || '905001234567'}`)}
+          onPress={() => {
+            const tel = ilan.sahip_telefon?.replace(/\D/g, '') || '';
+            const wa  = tel.startsWith('0') ? '9' + tel.slice(1) : tel || '905001234567';
+            Linking.openURL(`https://wa.me/${wa}`);
+          }}
         >
           <Ionicons name="logo-whatsapp" size={26} color="#fff" />
         </TouchableOpacity>
-        <TouchableOpacity style={s.mesajBtn} onPress={() => {}}>
+        <TouchableOpacity
+          style={s.mesajBtn}
+          onPress={async () => {
+            const token = await AsyncStorage.getItem('token');
+            if (!token) { navigation.navigate('Giris'); return; }
+            if (parseInt(benimId) === parseInt(ilan.kullanici_id)) return;
+            try {
+              const r = await mesajGonder({
+                alici_id: ilan.kullanici_id,
+                ilan_id: ilan.id,
+                metin: `Merhaba, "${ilan.baslik}" ilanınızla ilgileniyorum.`,
+              });
+              navigation.navigate('Konusma', {
+                konusmaId: r.data.konusma_id,
+                karsiAd: ilan.dukkan_adi || 'İlan Sahibi',
+                ilanBaslik: ilan.baslik,
+                karsiId: ilan.kullanici_id,
+              });
+            } catch { navigation.navigate('Mesajlar'); }
+          }}
+        >
           <Text style={s.mesajBtnText}>Mesaj At</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={s.araBtn}
-          onPress={() => Linking.openURL(`tel:${ilan.telefon || '05001234567'}`)}
+          onPress={() => Linking.openURL(`tel:${ilan.sahip_telefon || '05001234567'}`)}
         >
           <Text style={s.araBtnText}>Ara</Text>
         </TouchableOpacity>
@@ -512,6 +566,13 @@ const s = StyleSheet.create({
 
   // Fiyat
   fiyatWrap: { backgroundColor: '#fff', paddingHorizontal: 16, paddingBottom: 16, borderBottomWidth: 8, borderBottomColor: '#f5f5f5' },
+  tipRow:   { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 12, flexWrap: 'wrap' },
+  ilanTipBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
+  ilanTipText:  { color: '#fff', fontSize: 12, fontWeight: '700' },
+  ilanTurBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8, backgroundColor: '#f5f5f5' },
+  ilanTurText:  { color: '#374151', fontSize: 12, fontWeight: '600' },
+  goruntulemeChip: { flexDirection: 'row', alignItems: 'center', gap: 4, marginLeft: 'auto' },
+  goruntulemeText: { fontSize: 12, color: '#9ca3af' },
   fiyat:    { fontSize: 28, fontWeight: '900', color: '#111827', marginTop: 8 },
   chipRow:  { flexDirection: 'row', alignItems: 'center', marginTop: 6 },
   chip:     { fontSize: 14, fontWeight: '600', color: '#374151' },
