@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+﻿import { useState, useEffect, useRef } from 'react';
 import toast from 'react-hot-toast';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
@@ -9,8 +9,9 @@ import {
   Calendar, CheckCircle2, Loader2, AlertCircle, Home,
   ChevronLeft, ChevronRight, Eye, Maximize2, X, Map, MessageCircle,
   Shield, Flag, ExternalLink, Bath, Car, Trees, Sofa, Hash, Send,
+  Train, Bus, Navigation, Footprints, Sparkles, TrendingUp, RotateCcw,
 } from 'lucide-react';
-import { ilanDetayGetir, ilanlarGetir, favoriEkle, favoriSil, favoriKontrol, mesajGonder } from '../services/api';
+import { ilanDetayGetir, ilanlarGetir, favoriEkle, favoriSil, favoriKontrol, mesajGonder, aiUlasimAnalizi } from '../services/api';
 
 // ── Fiyat formatlayıcı ──────────────────────────────────────────
 const fiyatFormatla = (fiyat) =>
@@ -23,7 +24,7 @@ const GORSEL_FALLBACK = 'https://images.unsplash.com/photo-1560448204-e02f11c3d0
 
 // ── Harita bileşeni (mini + tam ekran) ─────────────────────────
 const noktalanmisIkon = divIcon({
-  html: `<div style="width:16px;height:16px;background:#16a34a;border:3px solid white;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,.4)"></div>`,
+  html: `<div style="width:16px;height:16px;background:#2563eb;border:3px solid white;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,.4)"></div>`,
   className: '',
   iconAnchor: [8, 8],
 });
@@ -56,13 +57,13 @@ const KonumHaritasi = ({ ilan, tam = false, onKapat }) => {
     <div className="fixed inset-0 z-[9999] flex flex-col bg-black">
       <div className="flex items-center justify-between px-4 py-3 bg-white shadow-md flex-shrink-0">
         <div className="flex items-center gap-2.5 min-w-0">
-          <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
-            <Map size={16} className="text-green-600" />
+          <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+            <Map size={16} className="text-blue-600" />
           </div>
           <div className="min-w-0">
             <p className="text-sm font-bold text-slate-800 truncate max-w-xs sm:max-w-lg">{ilan.baslik}</p>
             <p className="text-xs text-slate-400 flex items-center gap-1">
-              <MapPin size={10} className="text-green-500" />
+              <MapPin size={10} className="text-blue-500" />
               {[ilan.ilce, ilan.sehir].filter(Boolean).join(', ')}
             </p>
           </div>
@@ -74,7 +75,7 @@ const KonumHaritasi = ({ ilan, tam = false, onKapat }) => {
       <div className="flex-1 relative">
         {yukleniyor && (
           <div className="absolute inset-0 bg-slate-800 flex flex-col items-center justify-center z-10 gap-3">
-            <Loader2 size={28} className="animate-spin text-green-400" />
+            <Loader2 size={28} className="animate-spin text-blue-400" />
             <p className="text-slate-400 text-sm">Konum yükleniyor…</p>
           </div>
         )}
@@ -88,7 +89,7 @@ const KonumHaritasi = ({ ilan, tam = false, onKapat }) => {
               <p className="text-slate-400 text-sm mt-1">Bu ilan için harita koordinatı mevcut değil.</p>
             </div>
             <button onClick={onKapat}
-              className="mt-2 px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white text-sm font-bold rounded-xl transition-colors">
+              className="mt-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-xl transition-colors">
               Geri Dön
             </button>
           </div>
@@ -100,7 +101,7 @@ const KonumHaritasi = ({ ilan, tam = false, onKapat }) => {
               <Popup>
                 <div style={{ minWidth: 180 }}>
                   <p style={{ fontWeight: 700, fontSize: 13, marginBottom: 4 }}>{ilan.baslik}</p>
-                  {ilan.fiyat && <p style={{ color: '#16a34a', fontWeight: 700, fontSize: 15 }}>{fiyatFormatla(ilan.fiyat)}</p>}
+                  {ilan.fiyat && <p style={{ color: '#2563eb', fontWeight: 700, fontSize: 15 }}>{fiyatFormatla(ilan.fiyat)}</p>}
                   {(ilan.ilce || ilan.sehir) && <p style={{ color: '#94a3b8', fontSize: 11, marginTop: 2 }}>📍 {[ilan.ilce, ilan.sehir].filter(Boolean).join(', ')}</p>}
                 </div>
               </Popup>
@@ -111,7 +112,7 @@ const KonumHaritasi = ({ ilan, tam = false, onKapat }) => {
     </div>
   );
 
-  if (yukleniyor) return <div className="h-52 bg-slate-100 rounded-2xl flex items-center justify-center"><Loader2 size={22} className="animate-spin text-green-500" /></div>;
+  if (yukleniyor) return <div className="h-52 bg-slate-100 rounded-2xl flex items-center justify-center"><Loader2 size={22} className="animate-spin text-blue-500" /></div>;
   if (!konum) return null;
   return (
     <div className="rounded-2xl overflow-hidden" style={{ height: 260 }}>
@@ -156,20 +157,20 @@ const MiniIlanKarti = ({ ilan }) => {
           onError={e => { e.currentTarget.src = GORSEL_FALLBACK; }}
         />
         {ilan.tip && (
-          <span className="absolute top-2 left-2 bg-green-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-md">
+          <span className="absolute top-2 left-2 bg-blue-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-md">
             {ilan.tip}
           </span>
         )}
       </div>
       <div className="p-3">
-        <p className="text-sm font-bold text-gray-900 line-clamp-2 leading-tight group-hover:text-green-700 transition-colors">{ilan.baslik}</p>
+        <p className="text-sm font-bold text-gray-900 line-clamp-2 leading-tight group-hover:text-blue-700 transition-colors">{ilan.baslik}</p>
         {(ilan.ilce || ilan.sehir) && (
           <p className="text-xs text-gray-400 mt-1 flex items-center gap-1">
-            <MapPin size={10} className="text-green-500" />
+            <MapPin size={10} className="text-blue-500" />
             {[ilan.ilce, ilan.sehir].filter(Boolean).join(' - ')}
           </p>
         )}
-        <p className="text-green-700 font-extrabold text-sm mt-1.5">{fiyatFormatla(ilan.fiyat)}</p>
+        <p className="text-blue-700 font-extrabold text-sm mt-1.5">{fiyatFormatla(ilan.fiyat)}</p>
       </div>
     </div>
   );
@@ -199,9 +200,24 @@ const ListingDetail = () => {
   const [bildirModal, setBildirModal]     = useState(false);
   const [bildirNeden, setBildirNeden]     = useState('');
   const [bildirGond, setBildirGond]       = useState(false);
+  const [ulasim, setUlasim]               = useState(null);
+  const [ulasimYukleniyor, setUlasimYuk]  = useState(false);
   const firmaRef = useRef(null);
 
   const girisYapilmis = !!localStorage.getItem('token');
+
+  const ulasimGetir = async () => {
+    if (!ilan?.sehir) return;
+    setUlasimYuk(true);
+    try {
+      const r = await aiUlasimAnalizi({ sehir: ilan.sehir, ilce: ilan.ilce, mahalle: ilan.mahalle });
+      setUlasim(r.data.ulasim);
+    } catch {
+      toast.error('Ulaşım bilgisi alınamadı.');
+    } finally {
+      setUlasimYuk(false);
+    }
+  };
 
   useEffect(() => {
     const detayGetir = async () => {
@@ -253,7 +269,7 @@ const ListingDetail = () => {
         <AlertCircle size={36} className="text-red-400 mx-auto mb-4" />
         <h2 className="text-xl font-bold text-slate-800 mb-2">İlan Bulunamadı</h2>
         <p className="text-slate-500 text-sm mb-6">{hata}</p>
-        <Link to="/" className="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-semibold px-6 py-3 rounded-xl transition-colors">
+        <Link to="/" className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-xl transition-colors">
           <Home size={16} /> Ana Sayfaya Dön
         </Link>
       </div>
@@ -267,7 +283,7 @@ const ListingDetail = () => {
     ? ilan.fotograflar
     : [gorselUrl];
   const tip       = ilan.tip || 'Satılık';
-  const tipRenk   = tip === 'Satılık' ? 'bg-green-600' : 'bg-blue-500';
+  const tipRenk   = tip === 'Satılık' ? 'bg-blue-600' : 'bg-blue-500';
   const adSoyad   = ilan.dukkan_adi || 'Emlak Ofisi';
   const bas       = adSoyad.split(' ').map(s => s[0]?.toUpperCase()).slice(0, 2).join('');
 
@@ -310,7 +326,7 @@ const ListingDetail = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-13 py-2.5">
             <nav className="flex items-center gap-1.5 text-sm text-slate-500 overflow-hidden flex-1">
-              <Link to="/" className="flex items-center gap-1 hover:text-green-600 transition-colors font-medium whitespace-nowrap">
+              <Link to="/" className="flex items-center gap-1 hover:text-blue-600 transition-colors font-medium whitespace-nowrap">
                 <Home size={13} /> <span>Ana Sayfa</span>
               </Link>
               <ChevronRight size={13} className="flex-shrink-0 text-slate-300" />
@@ -371,7 +387,7 @@ const ListingDetail = () => {
           <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 leading-tight">{ilan.baslik}</h1>
           {(ilan.ilce || ilan.sehir) && (
             <p className="flex items-center gap-1.5 text-slate-500 mt-1.5 text-sm">
-              <MapPin size={14} className="text-green-500" />
+              <MapPin size={14} className="text-blue-500" />
               {[ilan.mahalle, ilan.ilce, ilan.sehir].filter(Boolean).join(' / ')}
             </p>
           )}
@@ -430,25 +446,25 @@ const ListingDetail = () => {
                   <div className="flex gap-2 flex-wrap">
                     {ilan.oda_sayisi && (
                       <span className="bg-white/90 backdrop-blur-sm text-slate-700 text-xs font-semibold px-3 py-1.5 rounded-full flex items-center gap-1.5">
-                        <BedDouble size={11} className="text-green-600" /> {ilan.oda_sayisi}
+                        <BedDouble size={11} className="text-blue-600" /> {ilan.oda_sayisi}
                       </span>
                     )}
                     {ilan.metrekare && (
                       <span className="bg-white/90 backdrop-blur-sm text-slate-700 text-xs font-semibold px-3 py-1.5 rounded-full flex items-center gap-1.5">
-                        <Square size={11} className="text-green-600" /> {ilan.metrekare} m²
+                        <Square size={11} className="text-blue-600" /> {ilan.metrekare} m²
                       </span>
                     )}
                     {ilan.kat != null && (
                       <span className="bg-white/90 backdrop-blur-sm text-slate-700 text-xs font-semibold px-3 py-1.5 rounded-full flex items-center gap-1.5">
-                        <Layers size={11} className="text-green-600" /> {ilan.kat}. Kat
+                        <Layers size={11} className="text-blue-600" /> {ilan.kat}. Kat
                       </span>
                     )}
                   </div>
                   <button
                     onClick={() => setHaritaAcik(true)}
-                    className="bg-white/90 backdrop-blur-sm hover:bg-white text-slate-700 hover:text-green-700 text-xs font-semibold px-3 py-1.5 rounded-full flex items-center gap-1.5 transition-colors"
+                    className="bg-white/90 backdrop-blur-sm hover:bg-white text-slate-700 hover:text-blue-700 text-xs font-semibold px-3 py-1.5 rounded-full flex items-center gap-1.5 transition-colors"
                   >
-                    <Map size={11} className="text-green-600" /> Haritada Gör
+                    <Map size={11} className="text-blue-600" /> Haritada Gör
                   </button>
                 </div>
               </div>
@@ -457,7 +473,7 @@ const ListingDetail = () => {
             {/* İlan Bilgileri grid */}
             <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
               <h2 className="text-base font-bold text-slate-900 mb-4 flex items-center gap-2">
-                <div className="w-1 h-5 bg-green-600 rounded-full" /> İlan Bilgileri
+                <div className="w-1 h-5 bg-blue-600 rounded-full" /> İlan Bilgileri
               </h2>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-0 divide-y divide-slate-50 border border-slate-100 rounded-xl overflow-hidden">
                 {[
@@ -487,7 +503,7 @@ const ListingDetail = () => {
                   {boolOzellikler.map((o, i) => {
                     const Ikon = o.ikon;
                     return (
-                      <span key={i} className="flex items-center gap-1.5 bg-green-50 text-green-700 text-xs font-semibold px-3 py-1.5 rounded-full border border-green-100">
+                      <span key={i} className="flex items-center gap-1.5 bg-blue-50 text-blue-700 text-xs font-semibold px-3 py-1.5 rounded-full border border-blue-100">
                         <Ikon size={11} /> {o.etiket}
                       </span>
                     );
@@ -500,7 +516,7 @@ const ListingDetail = () => {
             {(ilan.aciklama || ilan.ai_aciklama) && (
               <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
                 <h2 className="text-base font-bold text-slate-900 mb-4 flex items-center gap-2">
-                  <div className="w-1 h-5 bg-green-600 rounded-full" /> İlan Açıklaması
+                  <div className="w-1 h-5 bg-blue-600 rounded-full" /> İlan Açıklaması
                 </h2>
                 <p className="text-slate-600 leading-relaxed text-sm whitespace-pre-line">
                   {ilan.aciklama || ilan.ai_aciklama}
@@ -513,11 +529,11 @@ const ListingDetail = () => {
               <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
                 <div className="p-5 border-b border-slate-100 flex items-center justify-between">
                   <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                    <div className="w-1 h-5 bg-green-600 rounded-full" /> Konum Bilgisi
+                    <div className="w-1 h-5 bg-blue-600 rounded-full" /> Konum Bilgisi
                   </h2>
                   <button
                     onClick={() => setHaritaAcik(true)}
-                    className="flex items-center gap-1.5 bg-green-600 hover:bg-green-700 text-white text-xs font-bold px-3 py-2 rounded-xl transition-all"
+                    className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3 py-2 rounded-xl transition-all"
                   >
                     <Maximize2 size={12} /> Tam Ekran
                   </button>
@@ -526,13 +542,95 @@ const ListingDetail = () => {
                 {(ilan.ilce || ilan.sehir) && (
                   <div className="px-5 py-3 bg-slate-50 border-t border-slate-100">
                     <p className="text-xs text-slate-500 flex items-center gap-1.5">
-                      <MapPin size={12} className="text-green-500" />
+                      <MapPin size={12} className="text-blue-500" />
                       {[ilan.mahalle, ilan.ilce, ilan.sehir].filter(Boolean).join(' / ')}
                     </p>
                   </div>
                 )}
               </div>
             )}
+            {/* Nasıl Gidilir? */}
+            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                  <div className="w-1 h-5 bg-blue-600 rounded-full" /> Nasıl Gidilir?
+                </h2>
+                {!ulasim && (
+                  <button
+                    onClick={ulasimGetir}
+                    disabled={ulasimYukleniyor}
+                    className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-xs font-bold px-3 py-2 rounded-xl transition-all"
+                  >
+                    {ulasimYukleniyor ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
+                    {ulasimYukleniyor ? 'Analiz Ediliyor…' : 'AI ile Analiz Et'}
+                  </button>
+                )}
+                {ulasim && (
+                  <button onClick={() => { setUlasim(null); ulasimGetir(); }}
+                    className="flex items-center gap-1 text-xs text-slate-400 hover:text-blue-600 transition-colors">
+                    <RotateCcw size={12} /> Yenile
+                  </button>
+                )}
+              </div>
+
+              {!ulasim && !ulasimYukleniyor && (
+                <div className="flex flex-col items-center gap-3 py-8 text-center">
+                  <div className="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center">
+                    <Bus size={24} className="text-blue-400" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-slate-700">AI Ulaşım Analizi</p>
+                    <p className="text-xs text-slate-400 mt-1">Metro, otobüs, araç ve yürüyüş sürelerini AI ile analiz edin.</p>
+                  </div>
+                </div>
+              )}
+
+              {ulasimYukleniyor && (
+                <div className="flex flex-col items-center gap-3 py-8">
+                  <Loader2 size={28} className="animate-spin text-blue-500" />
+                  <p className="text-sm text-slate-400">Konum analiz ediliyor…</p>
+                </div>
+              )}
+
+              {ulasim && (
+                <div className="space-y-3">
+                  {/* Özet + Puan */}
+                  {(ulasim.ozet || ulasim.puan) && (
+                    <div className="flex items-start gap-3 bg-slate-50 rounded-xl p-4">
+                      <p className="flex-1 text-sm text-slate-600 leading-relaxed">{ulasim.ozet}</p>
+                      {ulasim.puan && (
+                        <div className={`flex-shrink-0 w-12 h-12 rounded-xl flex flex-col items-center justify-center font-black text-sm
+                          ${ulasim.puan >= 7 ? 'bg-green-100 text-green-700' : ulasim.puan >= 4 ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'}`}>
+                          {ulasim.puan}
+                          <span className="text-[9px] font-semibold opacity-70">/10</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Ulaşım satırları */}
+                  {[
+                    { ikon: Train,      renk: 'text-purple-600 bg-purple-50', baslik: 'Metro / Metrobüs / Tramvay', deger: ulasim.metro },
+                    { ikon: Bus,        renk: 'text-blue-600 bg-blue-50',     baslik: 'Otobüs / Dolmuş',            deger: ulasim.otobus },
+                    { ikon: Car,        renk: 'text-amber-600 bg-amber-50',   baslik: 'Araçla',                     deger: ulasim.araba },
+                    { ikon: Footprints, renk: 'text-green-600 bg-green-50',   baslik: 'Yürüyerek',                  deger: ulasim.yuruyus },
+                  ].filter(r => r.deger && r.deger !== 'null').map((row, i) => {
+                    const Ikon = row.ikon;
+                    return (
+                      <div key={i} className="flex gap-3 p-3 rounded-xl border border-slate-100">
+                        <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${row.renk}`}>
+                          <Ikon size={16} />
+                        </div>
+                        <div>
+                          <p className="text-xs font-semibold text-slate-400">{row.baslik}</p>
+                          <p className="text-sm text-slate-700 mt-0.5 leading-relaxed">{row.deger}</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </div>
 
           {/* ── SAĞ: Fiyat + İletişim + Ofis ────────────────────── */}
@@ -542,14 +640,14 @@ const ListingDetail = () => {
               {/* Fiyat + İletişim kartı */}
               <div className="rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
                 {/* Gradient fiyat başlığı */}
-                <div className="bg-gradient-to-r from-gray-900 via-slate-800 to-green-900 p-5">
+                <div className="bg-gradient-to-r from-gray-900 via-slate-800 to-blue-900 p-5">
                   <div className="flex items-center gap-2 mb-2 flex-wrap">
                     <span className={`${tipRenk} text-white text-xs font-bold px-2.5 py-1 rounded-full`}>{tip}</span>
                     {ilan.emlak_turu && <span className="bg-white/20 text-white/90 text-xs font-semibold px-2.5 py-1 rounded-full">{ilan.emlak_turu}</span>}
                   </div>
                   <p className="text-3xl font-extrabold text-white">{fiyatFormatla(ilan.fiyat)}</p>
                   {ilan.metrekare && (
-                    <p className="text-xs text-green-300 mt-0.5">
+                    <p className="text-xs text-blue-300 mt-0.5">
                       {Math.round(ilan.fiyat / ilan.metrekare).toLocaleString('tr-TR')} ₺/m²
                     </p>
                   )}
@@ -558,7 +656,7 @@ const ListingDetail = () => {
 
                 {/* Danışman */}
                 <div className="flex items-center gap-3 mb-4 pb-4 border-b border-slate-100">
-                  <div className="w-12 h-12 bg-green-600 rounded-xl flex items-center justify-center text-white font-extrabold text-sm flex-shrink-0">
+                  <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center text-white font-extrabold text-sm flex-shrink-0">
                     {bas}
                   </div>
                   <div className="min-w-0">
@@ -571,12 +669,12 @@ const ListingDetail = () => {
                 <div className="space-y-2.5">
                   {telefonGoster && (ilan.sahip_telefon || ilan.kullanici_telefon) ? (
                     <a href={`tel:${ilan.sahip_telefon || ilan.kullanici_telefon}`}
-                      className="w-full flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-xl transition-all text-sm">
+                      className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl transition-all text-sm">
                       <Phone size={15} /> {ilan.sahip_telefon || ilan.kullanici_telefon}
                     </a>
                   ) : (
                     <button onClick={() => setTelGoster(true)}
-                      className="w-full flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-xl transition-all hover:shadow-lg hover:shadow-green-200 active:scale-[.98] text-sm">
+                      className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl transition-all hover:shadow-lg hover:shadow-blue-200 active:scale-[.98] text-sm">
                       <Phone size={15} /> Telefona Bak
                     </button>
                   )}
@@ -584,20 +682,20 @@ const ListingDetail = () => {
                       if (!girisYapilmis) { navigate('/login'); return; }
                       setMesajMod(true);
                     }}
-                    className="w-full flex items-center justify-center gap-2 border-2 border-green-600 text-green-600 hover:bg-green-50 font-bold py-3 px-4 rounded-xl transition-all text-sm">
+                    className="w-full flex items-center justify-center gap-2 border-2 border-blue-600 text-blue-600 hover:bg-blue-50 font-bold py-3 px-4 rounded-xl transition-all text-sm">
                     <MessageCircle size={15} /> Mesaj Gönder
                   </button>
                   {ilan.dukkan_id && (
                     <button
                       onClick={() => firmaRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
-                      className="w-full flex items-center justify-center gap-2 border border-slate-200 text-slate-600 hover:border-green-400 hover:text-green-600 hover:bg-green-50 font-semibold py-2.5 px-4 rounded-xl transition-all text-sm">
+                      className="w-full flex items-center justify-center gap-2 border border-slate-200 text-slate-600 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50 font-semibold py-2.5 px-4 rounded-xl transition-all text-sm">
                       <ExternalLink size={14} /> Firma Profiline Git
                     </button>
                   )}
                   {(ilan.enlem || ilan.boylam || ilan.ilce || ilan.sehir) && (
                     <button
                       onClick={() => setHaritaAcik(true)}
-                      className="w-full flex items-center justify-center gap-2 border border-slate-200 text-slate-600 hover:border-green-400 hover:text-green-600 hover:bg-green-50 font-semibold py-2.5 px-4 rounded-xl transition-all text-sm"
+                      className="w-full flex items-center justify-center gap-2 border border-slate-200 text-slate-600 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50 font-semibold py-2.5 px-4 rounded-xl transition-all text-sm"
                     >
                       <Map size={14} /> Haritada Göster
                     </button>
@@ -609,7 +707,7 @@ const ListingDetail = () => {
               {/* Güvenlik + Hatalı İlan */}
               <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 space-y-3">
                 <div className="flex items-start gap-3 text-xs text-slate-500 leading-relaxed">
-                  <Shield size={16} className="text-green-500 flex-shrink-0 mt-0.5" />
+                  <Shield size={16} className="text-blue-500 flex-shrink-0 mt-0.5" />
                   <div>
                     <p className="font-semibold text-slate-700 mb-0.5">Güvenlik Önerileri</p>
                     <p>Gayrimenkulü görmeden, sözleşme imzalamadan ödeme yapmayın. Şüpheli durumlarda destek hattını arayın.</p>
@@ -627,7 +725,7 @@ const ListingDetail = () => {
               {/* Geri dön */}
               <button
                 onClick={() => navigate(-1)}
-                className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl border border-slate-200 text-slate-500 hover:border-green-300 hover:text-green-600 transition-all text-sm font-medium group"
+                className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl border border-slate-200 text-slate-500 hover:border-blue-300 hover:text-blue-600 transition-all text-sm font-medium group"
               >
                 <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" />
                 Geri Dön
@@ -645,7 +743,7 @@ const ListingDetail = () => {
                 {firmaIlanlar.length > 0 && (
                   <button
                     onClick={() => navigate(`/ilanlar?dukkan_id=${ilan.dukkan_id}`)}
-                    className="text-sm text-green-600 hover:underline font-semibold flex items-center gap-1">
+                    className="text-sm text-blue-600 hover:underline font-semibold flex items-center gap-1">
                     Diğer İlanlarını Gör <ChevronRight size={14} />
                   </button>
                 )}
@@ -653,7 +751,7 @@ const ListingDetail = () => {
 
               {/* Ofis profil satırı */}
               <div className="flex items-center gap-4 mt-4">
-                <div className="w-14 h-14 bg-green-600 rounded-xl flex items-center justify-center text-white font-extrabold text-lg flex-shrink-0">
+                <div className="w-14 h-14 bg-blue-600 rounded-xl flex items-center justify-center text-white font-extrabold text-lg flex-shrink-0">
                   {bas}
                 </div>
                 <div>
@@ -692,7 +790,7 @@ const ListingDetail = () => {
               </div>
               <button
                 onClick={() => navigate(`/?sehir=${encodeURIComponent(ilan.sehir || '')}&tip=${encodeURIComponent(ilan.tip || '')}`)}
-                className="text-sm text-green-600 hover:text-green-700 font-semibold flex items-center gap-1 whitespace-nowrap"
+                className="text-sm text-blue-600 hover:text-blue-700 font-semibold flex items-center gap-1 whitespace-nowrap"
               >
                 Tümünü Gör <ChevronRight size={14} />
               </button>
@@ -718,7 +816,7 @@ const ListingDetail = () => {
                       onError={e => { e.currentTarget.src = GORSEL_FALLBACK; }}
                     />
                     {i.tip && (
-                      <span className={`absolute top-2 left-2 text-white text-[10px] font-bold px-2 py-0.5 rounded-md ${i.tip === 'Satılık' ? 'bg-green-600' : 'bg-blue-500'}`}>
+                      <span className={`absolute top-2 left-2 text-white text-[10px] font-bold px-2 py-0.5 rounded-md ${i.tip === 'Satılık' ? 'bg-blue-600' : 'bg-blue-500'}`}>
                         {i.tip}
                       </span>
                     )}
@@ -726,7 +824,7 @@ const ListingDetail = () => {
 
                   {/* Bilgiler */}
                   <div className="p-3 flex flex-col gap-1">
-                    <p className="text-xs font-bold text-gray-900 line-clamp-2 leading-tight group-hover:text-green-700 transition-colors">
+                    <p className="text-xs font-bold text-gray-900 line-clamp-2 leading-tight group-hover:text-blue-700 transition-colors">
                       {i.baslik}
                     </p>
                     {/* Özellik chip'leri */}
@@ -743,14 +841,14 @@ const ListingDetail = () => {
                     </div>
                     {(i.ilce || i.sehir) && (
                       <p className="text-[10px] text-gray-400 flex items-center gap-1">
-                        <MapPin size={9} className="text-green-500 flex-shrink-0" />
+                        <MapPin size={9} className="text-blue-500 flex-shrink-0" />
                         {[i.ilce, i.sehir].filter(Boolean).join(' / ')}
                       </p>
                     )}
-                    <p className="text-green-700 font-extrabold text-sm mt-0.5">{fiyatFormatla(i.fiyat)}</p>
+                    <p className="text-blue-700 font-extrabold text-sm mt-0.5">{fiyatFormatla(i.fiyat)}</p>
                     <button
                       onClick={e => { e.stopPropagation(); navigate(`/ilan/${i.id}`); }}
-                      className="mt-1 w-full text-xs font-bold text-green-600 border border-green-200 hover:bg-green-50 py-1.5 rounded-lg transition-colors"
+                      className="mt-1 w-full text-xs font-bold text-blue-600 border border-blue-200 hover:bg-blue-50 py-1.5 rounded-lg transition-colors"
                     >
                       Telefona Bak
                     </button>
@@ -772,7 +870,7 @@ const ListingDetail = () => {
                 <button
                   key={i}
                   onClick={() => navigate(`/?sehir=${encodeURIComponent(ilan.sehir || '')}&tip=${encodeURIComponent(tip)}`)}
-                  className="text-xs text-green-700 bg-green-50 hover:bg-green-100 border border-green-100 px-3 py-1.5 rounded-full transition-colors font-medium"
+                  className="text-xs text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-100 px-3 py-1.5 rounded-full transition-colors font-medium"
                 >
                   {link}
                 </button>
@@ -842,11 +940,11 @@ const ListingDetail = () => {
             <p className="text-xs text-gray-400 truncate">🏠 {ilan.baslik}</p>
             {mesajGondOk ? (
               <div className="flex flex-col items-center gap-3 py-6">
-                <CheckCircle2 size={40} className="text-green-500" />
+                <CheckCircle2 size={40} className="text-blue-500" />
                 <p className="font-semibold text-gray-800">Mesajınız gönderildi!</p>
                 <p className="text-xs text-gray-400">Yanıtları Mesajlarım bölümünden takip edebilirsiniz.</p>
                 <button onClick={() => { setMesajMod(false); setMesajGondOk(false); setMesajMetni(''); }}
-                  className="mt-2 px-5 py-2 bg-green-600 text-white rounded-xl text-sm font-bold hover:bg-green-700 transition-colors">
+                  className="mt-2 px-5 py-2 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 transition-colors">
                   Tamam
                 </button>
               </div>
@@ -857,7 +955,7 @@ const ListingDetail = () => {
                   onChange={e => setMesajMetni(e.target.value)}
                   placeholder="Mesajınızı yazın..."
                   rows={4}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 resize-none"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 resize-none"
                 />
                 <button disabled={!mesajMetni.trim() || mesajGond}
                   onClick={async () => {
@@ -870,7 +968,7 @@ const ListingDetail = () => {
                     } catch { toast.error('Mesaj gönderilemedi, tekrar deneyin.'); }
                     finally { setMesajGond(false); }
                   }}
-                  className="w-full flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 disabled:opacity-60 text-white font-bold py-3 rounded-xl transition-all text-sm">
+                  className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white font-bold py-3 rounded-xl transition-all text-sm">
                   {mesajGond ? <><Loader2 size={15} className="animate-spin" />Gönderiliyor…</> : <><Send size={15} />Gönder</>}
                 </button>
               </>

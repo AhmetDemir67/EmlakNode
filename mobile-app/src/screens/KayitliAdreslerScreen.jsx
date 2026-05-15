@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+﻿import React, { useState, useCallback } from 'react';
 import {
   View, Text, FlatList, TouchableOpacity,
   StyleSheet, ActivityIndicator, Alert, Modal, TextInput,
@@ -79,7 +79,7 @@ export default function KayitliAdreslerScreen({ navigation }) {
       </Modal>
 
       {yukleniyor ? (
-        <View style={s.merkez}><ActivityIndicator size="large" color="#16a34a" /></View>
+        <View style={s.merkez}><ActivityIndicator size="large" color="#2563eb" /></View>
       ) : adresler.length === 0 ? (
         <View style={s.merkez}>
           <Ionicons name="location-outline" size={56} color="#d1d5db" />
@@ -98,7 +98,7 @@ export default function KayitliAdreslerScreen({ navigation }) {
             return (
               <View style={s.kart}>
                 <View style={s.ikonWrap}>
-                  <Ionicons name="location" size={20} color="#16a34a" />
+                  <Ionicons name="location" size={20} color="#2563eb" />
                 </View>
                 <View style={s.icerik}>
                   <Text style={s.baslik}>{item.baslik}</Text>
@@ -133,18 +133,18 @@ const s = StyleSheet.create({
 
   liste:      { padding: 16, gap: 10, backgroundColor: '#f5f5f5' },
   kart:       { backgroundColor: '#fff', borderRadius: 16, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12, elevation: 1, shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 4 },
-  ikonWrap:   { width: 44, height: 44, borderRadius: 12, backgroundColor: '#f0fdf4', justifyContent: 'center', alignItems: 'center' },
+  ikonWrap:   { width: 44, height: 44, borderRadius: 12, backgroundColor: '#eff6ff', justifyContent: 'center', alignItems: 'center' },
   icerik:     { flex: 1, gap: 3 },
   baslik:     { fontSize: 15, fontWeight: '700', color: '#111827' },
   altText:    { fontSize: 12, color: '#6b7280' },
-  haritaLink: { fontSize: 12, fontWeight: '700', color: '#16a34a', marginTop: 4 },
+  haritaLink: { fontSize: 12, fontWeight: '700', color: '#2563eb', marginTop: 4 },
   silBtn:     { padding: 8 },
-  fab:        { position: 'absolute', bottom: 24, right: 20, width: 56, height: 56, borderRadius: 28, backgroundColor: '#16a34a', justifyContent: 'center', alignItems: 'center', elevation: 6, shadowColor: '#16a34a', shadowOpacity: 0.4, shadowRadius: 8 },
+  fab:        { position: 'absolute', bottom: 24, right: 20, width: 56, height: 56, borderRadius: 28, backgroundColor: '#2563eb', justifyContent: 'center', alignItems: 'center', elevation: 6, shadowColor: '#2563eb', shadowOpacity: 0.4, shadowRadius: 8 },
   modalArka:  { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)' },
   modalKutu:  { backgroundColor: '#fff', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 20, paddingBottom: 40, gap: 12 },
   modalUst:   { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
   modalBaslik:{ fontSize: 17, fontWeight: '800', color: '#111827' },
   input:      { borderWidth: 1.5, borderColor: '#e5e7eb', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12, fontSize: 15, color: '#111827' },
-  kaydetBtn:  { backgroundColor: '#16a34a', paddingVertical: 14, borderRadius: 14, alignItems: 'center', marginTop: 4 },
+  kaydetBtn:  { backgroundColor: '#2563eb', paddingVertical: 14, borderRadius: 14, alignItems: 'center', marginTop: 4 },
   kaydetBtnText: { color: '#fff', fontSize: 15, fontWeight: '800' },
 });

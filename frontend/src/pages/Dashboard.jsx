@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+﻿import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import {
@@ -7,7 +7,7 @@ import {
   MapPin, BedDouble, Square, Bath, Layers, ChevronDown, MessageSquare,
   Bookmark, Heart, UserCircle, LayoutGrid, PlusCircle, TrendingUp,
   Clock, CheckCircle, PauseCircle, Menu, Send, Lock, Store, Users,
-  TrendingDown, ArrowLeft, BarChart2, ImagePlus,
+  TrendingDown, ArrowLeft, BarChart2, ImagePlus, Sparkles,
 } from 'lucide-react';
 import {
   ilanEkle, ilanGuncelle, ilanSil, benimIlanlarim,
@@ -17,7 +17,7 @@ import {
   konusmalariGetir, mesajlariGetir, mesajGonder,
   dukkanGetir, dukkanGuncelle, danismanlarGetir, istatistiklerGetir,
   kayitliAramalarGetir, kayitliAramaSil,
-  fotografYukleAPI, okunmamisSayisi,
+  fotografYukleAPI, okunmamisSayisi, aiAciklamaUret,
 } from '../services/api';
 import { ILLER, ILCELER } from '../data/turkiyeAdresler';
 
@@ -56,7 +56,7 @@ const Inp = ({ label, name, type = 'text', value, onChange, placeholder, zorunlu
       {label}{zorunlu && <span className="text-red-400"> *</span>}
     </label>
     <input type={type} name={name} value={value} onChange={onChange} placeholder={placeholder}
-      className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 transition-all" />
+      className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all" />
   </div>
 );
 
@@ -64,7 +64,7 @@ const Sel = ({ label, name, value, onChange, opts }) => (
   <div>
     <label className="block text-xs font-semibold text-gray-500 mb-1">{label}</label>
     <select name={name} value={value} onChange={onChange}
-      className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 bg-white transition-all">
+      className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 bg-white transition-all">
       <option value="">Seçin</option>
       {opts.map(o => <option key={o} value={o}>{o}</option>)}
     </select>
@@ -75,7 +75,7 @@ const Toggle = ({ label, name, value, onChange }) => (
   <button type="button"
     onClick={() => onChange({ target: { name, value: !value, type: 'checkbox', checked: !value } })}
     className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-xs font-semibold transition-all ${
-      value ? 'bg-green-600 border-green-600 text-white shadow-sm' : 'border-gray-200 text-gray-500 hover:border-green-400 hover:text-green-600'
+      value ? 'bg-blue-600 border-blue-600 text-white shadow-sm' : 'border-gray-200 text-gray-500 hover:border-blue-400 hover:text-blue-600'
     }`}
   >
     <span className={`w-3 h-3 rounded-full flex-shrink-0 ${value ? 'bg-white' : 'bg-gray-300'}`} />
@@ -117,9 +117,9 @@ const FotoYukleme = ({ secilenler, onSecilenler, mevcutlar = [], onMevcutSil }) 
             </div>
           ))}
           {onizlemeler.map((url, i) => (
-            <div key={`n-${i}`} className="relative w-20 h-20 rounded-xl overflow-hidden border-2 border-green-500 group flex-shrink-0">
+            <div key={`n-${i}`} className="relative w-20 h-20 rounded-xl overflow-hidden border-2 border-blue-500 group flex-shrink-0">
               <img src={url} alt="" className="w-full h-full object-cover" />
-              <div className="absolute top-0.5 left-0.5 bg-green-600 text-white text-[9px] font-bold px-1 py-0.5 rounded leading-none">YENİ</div>
+              <div className="absolute top-0.5 left-0.5 bg-blue-600 text-white text-[9px] font-bold px-1 py-0.5 rounded leading-none">YENİ</div>
               <button type="button" onClick={() => sil(i)}
                 className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                 <X size={16} className="text-white" />
@@ -135,10 +135,10 @@ const FotoYukleme = ({ secilenler, onSecilenler, mevcutlar = [], onMevcutSil }) 
         onDrop={e => { e.preventDefault(); setSurukle(false); dosyaEkle(e.dataTransfer.files); }}
         onClick={() => inputRef.current?.click()}
         className={`border-2 border-dashed rounded-xl p-5 text-center cursor-pointer transition-all ${
-          surukle ? 'border-green-500 bg-green-50' : 'border-gray-200 hover:border-green-400 hover:bg-green-50/40'
+          surukle ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-blue-400 hover:bg-blue-50/40'
         }`}
       >
-        <ImagePlus size={22} className={`mx-auto mb-1.5 ${surukle ? 'text-green-500' : 'text-gray-400'}`} />
+        <ImagePlus size={22} className={`mx-auto mb-1.5 ${surukle ? 'text-blue-500' : 'text-gray-400'}`} />
         <p className="text-sm font-semibold text-gray-600">Fotoğraf ekle</p>
         <p className="text-xs text-gray-400 mt-0.5">Sürükle-bırak veya tıkla · JPG, PNG, WEBP · Max 15MB</p>
       </div>
@@ -167,8 +167,8 @@ const AramaDropdown = ({ label, value, secenekler, onChange, disabled }) => {
         onClick={() => { if (!disabled) { setAcik(!acik); setArama(''); } }}
         className={`w-full flex items-center justify-between px-3 py-2.5 border rounded-xl text-sm transition-all ${
           disabled ? 'bg-gray-50 border-gray-100 text-gray-300 cursor-not-allowed'
-          : acik ? 'border-green-500 bg-white ring-2 ring-green-100 text-gray-700'
-          : 'border-gray-200 bg-white text-gray-700 hover:border-green-400'
+          : acik ? 'border-blue-500 bg-white ring-2 ring-blue-100 text-gray-700'
+          : 'border-gray-200 bg-white text-gray-700 hover:border-blue-400'
         }`}
       >
         <span className={value ? 'text-gray-800 font-medium' : 'text-gray-400'}>{value || label}</span>
@@ -179,14 +179,14 @@ const AramaDropdown = ({ label, value, secenekler, onChange, disabled }) => {
           <div className="p-2 border-b border-gray-100">
             <input type="text" value={arama} onChange={e => setArama(e.target.value)}
               placeholder={`${label} ara...`}
-              className="w-full px-2 py-1.5 text-xs border border-gray-200 rounded-lg outline-none focus:border-green-400" autoFocus />
+              className="w-full px-2 py-1.5 text-xs border border-gray-200 rounded-lg outline-none focus:border-blue-400" autoFocus />
           </div>
           <div className="max-h-48 overflow-y-auto py-1">
             {filtrelenmis.length === 0
               ? <p className="text-xs text-gray-400 text-center py-3">Sonuç bulunamadı</p>
               : filtrelenmis.map(s => (
                 <button key={s} type="button" onClick={() => { onChange(s); setAcik(false); setArama(''); }}
-                  className={`w-full text-left px-3 py-2 text-sm transition-colors ${value === s ? 'bg-green-50 text-green-700 font-semibold' : 'text-gray-700 hover:bg-gray-50'}`}>
+                  className={`w-full text-left px-3 py-2 text-sm transition-colors ${value === s ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-700 hover:bg-gray-50'}`}>
                   {s}
                 </button>
               ))}
@@ -200,7 +200,7 @@ const AramaDropdown = ({ label, value, secenekler, onChange, disabled }) => {
 const NavItem = ({ id, icon: Icon, label, aktif, onClick, sub = false, badge }) => (
   <button onClick={() => onClick(id)}
     className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${sub ? 'pl-8' : ''} ${
-      aktif ? 'bg-green-600 text-white shadow-sm' : 'text-slate-300 hover:bg-white/10 hover:text-white'
+      aktif ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-300 hover:bg-white/10 hover:text-white'
     }`}
   >
     <Icon size={sub ? 14 : 16} className="flex-shrink-0" />
@@ -234,6 +234,7 @@ export default function Dashboard() {
   const [listeleniyor, setListeleniyor] = useState(false);
   const [duzenle, setDuzenle]         = useState(null);
   const [secilenGorseller, setSecilenGorseller] = useState([]);
+  const [aiYukleniyor, setAiYukleniyor] = useState(false);
 
   // Mesajlar
   const [konusmalar, setKonusmalar]       = useState([]);
@@ -290,6 +291,19 @@ export default function Dashboard() {
       if (name === 'sehir') yeni.ilce = '';
       return yeni;
     });
+  };
+
+  const handleAiAciklama = async () => {
+    setAiYukleniyor(true);
+    try {
+      const r = await aiAciklamaUret(form);
+      setForm(f => ({ ...f, aciklama: r.data.aciklama }));
+      toast.success('AI açıklama oluşturuldu!');
+    } catch {
+      toast.error('AI açıklama üretilemedi. API anahtarını kontrol edin.');
+    } finally {
+      setAiYukleniyor(false);
+    }
   };
 
   const ilanlarıGetir = async () => {
@@ -496,12 +510,12 @@ export default function Dashboard() {
     <aside className="w-64 flex-shrink-0 bg-slate-800 flex flex-col h-screen sticky top-0 overflow-y-auto">
       <div className="px-5 py-4 border-b border-slate-700">
         <Link to="/" className="flex items-center gap-2">
-          <div className="bg-green-600 p-1.5 rounded-lg"><Home size={16} className="text-white" /></div>
-          <span className="text-base font-bold text-white">Emlak<span className="text-green-400">Node</span></span>
+          <div className="bg-blue-600 p-1.5 rounded-lg"><Home size={16} className="text-white" /></div>
+          <span className="text-base font-bold text-white">Emlak<span className="text-blue-400">Node</span></span>
         </Link>
       </div>
       <div className="px-4 py-4 border-b border-slate-700 flex items-center gap-3">
-        <div className="w-10 h-10 rounded-xl bg-green-600 flex items-center justify-center text-white font-extrabold text-sm flex-shrink-0">
+        <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white font-extrabold text-sm flex-shrink-0">
           {basTurkce(kullanici.ad_soyad)}
         </div>
         <div className="overflow-hidden">
@@ -577,7 +591,7 @@ export default function Dashboard() {
         {ilan.gorsel
           ? <img src={ilan.gorsel} alt={ilan.baslik} className="w-full h-full object-cover" />
           : <div className="w-full h-full flex items-center justify-center"><Building2 size={28} className="text-slate-300" /></div>}
-        <span className={`absolute top-2 left-2 text-[10px] font-bold px-2 py-0.5 rounded-full text-white ${ilan.tip === 'Kiralık' ? 'bg-blue-500' : 'bg-green-600'}`}>
+        <span className={`absolute top-2 left-2 text-[10px] font-bold px-2 py-0.5 rounded-full text-white ${ilan.tip === 'Kiralık' ? 'bg-blue-500' : 'bg-blue-600'}`}>
           {ilan.tip || 'Satılık'}
         </span>
       </div>
@@ -585,20 +599,20 @@ export default function Dashboard() {
         <div>
           <h3 className="font-bold text-gray-900 text-sm line-clamp-1">{ilan.baslik}</h3>
           <p className="text-xs text-gray-400 mt-1 flex items-center gap-1">
-            <MapPin size={11} className="text-green-500" />
+            <MapPin size={11} className="text-blue-500" />
             {[ilan.mahalle, ilan.ilce, ilan.sehir].filter(Boolean).join(', ') || '—'}
           </p>
         </div>
         <div className="flex items-center gap-3 text-xs text-gray-500 mt-2 flex-wrap">
-          {ilan.oda_sayisi && <span className="flex items-center gap-1"><BedDouble size={11} className="text-green-500" />{ilan.oda_sayisi}</span>}
-          {ilan.metrekare  && <span className="flex items-center gap-1"><Square    size={11} className="text-green-500" />{ilan.metrekare} m²</span>}
-          {ilan.banyo_sayisi && <span className="flex items-center gap-1"><Bath   size={11} className="text-green-500" />{ilan.banyo_sayisi} banyo</span>}
-          {ilan.kat        && <span className="flex items-center gap-1"><Layers   size={11} className="text-green-500" />{ilan.kat}. kat</span>}
+          {ilan.oda_sayisi && <span className="flex items-center gap-1"><BedDouble size={11} className="text-blue-500" />{ilan.oda_sayisi}</span>}
+          {ilan.metrekare  && <span className="flex items-center gap-1"><Square    size={11} className="text-blue-500" />{ilan.metrekare} m²</span>}
+          {ilan.banyo_sayisi && <span className="flex items-center gap-1"><Bath   size={11} className="text-blue-500" />{ilan.banyo_sayisi} banyo</span>}
+          {ilan.kat        && <span className="flex items-center gap-1"><Layers   size={11} className="text-blue-500" />{ilan.kat}. kat</span>}
         </div>
       </div>
       <div className="flex flex-col items-end justify-between p-4 border-l border-gray-100 min-w-[160px]">
         <div className="text-right">
-          <p className="text-base font-extrabold text-green-600 leading-none">{fiyatFormat(ilan.fiyat)}</p>
+          <p className="text-base font-extrabold text-blue-600 leading-none">{fiyatFormat(ilan.fiyat)}</p>
           <p className="text-xs text-gray-400 mt-1">{ilan.emlak_turu || 'Daire'}</p>
         </div>
         <select value={ilan.durum || 'aktif'} onChange={e => durumDegistir(ilan.id, e.target.value)}
@@ -606,7 +620,7 @@ export default function Dashboard() {
             ilan.durum === 'pasif'      ? 'bg-gray-100 text-gray-500 border-gray-200'
             : ilan.durum === 'satildi'  ? 'bg-red-50 text-red-600 border-red-200'
             : ilan.durum === 'kiralandı'? 'bg-blue-50 text-blue-600 border-blue-200'
-            :                            'bg-green-50 text-green-700 border-green-200'
+            :                            'bg-blue-50 text-blue-700 border-blue-200'
           }`}
         >
           <option value="aktif">✅ Aktif</option>
@@ -618,7 +632,7 @@ export default function Dashboard() {
           <Link to={`/ilan/${ilan.id}`}
             className="p-2 rounded-lg border border-gray-200 text-gray-400 hover:text-blue-500 hover:border-blue-200 transition-all"><Eye size={14} /></Link>
           <button onClick={() => duzenleBaslat(ilan)}
-            className="p-2 rounded-lg border border-gray-200 text-gray-400 hover:text-green-600 hover:border-green-300 transition-all"><Pencil size={14} /></button>
+            className="p-2 rounded-lg border border-gray-200 text-gray-400 hover:text-blue-600 hover:border-blue-300 transition-all"><Pencil size={14} /></button>
           <button onClick={() => silOnay(ilan.id, ilan.baslik)}
             className="p-2 rounded-lg border border-gray-200 text-gray-400 hover:text-red-500 hover:border-red-200 transition-all"><Trash2 size={14} /></button>
         </div>
@@ -629,12 +643,12 @@ export default function Dashboard() {
   // ── ANASAYFA ─────────────────────────────────────────────────
   const Anasayfa = () => (
     <div className="space-y-6">
-      <div className="bg-gradient-to-r from-gray-900 via-slate-800 to-green-900 rounded-2xl p-6 text-white flex items-center gap-5">
+      <div className="bg-gradient-to-r from-gray-900 via-slate-800 to-blue-900 rounded-2xl p-6 text-white flex items-center gap-5">
         <div className="w-16 h-16 rounded-2xl bg-white/15 border border-white/20 flex items-center justify-center text-white font-extrabold text-xl flex-shrink-0">
           {basTurkce(kullanici.ad_soyad)}
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-green-300 text-xs font-semibold uppercase tracking-wider mb-1">Hoş geldiniz</p>
+          <p className="text-blue-300 text-xs font-semibold uppercase tracking-wider mb-1">Hoş geldiniz</p>
           <h2 className="text-2xl font-extrabold truncate">{kullanici.ad_soyad}</h2>
           <p className="text-slate-400 text-sm mt-1">{kurumsal ? '🏢 Kurumsal Hesap' : '👤 Bireysel Hesap'} · {kullanici.eposta}</p>
         </div>
@@ -642,7 +656,7 @@ export default function Dashboard() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
           { label: 'Toplam İlan',  value: ilanlar.length,       icon: FileText,    renk: 'bg-blue-50 text-blue-600' },
-          { label: 'Aktif İlan',   value: aktifIlanlar.length,  icon: CheckCircle, renk: 'bg-green-50 text-green-600' },
+          { label: 'Aktif İlan',   value: aktifIlanlar.length,  icon: CheckCircle, renk: 'bg-blue-50 text-blue-600' },
           { label: 'Pasif İlan',   value: pasifIlanlar.length,  icon: PauseCircle, renk: 'bg-gray-50 text-gray-500' },
           { label: 'İlan Hakkı',   value: kurumsal ? '∞' : `${ilanlar.length}/3`, icon: TrendingUp, renk: 'bg-amber-50 text-amber-500' },
         ].map(({ label, value, icon: Icon, renk }) => (
@@ -658,8 +672,8 @@ export default function Dashboard() {
       {ilanlar.length > 0 && (
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
           <div className="px-5 py-4 border-b border-gray-50 flex items-center justify-between">
-            <h3 className="font-bold text-gray-900 flex items-center gap-2"><Clock size={15} className="text-green-500" /> Son İlanlar</h3>
-            <button onClick={() => menuDegistir('ilanlar')} className="text-xs text-green-600 font-semibold hover:underline">Tümünü Gör</button>
+            <h3 className="font-bold text-gray-900 flex items-center gap-2"><Clock size={15} className="text-blue-500" /> Son İlanlar</h3>
+            <button onClick={() => menuDegistir('ilanlar')} className="text-xs text-blue-600 font-semibold hover:underline">Tümünü Gör</button>
           </div>
           <div className="divide-y divide-gray-50">
             {ilanlar.slice(0, 3).map(ilan => (
@@ -673,7 +687,7 @@ export default function Dashboard() {
                   <p className="text-sm font-semibold text-gray-800 truncate">{ilan.baslik}</p>
                   <p className="text-xs text-gray-400">{ilan.sehir} · {ilan.emlak_turu}</p>
                 </div>
-                <p className="text-sm font-bold text-green-600 flex-shrink-0">{fiyatFormat(ilan.fiyat)}</p>
+                <p className="text-sm font-bold text-blue-600 flex-shrink-0">{fiyatFormat(ilan.fiyat)}</p>
               </div>
             ))}
           </div>
@@ -700,19 +714,19 @@ export default function Dashboard() {
       <div className="flex items-center justify-between">
         <p className="text-sm text-gray-500">{liste.length} ilan</p>
         <button onClick={() => menuDegistir('yeni')}
-          className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-xl text-sm font-bold hover:bg-green-700 transition-all shadow-sm">
+          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 transition-all shadow-sm">
           <Plus size={15} /> Yeni İlan
         </button>
       </div>
       {listeleniyor
-        ? <div className="flex justify-center py-16"><Loader2 size={28} className="text-green-500 animate-spin" /></div>
+        ? <div className="flex justify-center py-16"><Loader2 size={28} className="text-blue-500 animate-spin" /></div>
         : liste.length === 0
           ? (
             <div className="bg-white rounded-2xl p-14 text-center border border-gray-100 shadow-sm">
               <FileText size={40} className="text-gray-200 mx-auto mb-3" />
               <p className="font-semibold text-gray-500">Henüz ilan yok</p>
               <button onClick={() => menuDegistir('yeni')}
-                className="mt-4 px-5 py-2 bg-green-600 text-white rounded-xl text-sm font-bold hover:bg-green-700 transition-all">
+                className="mt-4 px-5 py-2 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 transition-all">
                 İlk İlanı Ekle
               </button>
             </div>
@@ -726,12 +740,12 @@ export default function Dashboard() {
   const Favoriler = () => (
     <div className="space-y-4">
       {favYuk ? (
-        <div className="flex justify-center py-16"><Loader2 size={28} className="text-green-500 animate-spin" /></div>
+        <div className="flex justify-center py-16"><Loader2 size={28} className="text-blue-500 animate-spin" /></div>
       ) : favoriler.length === 0 ? (
         <div className="bg-white rounded-2xl p-14 text-center border border-gray-100 shadow-sm">
           <Heart size={40} className="text-gray-200 mx-auto mb-3" />
           <p className="font-semibold text-gray-500">Favori ilanınız yok</p>
-          <Link to="/" className="mt-4 inline-block px-5 py-2 bg-green-600 text-white rounded-xl text-sm font-bold hover:bg-green-700 transition-all">
+          <Link to="/" className="mt-4 inline-block px-5 py-2 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 transition-all">
             İlanlara Göz At
           </Link>
         </div>
@@ -748,22 +762,22 @@ export default function Dashboard() {
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       onError={e => { e.currentTarget.src = GORSEL_FALLBACK; }}
                     />
-                    <span className={`absolute top-2 left-2 text-white text-[10px] font-bold px-2 py-0.5 rounded-md ${ilan.tip === 'Kiralık' ? 'bg-blue-500' : 'bg-green-600'}`}>
+                    <span className={`absolute top-2 left-2 text-white text-[10px] font-bold px-2 py-0.5 rounded-md ${ilan.tip === 'Kiralık' ? 'bg-blue-500' : 'bg-blue-600'}`}>
                       {ilan.tip || 'Satılık'}
                     </span>
                   </div>
                   <div className="p-3">
-                    <p className="text-sm font-bold text-gray-900 line-clamp-2 group-hover:text-green-700 transition-colors">{ilan.baslik}</p>
+                    <p className="text-sm font-bold text-gray-900 line-clamp-2 group-hover:text-blue-700 transition-colors">{ilan.baslik}</p>
                     {(ilan.ilce || ilan.sehir) && (
                       <p className="text-xs text-gray-400 mt-1 flex items-center gap-1">
-                        <MapPin size={10} className="text-green-500" />
+                        <MapPin size={10} className="text-blue-500" />
                         {[ilan.ilce, ilan.sehir].filter(Boolean).join(' / ')}
                       </p>
                     )}
-                    <p className="text-green-700 font-extrabold text-sm mt-1">{fiyatFormat(ilan.fiyat)}</p>
+                    <p className="text-blue-700 font-extrabold text-sm mt-1">{fiyatFormat(ilan.fiyat)}</p>
                     <div className="flex gap-2 mt-2">
                       <Link to={`/ilan/${ilan.id}`}
-                        className="flex-1 text-center text-xs font-bold border border-green-200 text-green-600 hover:bg-green-50 py-1.5 rounded-lg transition-colors">
+                        className="flex-1 text-center text-xs font-bold border border-blue-200 text-blue-600 hover:bg-blue-50 py-1.5 rounded-lg transition-colors">
                         Detay
                       </Link>
                       <button onClick={async () => {
@@ -788,7 +802,7 @@ export default function Dashboard() {
   const MesajlarListesi = () => (
     <div>
       {konusmaYuk ? (
-        <div className="flex justify-center py-16"><Loader2 size={28} className="text-green-500 animate-spin" /></div>
+        <div className="flex justify-center py-16"><Loader2 size={28} className="text-blue-500 animate-spin" /></div>
       ) : konusmalar.length === 0 ? (
         <div className="bg-white rounded-2xl p-14 text-center border border-gray-100 shadow-sm">
           <MessageSquare size={40} className="text-gray-200 mx-auto mb-3" />
@@ -802,7 +816,7 @@ export default function Dashboard() {
             return (
               <button key={k.id} onClick={() => konusmaAc(k)}
                 className="w-full flex items-center gap-4 p-4 hover:bg-gray-50 transition-colors text-left">
-                <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-base font-extrabold flex-shrink-0 ${okunmamis ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-base font-extrabold flex-shrink-0 ${okunmamis ? 'bg-blue-50 text-blue-700' : 'bg-gray-100 text-gray-500'}`}>
                   {basTurkce(k.karsi_ad || 'K')}
                 </div>
                 <div className="flex-1 min-w-0">
@@ -814,7 +828,7 @@ export default function Dashboard() {
                   <div className="flex items-center justify-between mt-0.5">
                     <p className={`text-xs truncate flex-1 ${okunmamis ? 'text-gray-800 font-semibold' : 'text-gray-500'}`}>{k.son_mesaj || 'Konuşma başlatıldı'}</p>
                     {okunmamis && (
-                      <span className="bg-green-600 text-white text-[10px] font-bold min-w-[18px] h-[18px] rounded-full flex items-center justify-center px-1 ml-2 flex-shrink-0">{k.okunmamis}</span>
+                      <span className="bg-blue-600 text-white text-[10px] font-bold min-w-[18px] h-[18px] rounded-full flex items-center justify-center px-1 ml-2 flex-shrink-0">{k.okunmamis}</span>
                     )}
                   </div>
                 </div>
@@ -849,7 +863,7 @@ export default function Dashboard() {
           const benden = parseInt(m.gonderen_id) === parseInt(kullanici.id);
           return (
             <div key={m.id} className={`flex ${benden ? 'justify-end' : 'justify-start'}`}>
-              <div className={`max-w-[70%] px-4 py-2.5 rounded-2xl ${benden ? 'bg-green-600 text-white rounded-br-sm' : 'bg-white border border-gray-100 text-gray-800 rounded-bl-sm shadow-sm'}`}>
+              <div className={`max-w-[70%] px-4 py-2.5 rounded-2xl ${benden ? 'bg-blue-600 text-white rounded-br-sm' : 'bg-white border border-gray-100 text-gray-800 rounded-bl-sm shadow-sm'}`}>
                 <p className="text-sm leading-relaxed">{m.metin}</p>
                 <p className={`text-[10px] mt-1 text-right ${benden ? 'text-white/60' : 'text-gray-400'}`}>
                   {new Date(m.olusturulma).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
@@ -867,11 +881,11 @@ export default function Dashboard() {
           onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); mesajGonderFn(); } }}
           placeholder="Mesajınızı yazın..."
           rows={1}
-          className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-green-500 resize-none"
+          className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-blue-500 resize-none"
           style={{ maxHeight: 100 }}
         />
         <button onClick={mesajGonderFn} disabled={!yeniMesaj.trim() || mesajGond}
-          className="w-10 h-10 bg-green-600 hover:bg-green-700 disabled:bg-gray-200 text-white rounded-xl flex items-center justify-center flex-shrink-0 transition-colors">
+          className="w-10 h-10 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-200 text-white rounded-xl flex items-center justify-center flex-shrink-0 transition-colors">
           {mesajGond ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
         </button>
       </div>
@@ -882,7 +896,7 @@ export default function Dashboard() {
   const KayitliAramalar = () => (
     <div className="space-y-4">
       {aramaYuk ? (
-        <div className="flex justify-center py-16"><Loader2 size={28} className="text-green-500 animate-spin" /></div>
+        <div className="flex justify-center py-16"><Loader2 size={28} className="text-blue-500 animate-spin" /></div>
       ) : aramalar.length === 0 ? (
         <div className="bg-white rounded-2xl p-14 text-center border border-gray-100 shadow-sm">
           <Bookmark size={40} className="text-gray-200 mx-auto mb-3" />
@@ -906,7 +920,7 @@ export default function Dashboard() {
               </div>
               <div className="flex gap-2 flex-shrink-0">
                 <Link to={`/?${new URLSearchParams(Object.fromEntries(Object.entries(a).filter(([k, v]) => v && !['id', 'kullanici_id', 'baslik', 'olusturulma'].includes(k) && typeof v !== 'object'))).toString()}`}
-                  className="p-2 rounded-lg border border-gray-200 text-gray-400 hover:text-green-600 hover:border-green-300 transition-all" title="İlanlarda Ara">
+                  className="p-2 rounded-lg border border-gray-200 text-gray-400 hover:text-blue-600 hover:border-blue-300 transition-all" title="İlanlarda Ara">
                   <Eye size={14} />
                 </Link>
                 <button onClick={async () => {
@@ -929,7 +943,7 @@ export default function Dashboard() {
     <div className="max-w-lg space-y-4">
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
         <div className="bg-gradient-to-r from-slate-700 to-slate-600 px-6 py-8 flex items-center gap-5">
-          <div className="w-16 h-16 bg-green-500 rounded-2xl flex items-center justify-center text-white text-2xl font-extrabold">
+          <div className="w-16 h-16 bg-blue-500 rounded-2xl flex items-center justify-center text-white text-2xl font-extrabold">
             {basTurkce(kullanici.ad_soyad)}
           </div>
           <div>
@@ -955,7 +969,7 @@ export default function Dashboard() {
             </div>
             <div className="p-4 border-t border-gray-100">
               <button onClick={() => setProfilDuz(true)}
-                className="w-full flex items-center justify-center gap-2 py-2.5 border border-green-200 text-green-600 hover:bg-green-50 font-semibold rounded-xl transition-all text-sm">
+                className="w-full flex items-center justify-center gap-2 py-2.5 border border-blue-200 text-blue-600 hover:bg-blue-50 font-semibold rounded-xl transition-all text-sm">
                 <Pencil size={14} /> Profili Düzenle
               </button>
             </div>
@@ -986,7 +1000,7 @@ export default function Dashboard() {
                   } catch (err) { toast.error(err.response?.data?.mesaj || 'Güncelleme başarısız.'); }
                   finally { setProfilKayit(false); }
                 }}
-                className="flex-1 py-2.5 bg-green-600 hover:bg-green-700 disabled:opacity-60 text-white rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2">
+                className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2">
                 {profilKayit ? <><Loader2 size={14} className="animate-spin" />Kaydediliyor…</> : <><CheckCircle2 size={14} />Kaydet</>}
               </button>
             </div>
@@ -1002,7 +1016,7 @@ export default function Dashboard() {
             <h3 className="font-bold text-gray-900 text-sm">Şifre Değiştir</h3>
           </div>
           {!sifreAcik && (
-            <button onClick={() => setSifreAcik(true)} className="text-xs text-green-600 font-semibold hover:underline">Değiştir</button>
+            <button onClick={() => setSifreAcik(true)} className="text-xs text-blue-600 font-semibold hover:underline">Değiştir</button>
           )}
         </div>
         {sifreAcik && (
@@ -1030,7 +1044,7 @@ export default function Dashboard() {
                   } catch (err) { toast.error(err.response?.data?.mesaj || 'Şifre güncellenemedi.'); }
                   finally { setSifreKayit(false); }
                 }}
-                className="flex-1 py-2.5 bg-green-600 hover:bg-green-700 disabled:opacity-60 text-white rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2">
+                className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2">
                 {sifreKayit ? <><Loader2 size={14} className="animate-spin" />Kaydediliyor…</> : <><Lock size={14} />Güncelle</>}
               </button>
             </div>
@@ -1042,7 +1056,7 @@ export default function Dashboard() {
 
   // ── DÜKKAN BİLGİLERİ (Kurumsal) ─────────────────────────────
   const DukkanBilgileri = () => {
-    if (dukkanYuk) return <div className="flex justify-center py-16"><Loader2 size={28} className="text-green-500 animate-spin" /></div>;
+    if (dukkanYuk) return <div className="flex justify-center py-16"><Loader2 size={28} className="text-blue-500 animate-spin" /></div>;
     if (!dukkan) return <div className="text-center py-16 text-gray-400 text-sm">Dükkan bilgisi yüklenemedi.</div>;
     return (
       <div className="max-w-lg space-y-4">
@@ -1125,7 +1139,7 @@ export default function Dashboard() {
 
   // ── DANIŞMANLAR (Kurumsal) ───────────────────────────────────
   const Danismanlar = () => {
-    if (danisYuk) return <div className="flex justify-center py-16"><Loader2 size={28} className="text-green-500 animate-spin" /></div>;
+    if (danisYuk) return <div className="flex justify-center py-16"><Loader2 size={28} className="text-blue-500 animate-spin" /></div>;
     return (
       <div className="space-y-4">
         <p className="text-sm text-gray-500">{danismanlar.length} danışman</p>
@@ -1158,7 +1172,7 @@ export default function Dashboard() {
 
   // ── İSTATİSTİKLER (Kurumsal) ─────────────────────────────────
   const Istatistikler = () => {
-    if (istYuk) return <div className="flex justify-center py-16"><Loader2 size={28} className="text-green-500 animate-spin" /></div>;
+    if (istYuk) return <div className="flex justify-center py-16"><Loader2 size={28} className="text-blue-500 animate-spin" /></div>;
     if (!ist) return <div className="text-center py-16 text-gray-400 text-sm">Veri yüklenemedi.</div>;
 
     const Cubuk = ({ label, sayi, toplam, renk }) => {
@@ -1179,23 +1193,23 @@ export default function Dashboard() {
 
     return (
       <div className="space-y-4">
-        <div className="bg-gradient-to-r from-green-600 to-green-500 rounded-2xl p-6 text-white flex items-center gap-6">
+        <div className="bg-gradient-to-r from-blue-600 to-blue-500 rounded-2xl p-6 text-white flex items-center gap-6">
           <div className="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center flex-shrink-0">
             <Home size={24} className="text-white" />
           </div>
           <div>
             <p className="text-4xl font-extrabold">{ist.toplam ?? 0}</p>
-            <p className="text-green-100 text-sm">Toplam İlan</p>
+            <p className="text-blue-100 text-sm">Toplam İlan</p>
           </div>
           <div className="w-px h-10 bg-white/30" />
           <div>
             <p className="text-4xl font-extrabold">{ist.danismanlar ?? 0}</p>
-            <p className="text-green-100 text-sm">Danışman</p>
+            <p className="text-blue-100 text-sm">Danışman</p>
           </div>
         </div>
         <div className="grid grid-cols-2 gap-4">
           {[
-            { label: 'Aktif',        value: ist.aktif,       border: 'border-l-green-500',  bg: 'bg-green-50 text-green-600' },
+            { label: 'Aktif',        value: ist.aktif,       border: 'border-l-blue-500',  bg: 'bg-blue-50 text-blue-600' },
             { label: 'Pasif',        value: ist.pasif,       border: 'border-l-orange-400', bg: 'bg-orange-50 text-orange-500' },
             { label: 'Satıldı',      value: ist.satildi,     border: 'border-l-purple-500', bg: 'bg-purple-50 text-purple-600' },
             { label: 'Fiyat Düştü',  value: ist.fiyat_dustu, border: 'border-l-red-400',    bg: 'bg-red-50 text-red-500' },
@@ -1212,10 +1226,10 @@ export default function Dashboard() {
           ))}
         </div>
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-5">
-          <h3 className="font-bold text-gray-900 text-sm flex items-center gap-2"><BarChart2 size={15} className="text-green-500" />Dağılım</h3>
-          <Cubuk label="Satılık" sayi={ist.satilik} toplam={ist.toplam} renk="#16a34a" />
+          <h3 className="font-bold text-gray-900 text-sm flex items-center gap-2"><BarChart2 size={15} className="text-blue-500" />Dağılım</h3>
+          <Cubuk label="Satılık" sayi={ist.satilik} toplam={ist.toplam} renk="#2563eb" />
           <Cubuk label="Kiralık" sayi={ist.kiralik} toplam={ist.toplam} renk="#3b82f6" />
-          <Cubuk label="Aktif"   sayi={ist.aktif}   toplam={ist.toplam} renk="#16a34a" />
+          <Cubuk label="Aktif"   sayi={ist.aktif}   toplam={ist.toplam} renk="#2563eb" />
           <Cubuk label="Pasif"   sayi={ist.pasif}   toplam={ist.toplam} renk="#f97316" />
           <Cubuk label="Satıldı" sayi={ist.satildi} toplam={ist.toplam} renk="#8b5cf6" />
         </div>
@@ -1245,7 +1259,7 @@ export default function Dashboard() {
               <div className="flex gap-3">
                 {['Satılık', 'Kiralık'].map(t => (
                   <button key={t} type="button" onClick={() => setForm(f => ({ ...f, tip: t }))}
-                    className={`flex-1 py-4 rounded-xl font-bold text-sm border-2 transition-all ${form.tip === t ? 'border-green-600 bg-green-50 text-green-700' : 'border-gray-200 text-gray-500 hover:border-green-400'}`}>
+                    className={`flex-1 py-4 rounded-xl font-bold text-sm border-2 transition-all ${form.tip === t ? 'border-blue-600 bg-blue-50 text-blue-700' : 'border-gray-200 text-gray-500 hover:border-blue-400'}`}>
                     {t}
                   </button>
                 ))}
@@ -1256,7 +1270,7 @@ export default function Dashboard() {
               <div className="grid grid-cols-3 gap-3">
                 {['Daire', 'Villa', 'Müstakil Ev', 'Arsa', 'İşyeri', 'Depo'].map(t => (
                   <button key={t} type="button" onClick={() => setForm(f => ({ ...f, emlak_turu: t }))}
-                    className={`py-3 px-4 rounded-xl font-semibold text-sm border-2 transition-all flex items-center justify-center gap-2 ${form.emlak_turu === t ? 'border-green-600 bg-green-50 text-green-700' : 'border-gray-200 text-gray-500 hover:border-green-400'}`}>
+                    className={`py-3 px-4 rounded-xl font-semibold text-sm border-2 transition-all flex items-center justify-center gap-2 ${form.emlak_turu === t ? 'border-blue-600 bg-blue-50 text-blue-700' : 'border-gray-200 text-gray-500 hover:border-blue-400'}`}>
                     <Building2 size={15} />{t}
                   </button>
                 ))}
@@ -1264,10 +1278,17 @@ export default function Dashboard() {
             </div>
             <Inp label="İlan Başlığı" name="baslik" value={form.baslik} onChange={handleChange} placeholder="Örn: Kadıköy'de Deniz Manzaralı 3+1 Daire" zorunlu />
             <div>
-              <label className="block text-xs font-semibold text-gray-500 mb-1">Açıklama</label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-xs font-semibold text-gray-500">Açıklama</label>
+                <button type="button" onClick={handleAiAciklama} disabled={aiYukleniyor}
+                  className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg bg-purple-50 text-purple-600 border border-purple-200 hover:bg-purple-100 transition-all disabled:opacity-50">
+                  {aiYukleniyor ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
+                  {aiYukleniyor ? 'Oluşturuluyor...' : form.aciklama ? 'Yeniden Üret' : 'AI ile Üret'}
+                </button>
+              </div>
               <textarea name="aciklama" value={form.aciklama} onChange={handleChange} rows={4}
-                placeholder="İlan hakkında detaylı bilgi girin…"
-                className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 resize-none transition-all" />
+                placeholder="İlan hakkında detaylı bilgi girin veya AI ile otomatik oluşturun…"
+                className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 resize-none transition-all" />
             </div>
           </div>
         )}
@@ -1326,15 +1347,15 @@ export default function Dashboard() {
             <div>
               <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Fiyat</p>
               <Inp label="Fiyat (₺)" name="fiyat" type="number" value={form.fiyat} onChange={handleChange} placeholder="4500000" zorunlu />
-              {form.fiyat && <p className="text-sm font-bold text-green-600 mt-2">{fiyatFormat(form.fiyat)}</p>}
+              {form.fiyat && <p className="text-sm font-bold text-blue-600 mt-2">{fiyatFormat(form.fiyat)}</p>}
             </div>
             <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100">
               <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">İlan Özeti</p>
               <div className="grid grid-cols-2 gap-2 text-sm">
-                <div className="flex items-center gap-2 text-gray-600"><Building2 size={14} className="text-green-500" />{form.emlak_turu} · {form.tip}</div>
-                {form.oda_sayisi && <div className="flex items-center gap-2 text-gray-600"><BedDouble size={14} className="text-green-500" />{form.oda_sayisi}</div>}
-                {form.metrekare  && <div className="flex items-center gap-2 text-gray-600"><Square    size={14} className="text-green-500" />{form.metrekare} m²</div>}
-                {form.sehir      && <div className="flex items-center gap-2 text-gray-600"><MapPin    size={14} className="text-green-500" />{form.ilce && form.ilce + ', '}{form.sehir}</div>}
+                <div className="flex items-center gap-2 text-gray-600"><Building2 size={14} className="text-blue-500" />{form.emlak_turu} · {form.tip}</div>
+                {form.oda_sayisi && <div className="flex items-center gap-2 text-gray-600"><BedDouble size={14} className="text-blue-500" />{form.oda_sayisi}</div>}
+                {form.metrekare  && <div className="flex items-center gap-2 text-gray-600"><Square    size={14} className="text-blue-500" />{form.metrekare} m²</div>}
+                {form.sehir      && <div className="flex items-center gap-2 text-gray-600"><MapPin    size={14} className="text-blue-500" />{form.ilce && form.ilce + ', '}{form.sehir}</div>}
               </div>
             </div>
           </div>
@@ -1347,11 +1368,11 @@ export default function Dashboard() {
         </button>
         {adim < 2
           ? <button type="button" onClick={() => setAdim(a => a + 1)}
-              className="flex items-center gap-2 px-6 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-xl text-sm font-bold shadow-md transition-all">
+              className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold shadow-md transition-all">
               İleri<ChevronRight size={16} />
             </button>
           : <button type="submit" disabled={yukleniyor}
-              className="flex items-center gap-2 px-8 py-2.5 bg-green-600 hover:bg-green-700 disabled:opacity-60 text-white rounded-xl text-sm font-bold shadow-md transition-all">
+              className="flex items-center gap-2 px-8 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white rounded-xl text-sm font-bold shadow-md transition-all">
               {yukleniyor
                 ? <><Loader2 size={15} className="animate-spin" />{secilenGorseller.length > 0 ? 'Fotoğraflar yükleniyor…' : 'Kaydediliyor…'}</>
                 : <><CheckCircle2 size={15} />{duzenle ? 'Güncelle' : 'Yayınla'}</>}
@@ -1394,7 +1415,7 @@ export default function Dashboard() {
               {menu === 'yeni' && (
                 <div className="flex gap-1.5 mt-1">
                   {ADIMLAR.map((a, i) => (
-                    <span key={i} className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${i === adim ? 'bg-green-600 text-white' : i < adim ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'}`}>
+                    <span key={i} className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${i === adim ? 'bg-blue-600 text-white' : i < adim ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-400'}`}>
                       {i + 1}. {a}
                     </span>
                   ))}
@@ -1404,7 +1425,7 @@ export default function Dashboard() {
           </div>
           {menu !== 'yeni' && (
             <button onClick={() => menuDegistir('yeni')}
-              className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white text-sm font-bold px-4 py-2 rounded-xl transition-colors shadow-sm">
+              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold px-4 py-2 rounded-xl transition-colors shadow-sm">
               <PlusCircle size={15} /> İlan Ver
             </button>
           )}

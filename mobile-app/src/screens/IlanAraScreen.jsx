@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, TextInput,
   StyleSheet, Dimensions,
@@ -63,7 +63,7 @@ export default function IlanAraScreen({ navigation }) {
 
       {/* Header */}
       <View style={s.header}>
-        <Text style={s.logo}>Emlak<Text style={{ color: '#16a34a' }}>Node</Text></Text>
+        <Text style={s.logo}>Emlak<Text style={{ color: '#2563eb' }}>Node</Text></Text>
         <TouchableOpacity>
           <Ionicons name="notifications-outline" size={24} color="#374151" />
         </TouchableOpacity>
@@ -75,13 +75,13 @@ export default function IlanAraScreen({ navigation }) {
           <Text style={s.heroBaslik}>Hayalindeki Evi{'\n'}EmlakNode'le Bul!</Text>
         </View>
         <View style={s.heroBina}>
-          <Ionicons name="business" size={72} color="#16a34a" style={{ opacity: 0.18 }} />
+          <Ionicons name="business" size={72} color="#2563eb" style={{ opacity: 0.18 }} />
         </View>
       </View>
 
       {/* Arama */}
       <View style={s.aramaWrap}>
-        <Ionicons name="search-outline" size={18} color="#16a34a" style={{ marginRight: 10 }} />
+        <Ionicons name="search-outline" size={18} color="#2563eb" style={{ marginRight: 10 }} />
         <TextInput
           style={s.aramaInput}
           placeholder="Kelime, ilan no, il, ilçe, mahalle..."
@@ -113,7 +113,7 @@ export default function IlanAraScreen({ navigation }) {
               activeOpacity={0.7}
             >
               <View style={s.kategoriIkon}>
-                <Ionicons name={kat.icon} size={26} color="#16a34a" />
+                <Ionicons name={kat.icon} size={26} color="#2563eb" />
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={s.kategoriBaslik}>{kat.baslik}</Text>
@@ -162,7 +162,7 @@ export default function IlanAraScreen({ navigation }) {
           <Text style={s.secimBaslik}>Fiyatı Düşen{'\n'}Satılıklar</Text>
           <Text style={s.secimAlt}>Fiyatı düşen satılıkları gözden geçir.</Text>
           <View style={s.secimIkonWrap}>
-            <Ionicons name="trending-down-outline" size={28} color="#16a34a" />
+            <Ionicons name="trending-down-outline" size={28} color="#2563eb" />
           </View>
         </TouchableOpacity>
 
@@ -187,24 +187,24 @@ export default function IlanAraScreen({ navigation }) {
 }
 
 const s = StyleSheet.create({
-  container:       { flex: 1, backgroundColor: '#f0fdf4' },
-  header:          { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingTop: 16, paddingBottom: 12, backgroundColor: '#f0fdf4' },
+  container:       { flex: 1, backgroundColor: '#eff6ff' },
+  header:          { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingTop: 16, paddingBottom: 12, backgroundColor: '#eff6ff' },
   logo:            { fontSize: 22, fontWeight: '900', color: '#111827' },
-  hero:            { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingTop: 8, paddingBottom: 20, backgroundColor: '#f0fdf4' },
+  hero:            { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingTop: 8, paddingBottom: 20, backgroundColor: '#eff6ff' },
   heroBaslik:      { fontSize: 26, fontWeight: '900', color: '#111827', lineHeight: 34 },
   heroBina:        { width: 80, height: 80, justifyContent: 'center', alignItems: 'center' },
-  aramaWrap:       { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', marginHorizontal: 16, marginBottom: 16, borderRadius: 28, borderWidth: 1.5, borderColor: '#86efac', paddingHorizontal: 16, paddingVertical: 12, elevation: 2, shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 6 },
+  aramaWrap:       { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', marginHorizontal: 16, marginBottom: 16, borderRadius: 28, borderWidth: 1.5, borderColor: '#93c5fd', paddingHorizontal: 16, paddingVertical: 12, elevation: 2, shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 6 },
   aramaInput:      { flex: 1, fontSize: 14, color: '#111827' },
   kategorilerKutu: { backgroundColor: '#fff', marginHorizontal: 16, borderRadius: 18, overflow: 'hidden', borderWidth: 1, borderColor: '#f0f0f0', elevation: 1, shadowColor: '#000', shadowOpacity: 0.04, shadowRadius: 4 },
   kategoriRow:     { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 16, gap: 14, backgroundColor: '#fff' },
   kategoriRowBorder: { borderBottomWidth: 1, borderBottomColor: '#f3f4f6' },
-  kategoriIkon:    { width: 46, height: 46, borderRadius: 12, backgroundColor: '#f0fdf4', justifyContent: 'center', alignItems: 'center' },
+  kategoriIkon:    { width: 46, height: 46, borderRadius: 12, backgroundColor: '#eff6ff', justifyContent: 'center', alignItems: 'center' },
   kategoriBaslik:  { fontSize: 15, fontWeight: '800', color: '#111827' },
   kategoriAlt:     { fontSize: 12, color: '#9ca3af', marginTop: 2 },
   altKatWrap:      { backgroundColor: '#f9fafb', borderBottomWidth: 1, borderBottomColor: '#f3f4f6', paddingVertical: 12 },
   altKatScroll:    { paddingHorizontal: 16, gap: 8 },
-  altKatChip:      { paddingHorizontal: 18, paddingVertical: 10, borderRadius: 20, backgroundColor: '#fff', borderWidth: 1.5, borderColor: '#16a34a' },
-  altKatChipText:  { fontSize: 13, fontWeight: '700', color: '#16a34a' },
+  altKatChip:      { paddingHorizontal: 18, paddingVertical: 10, borderRadius: 20, backgroundColor: '#fff', borderWidth: 1.5, borderColor: '#2563eb' },
+  altKatChipText:  { fontSize: 13, fontWeight: '700', color: '#2563eb' },
   secimlerBaslik:  { fontSize: 17, fontWeight: '900', color: '#111827', paddingHorizontal: 20, marginTop: 24, marginBottom: 12 },
   secimlerGrid:    { flexDirection: 'row', paddingHorizontal: 16, gap: 12 },
   secimKart:       { flex: 1, backgroundColor: '#fff', borderRadius: 18, padding: 16, borderWidth: 1, borderColor: '#f0f0f0', elevation: 1, shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 4, minHeight: 150 },

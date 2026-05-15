@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+﻿import React, { useState, useCallback } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, ActivityIndicator, Alert,
 } from 'react-native';
@@ -64,7 +64,7 @@ export default function IstatistiklerScreen() {
   if (yukleniyor) {
     return (
       <View style={s.merkez}>
-        <ActivityIndicator size="large" color="#16a34a" />
+        <ActivityIndicator size="large" color="#2563eb" />
       </View>
     );
   }
@@ -81,7 +81,7 @@ export default function IstatistiklerScreen() {
     <ScrollView style={s.container} showsVerticalScrollIndicator={false}>
 
       {/* Toplam özet */}
-      <LinearGradient colors={['#14532d', '#16a34a', '#22c55e']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={s.toplamKart}>
+      <LinearGradient colors={['#1e3a8a', '#2563eb', '#3b82f6']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={s.toplamKart}>
         <View style={s.toplamIkon}>
           <Ionicons name="home" size={36} color="#fff" />
         </View>
@@ -99,7 +99,7 @@ export default function IstatistiklerScreen() {
       {/* Durum kartları */}
       <Text style={s.bolumBaslik}>İLAN DURUMLARI</Text>
       <View style={s.kartGrid}>
-        <StatKart icon="checkmark-circle-outline" label="Aktif"   sayi={ist.aktif}   renk="#16a34a" />
+        <StatKart icon="checkmark-circle-outline" label="Aktif"   sayi={ist.aktif}   renk="#2563eb" />
         <StatKart icon="pause-circle-outline"     label="Pasif"   sayi={ist.pasif}   renk="#f97316" />
         <StatKart icon="flag-outline"             label="Satıldı" sayi={ist.satildi} renk="#8b5cf6" />
         <StatKart icon="trending-down-outline"    label="Fiyatı Düştü" sayi={ist.fiyat_dustu} renk="#ef4444"
@@ -110,14 +110,14 @@ export default function IstatistiklerScreen() {
       {/* Tip dağılımı */}
       <Text style={s.bolumBaslik}>TİP DAĞILIMI</Text>
       <View style={s.grafikKart}>
-        <CubukGrafik label="Satılık" sayi={ist.satilik} toplam={ist.toplam} renk="#16a34a" />
+        <CubukGrafik label="Satılık" sayi={ist.satilik} toplam={ist.toplam} renk="#2563eb" />
         <CubukGrafik label="Kiralık" sayi={ist.kiralik} toplam={ist.toplam} renk="#3b82f6" />
       </View>
 
       {/* Durum dağılımı */}
       <Text style={s.bolumBaslik}>DURUM DAĞILIMI</Text>
       <View style={s.grafikKart}>
-        <CubukGrafik label="Aktif"   sayi={ist.aktif}   toplam={ist.toplam} renk="#16a34a" />
+        <CubukGrafik label="Aktif"   sayi={ist.aktif}   toplam={ist.toplam} renk="#2563eb" />
         <CubukGrafik label="Pasif"   sayi={ist.pasif}   toplam={ist.toplam} renk="#f97316" />
         <CubukGrafik label="Satıldı" sayi={ist.satildi} toplam={ist.toplam} renk="#8b5cf6" />
       </View>

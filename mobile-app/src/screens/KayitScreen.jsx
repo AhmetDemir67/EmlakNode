@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity,
   StyleSheet, KeyboardAvoidingView, Platform, Alert,
@@ -86,7 +86,7 @@ export default function KayitScreen({ navigation }) {
 
         {/* Gradient Header */}
         <LinearGradient
-          colors={['#14532d', '#16a34a', '#22c55e']}
+          colors={['#1e3a8a', '#2563eb', '#3b82f6']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={s.gradientHeader}
@@ -95,7 +95,7 @@ export default function KayitScreen({ navigation }) {
             <View style={s.logoIkon}>
               <Ionicons name="home" size={26} color="#fff" />
             </View>
-            <Text style={s.logoText}>Emlak<Text style={{ color: '#bbf7d0' }}>Node</Text></Text>
+            <Text style={s.logoText}>Emlak<Text style={{ color: '#bfdbfe' }}>Node</Text></Text>
           </View>
           <Text style={s.slogan}>Hesap oluştur, ilan ver</Text>
         </LinearGradient>
@@ -110,7 +110,7 @@ export default function KayitScreen({ navigation }) {
               onPress={() => setTip('bireysel')}
               activeOpacity={0.8}
             >
-              <Ionicons name="person-outline" size={26} color={tip === 'bireysel' ? '#16a34a' : '#9ca3af'} />
+              <Ionicons name="person-outline" size={26} color={tip === 'bireysel' ? '#2563eb' : '#9ca3af'} />
               <Text style={[s.tipLabel, tip === 'bireysel' && s.tipLabelSecili]}>Bireysel</Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -118,7 +118,7 @@ export default function KayitScreen({ navigation }) {
               onPress={() => setTip('kurumsal')}
               activeOpacity={0.8}
             >
-              <Ionicons name="business-outline" size={26} color={tip === 'kurumsal' ? '#16a34a' : '#9ca3af'} />
+              <Ionicons name="business-outline" size={26} color={tip === 'kurumsal' ? '#2563eb' : '#9ca3af'} />
               <Text style={[s.tipLabel, tip === 'kurumsal' && s.tipLabelSecili]}>Emlak Ofisi</Text>
             </TouchableOpacity>
           </View>
@@ -182,7 +182,7 @@ export default function KayitScreen({ navigation }) {
           <TouchableOpacity onPress={() => navigation.navigate('Giris')} style={s.girisLink}>
             <Text style={s.girisText}>
               Zaten hesabın var mı?{'  '}
-              <Text style={{ color: '#16a34a', fontWeight: '700' }}>Giriş Yap</Text>
+              <Text style={{ color: '#2563eb', fontWeight: '700' }}>Giriş Yap</Text>
             </Text>
           </TouchableOpacity>
 
@@ -198,13 +198,13 @@ const s = StyleSheet.create({
   logoWrap:         { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 10 },
   logoIkon:         { width: 52, height: 52, backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 16, justifyContent: 'center', alignItems: 'center' },
   logoText:         { fontSize: 30, fontWeight: '900', color: '#fff' },
-  slogan:           { fontSize: 14, color: '#bbf7d0', fontWeight: '600' },
+  slogan:           { fontSize: 14, color: '#bfdbfe', fontWeight: '600' },
   kart:             { backgroundColor: '#fff', borderTopLeftRadius: 28, borderTopRightRadius: 28, marginTop: -20, paddingHorizontal: 24, paddingTop: 28 },
   tipSatir:         { flexDirection: 'row', gap: 12, marginBottom: 24 },
   tipKart:          { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 18, borderRadius: 16, borderWidth: 2, borderColor: '#e5e7eb', backgroundColor: '#fafafa' },
-  tipKartSecili:    { borderColor: '#16a34a', backgroundColor: '#f0fdf4' },
+  tipKartSecili:    { borderColor: '#2563eb', backgroundColor: '#eff6ff' },
   tipLabel:         { fontSize: 13, fontWeight: '700', color: '#9ca3af' },
-  tipLabelSecili:   { color: '#16a34a' },
+  tipLabelSecili:   { color: '#2563eb' },
   form:             { gap: 12 },
   inputWrap:        { flexDirection: 'row', alignItems: 'center', borderWidth: 1.5, borderColor: '#e5e7eb', borderRadius: 14, paddingHorizontal: 14, paddingVertical: 4, backgroundColor: '#fafafa' },
   inputIkon:        { marginRight: 10 },
@@ -212,7 +212,7 @@ const s = StyleSheet.create({
   bolumBaslikWrap:  { flexDirection: 'row', alignItems: 'center', gap: 10, marginVertical: 4 },
   bolumCizgi:       { flex: 1, height: 1, backgroundColor: '#e5e7eb' },
   bolumBaslik:      { fontSize: 11, fontWeight: '700', color: '#9ca3af', letterSpacing: 0.5 },
-  btn:              { backgroundColor: '#16a34a', paddingVertical: 15, borderRadius: 14, alignItems: 'center', marginTop: 6 },
+  btn:              { backgroundColor: '#2563eb', paddingVertical: 15, borderRadius: 14, alignItems: 'center', marginTop: 6 },
   btnText:          { color: '#fff', fontSize: 16, fontWeight: '800' },
   girisLink:        { alignItems: 'center', marginTop: 24 },
   girisText:        { fontSize: 14, color: '#6b7280' },

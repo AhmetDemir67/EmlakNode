@@ -77,4 +77,10 @@ export const mesajlariGetir   = (konusmaId) => api.get(`/mesajlar/${konusmaId}`)
 export const mesajGonder      = (data)      => api.post('/mesajlar', data);
 export const okunmamisSayisi  = ()          => api.get('/mesajlar/okunmamis');
 
+// AI
+export const aiAciklamaUret  = (data) => api.post('/ai/aciklama-uret', data, { timeout: 30000 });
+export const aiMulkDegerle   = (data) => api.post('/ai/degerleme',     data, { timeout: 30000 });
+export const aiChatbot       = (data) => api.post('/ai/chatbot',       data, { timeout: 30000 });
+export const aiUlasimAnalizi = (data) => api.post('/ai/ulasim',        data, { timeout: 60000 });
+
 export default api;

@@ -1,6 +1,7 @@
 @import "tailwindcss";
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
+@custom-variant dark (&:where(.dark, .dark *));
 
 * {
   font-family: 'Inter', sans-serif;
@@ -11,6 +12,12 @@ body {
   margin: 0;
   background-color: #f8fafc;
   color: #1e293b;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+html.dark body {
+  background-color: #0f172a;
+  color: #f1f5f9;
 }
 
 /* Leaflet popup özelleştirme */

@@ -1,4 +1,4 @@
-import { ArrowRight, Calendar, Tag } from 'lucide-react';
+﻿import { ArrowRight, Calendar, Tag } from 'lucide-react';
 
 const HABERLER = [
   {
@@ -39,7 +39,7 @@ const KATEGORI_RENK = {
   Piyasa:  'bg-blue-50 text-blue-600',
   İstanbul: 'bg-orange-50 text-orange-600',
   Mevzuat: 'bg-purple-50 text-purple-600',
-  Yatırım: 'bg-green-50 text-green-600',
+  Yatırım: 'bg-blue-50 text-blue-600',
 };
 
 const HaberKarti = ({ haber }) => (
@@ -58,7 +58,7 @@ const HaberKarti = ({ haber }) => (
         <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full ${KATEGORI_RENK[haber.kategori] || 'bg-gray-100 text-gray-600'}`}>
           <Tag size={9} /> {haber.kategori}
         </span>
-        <h3 className="text-sm font-bold text-gray-900 mt-1.5 mb-1 leading-snug line-clamp-2 group-hover:text-green-700 transition-colors">
+        <h3 className="text-sm font-bold text-gray-900 mt-1.5 mb-1 leading-snug line-clamp-2 group-hover:text-blue-700 transition-colors">
           {haber.baslik}
         </h3>
         <p className="text-xs text-gray-500 line-clamp-2 leading-relaxed">{haber.ozet}</p>

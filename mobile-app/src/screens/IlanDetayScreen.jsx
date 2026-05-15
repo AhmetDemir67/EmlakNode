@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+﻿import React, { useEffect, useState, useRef } from 'react';
 import {
   View, Text, ScrollView, Image, TouchableOpacity,
   StyleSheet, ActivityIndicator, Linking, FlatList, Alert,
@@ -10,6 +10,7 @@ import {
   ilanDetayGetir, ilanlarGetir,
   favoriEkle, favoriSil, favoriKontrol,
   kayitliAdreslerGetir, mesajGonder,
+  aiUlasimAnalizi,
 } from '../services/api';
 
 const { width, height } = Dimensions.get('window');
@@ -54,7 +55,7 @@ const MiniIlanKart = ({ item, onPress }) => {
   return (
     <TouchableOpacity style={s.miniKart} onPress={onPress} activeOpacity={0.85}>
       <Image source={{ uri: gorsel }} style={s.miniGorsel} resizeMode="cover" />
-      <View style={[s.miniTip, { backgroundColor: item.tip === 'Kiralık' ? '#3b82f6' : '#16a34a' }]}>
+      <View style={[s.miniTip, { backgroundColor: item.tip === 'Kiralık' ? '#3b82f6' : '#2563eb' }]}>
         <Text style={s.miniTipText}>{item.tip}</Text>
       </View>
       <View style={s.miniAlt}>
@@ -80,6 +81,8 @@ export default function IlanDetayScreen({ route, navigation }) {
   const [benzerilanlar, setBenzerilanlar]   = useState([]);
   const [adresler, setAdresler]             = useState([]);
   const [benimId, setBenimId]               = useState(null);
+  const [ulasim, setUlasim]                 = useState(null);
+  const [ulasimYukleniyor, setUlasimYukleniyor] = useState(false);
   const flatRef     = useRef(null);
   const lightboxRef = useRef(null);
 
@@ -116,6 +119,19 @@ export default function IlanDetayScreen({ route, navigation }) {
     });
   }, [id]);
 
+  const ulasimGetir = async () => {
+    if (!ilan?.sehir) return;
+    setUlasimYukleniyor(true);
+    try {
+      const r = await aiUlasimAnalizi({ sehir: ilan.sehir, ilce: ilan.ilce, mahalle: ilan.mahalle });
+      setUlasim(r.data.ulasim);
+    } catch {
+      Alert.alert('Hata', 'Ulaşım bilgisi alınamadı.');
+    } finally {
+      setUlasimYukleniyor(false);
+    }
+  };
+
   const favoriToggle = async () => {
     const token = await AsyncStorage.getItem('token');
     if (!token) { navigation.navigate('Giris'); return; }
@@ -126,7 +142,7 @@ export default function IlanDetayScreen({ route, navigation }) {
   };
 
   if (yukleniyor) {
-    return <View style={s.merkez}><ActivityIndicator size="large" color="#16a34a" /></View>;
+    return <View style={s.merkez}><ActivityIndicator size="large" color="#2563eb" /></View>;
   }
 
   if (!ilan) {
@@ -284,7 +300,7 @@ export default function IlanDetayScreen({ route, navigation }) {
         {/* FİYAT / ÖZET / KONUM */}
         <View style={s.fiyatWrap}>
           <View style={s.tipRow}>
-            <View style={[s.ilanTipBadge, { backgroundColor: ilan.tip === 'Kiralık' ? '#3b82f6' : '#16a34a' }]}>
+            <View style={[s.ilanTipBadge, { backgroundColor: ilan.tip === 'Kiralık' ? '#3b82f6' : '#2563eb' }]}>
               <Text style={s.ilanTipText}>{ilan.tip || 'Satılık'}</Text>
             </View>
             {ilan.emlak_turu ? (
@@ -313,7 +329,7 @@ export default function IlanDetayScreen({ route, navigation }) {
           </View>
           {konumKisa ? (
             <View style={s.konumRow}>
-              <Ionicons name="location" size={14} color="#16a34a" />
+              <Ionicons name="location" size={14} color="#2563eb" />
               <Text style={s.konumText}>{konumKisa}</Text>
               <TouchableOpacity onPress={() => navigation.navigate('Harita', { ilanlar: [ilan] })}>
                 <Text style={s.konumGor}>Konumunu Gör</Text>
@@ -331,7 +347,7 @@ export default function IlanDetayScreen({ route, navigation }) {
           {bilgiler.length > 7 ? (
             <TouchableOpacity style={s.devamiBtn} onPress={() => setBilgiAcik(!bilgiAcik)}>
               <Text style={s.devamiText}>{bilgiAcik ? 'Daha Az Gör' : 'Devamını Gör'}</Text>
-              <Ionicons name={bilgiAcik ? 'chevron-up' : 'chevron-down'} size={16} color="#16a34a" />
+              <Ionicons name={bilgiAcik ? 'chevron-up' : 'chevron-down'} size={16} color="#2563eb" />
             </TouchableOpacity>
           ) : null}
         </View>
@@ -345,7 +361,7 @@ export default function IlanDetayScreen({ route, navigation }) {
             </Text>
             <TouchableOpacity style={s.devamiBtn} onPress={() => setAciklamaAcik(!aciklamaAcik)}>
               <Text style={s.devamiText}>{aciklamaAcik ? 'Daha Az Gör' : 'Devamını Gör'}</Text>
-              <Ionicons name={aciklamaAcik ? 'chevron-up' : 'chevron-down'} size={16} color="#16a34a" />
+              <Ionicons name={aciklamaAcik ? 'chevron-up' : 'chevron-down'} size={16} color="#2563eb" />
             </TouchableOpacity>
           </View>
         ) : null}
@@ -357,29 +373,122 @@ export default function IlanDetayScreen({ route, navigation }) {
             <View style={s.adresBos}>
               <Text style={s.adresBosText}>Adreslerinizi ekleyerek, adresinizin ilan konumuna olan uzaklığını görebilirsiniz.</Text>
               <TouchableOpacity style={s.adresEkleBtn} onPress={() => navigation.navigate('KayitliAdresler')}>
-                <Ionicons name="add" size={16} color="#16a34a" />
+                <Ionicons name="add" size={16} color="#2563eb" />
                 <Text style={s.adresEkleBtnText}>Adres Ekle</Text>
               </TouchableOpacity>
             </View>
           ) : (
             adresler.map(adres => {
-              const mesafe = (ilan.enlem && ilan.boylam && adres.enlem && adres.boylam)
+              const koordinatVar = ilan.enlem && ilan.boylam && adres.enlem && adres.boylam;
+              const mesafe = koordinatVar
                 ? `${haversine(parseFloat(ilan.enlem), parseFloat(ilan.boylam), parseFloat(adres.enlem), parseFloat(adres.boylam))} km`
-                : '- km';
+                : null;
+
+              const ilanAdresMetin = [ilan.mahalle, ilan.ilce, ilan.sehir].filter(Boolean).join(' ');
+              const adresMetin     = [adres.ilce, adres.sehir].filter(Boolean).join(' ') || adres.baslik;
+              const mapsUrl = koordinatVar
+                ? `https://www.google.com/maps/dir/?api=1&origin=${adres.enlem},${adres.boylam}&destination=${ilan.enlem},${ilan.boylam}&travelmode=driving`
+                : `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(adresMetin)}&destination=${encodeURIComponent(ilanAdresMetin)}&travelmode=driving`;
+
               return (
                 <View key={adres.id} style={s.adresKart}>
-                  <Ionicons name="location-outline" size={18} color="#16a34a" />
+                  <Ionicons name="location-outline" size={18} color="#2563eb" />
                   <View style={{ flex: 1 }}>
                     <Text style={s.adresBaslik}>{adres.baslik}</Text>
-                    {adres.sehir ? <Text style={s.adresAlt}>{[adres.ilce, adres.sehir].filter(Boolean).join(', ')}</Text> : null}
+                    {adres.sehir
+                      ? <Text style={s.adresAlt}>{[adres.ilce, adres.sehir].filter(Boolean).join(', ')}</Text>
+                      : null
+                    }
                   </View>
-                  <View style={s.mesafeKutu}>
-                    <Ionicons name="navigate-outline" size={14} color="#6b7280" />
-                    <Text style={s.mesafeText}>{mesafe}</Text>
-                  </View>
+                  {mesafe ? (
+                    <TouchableOpacity style={s.mesafeKutu} onPress={() => Linking.openURL(mapsUrl)}>
+                      <Ionicons name="navigate-outline" size={14} color="#2563eb" />
+                      <Text style={[s.mesafeText, { color: '#2563eb' }]}>{mesafe}</Text>
+                    </TouchableOpacity>
+                  ) : (
+                    <TouchableOpacity style={s.yolTariflBtn} onPress={() => Linking.openURL(mapsUrl)}>
+                      <Ionicons name="map-outline" size={13} color="#2563eb" />
+                      <Text style={s.yolTarifText}>Yol Tarifi</Text>
+                    </TouchableOpacity>
+                  )}
                 </View>
               );
             })
+          )}
+        </View>
+
+        {/* NASIL GİDİLİR */}
+        <View style={s.bolum}>
+          <View style={s.ulasimBaslikRow}>
+            <Text style={s.bolumBaslik}>NASIL GİDİLİR?</Text>
+            {!ulasim && (
+              <TouchableOpacity
+                style={[s.ulasimAnalizBtn, ulasimYukleniyor && { opacity: 0.6 }]}
+                onPress={ulasimGetir}
+                disabled={ulasimYukleniyor}
+              >
+                {ulasimYukleniyor
+                  ? <ActivityIndicator size={12} color="#fff" />
+                  : <Ionicons name="sparkles" size={12} color="#fff" />
+                }
+                <Text style={s.ulasimAnalizBtnText}>
+                  {ulasimYukleniyor ? 'Analiz Ediliyor...' : 'AI ile Analiz Et'}
+                </Text>
+              </TouchableOpacity>
+            )}
+            {ulasim && (
+              <TouchableOpacity onPress={() => { setUlasim(null); ulasimGetir(); }}>
+                <Ionicons name="refresh-outline" size={16} color="#2563eb" />
+              </TouchableOpacity>
+            )}
+          </View>
+
+          {!ulasim && !ulasimYukleniyor && (
+            <View style={s.ulasimBos}>
+              <Ionicons name="bus-outline" size={32} color="#d1d5db" />
+              <Text style={s.ulasimBosText}>
+                Bu ilan için AI destekli ulaşım analizi yapın: metro, otobüs, araç ve yürüyüş süreleri.
+              </Text>
+            </View>
+          )}
+
+          {ulasimYukleniyor && (
+            <View style={s.ulasimBos}>
+              <ActivityIndicator size="small" color="#2563eb" />
+              <Text style={s.ulasimBosText}>Konum analiz ediliyor...</Text>
+            </View>
+          )}
+
+          {ulasim && (
+            <View style={s.ulasimKutu}>
+              {/* Puan */}
+              {ulasim.puan != null && (
+                <View style={s.ulasimPuanRow}>
+                  <Text style={s.ulasimOzetText}>{ulasim.ozet}</Text>
+                  <View style={[s.puanBadge, { backgroundColor: ulasim.puan >= 7 ? '#dcfce7' : ulasim.puan >= 4 ? '#fef9c3' : '#fee2e2' }]}>
+                    <Text style={[s.puanText, { color: ulasim.puan >= 7 ? '#16a34a' : ulasim.puan >= 4 ? '#ca8a04' : '#dc2626' }]}>
+                      {ulasim.puan}/10
+                    </Text>
+                  </View>
+                </View>
+              )}
+              {[
+                { ikon: 'subway-outline',   renk: '#7c3aed', baslik: 'Metro / Metrobüs',   deger: ulasim.metro },
+                { ikon: 'bus-outline',      renk: '#2563eb', baslik: 'Otobüs / Dolmuş',    deger: ulasim.otobus },
+                { ikon: 'car-outline',      renk: '#d97706', baslik: 'Araçla',              deger: ulasim.araba },
+                { ikon: 'walk-outline',     renk: '#16a34a', baslik: 'Yürüyerek',           deger: ulasim.yuruyus },
+              ].filter(r => r.deger && r.deger !== 'null').map((row, i) => (
+                <View key={i} style={s.ulasimSatir}>
+                  <View style={[s.ulasimIkonKutu, { backgroundColor: row.renk + '15' }]}>
+                    <Ionicons name={row.ikon} size={18} color={row.renk} />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={s.ulasimSatirBaslik}>{row.baslik}</Text>
+                    <Text style={s.ulasimSatirDeger}>{row.deger}</Text>
+                  </View>
+                </View>
+              ))}
+            </View>
           )}
         </View>
 
@@ -403,7 +512,7 @@ export default function IlanDetayScreen({ route, navigation }) {
                 ) : null}
               </View>
               <View style={s.emlakciBadge}>
-                <Ionicons name="shield-checkmark" size={14} color="#16a34a" />
+                <Ionicons name="shield-checkmark" size={14} color="#2563eb" />
                 <Text style={s.emlakciBadgeText}>Yetkili</Text>
               </View>
             </View>
@@ -534,7 +643,7 @@ export default function IlanDetayScreen({ route, navigation }) {
 const s = StyleSheet.create({
   merkez:   { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 12 },
   bosText:  { fontSize: 16, color: '#6b7280', fontWeight: '600' },
-  geriBtn2: { backgroundColor: '#16a34a', paddingHorizontal: 24, paddingVertical: 10, borderRadius: 12 },
+  geriBtn2: { backgroundColor: '#2563eb', paddingHorizontal: 24, paddingVertical: 10, borderRadius: 12 },
   geriBtn2Text: { color: '#fff', fontWeight: '700' },
 
   // Lightbox
@@ -579,7 +688,7 @@ const s = StyleSheet.create({
   chipAyrac:{ fontSize: 14, color: '#d1d5db', marginHorizontal: 8 },
   konumRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 10 },
   konumText:{ flex: 1, fontSize: 13, color: '#6b7280' },
-  konumGor: { fontSize: 13, fontWeight: '700', color: '#16a34a' },
+  konumGor: { fontSize: 13, fontWeight: '700', color: '#2563eb' },
 
   // Bölüm
   bolum:      { backgroundColor: '#fff', borderBottomWidth: 8, borderBottomColor: '#f5f5f5', paddingHorizontal: 16, paddingVertical: 16 },
@@ -588,34 +697,52 @@ const s = StyleSheet.create({
   bilgiLabel: { fontSize: 14, color: '#6b7280' },
   bilgiValue: { fontSize: 14, fontWeight: '800', color: '#111827', textAlign: 'right', flex: 1, marginLeft: 16 },
   devamiBtn:  { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4, marginTop: 14 },
-  devamiText: { fontSize: 14, fontWeight: '700', color: '#16a34a' },
+  devamiText: { fontSize: 14, fontWeight: '700', color: '#2563eb' },
   aciklamaText:{ fontSize: 14, color: '#374151', lineHeight: 24 },
 
   // Adrese Uzaklığı
   adresBos:     { gap: 10 },
   adresBosText: { fontSize: 13, color: '#6b7280', lineHeight: 20 },
-  adresEkleBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start', borderWidth: 1.5, borderColor: '#16a34a', borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8 },
-  adresEkleBtnText: { fontSize: 13, fontWeight: '700', color: '#16a34a' },
+  adresEkleBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start', borderWidth: 1.5, borderColor: '#2563eb', borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8 },
+  adresEkleBtnText: { fontSize: 13, fontWeight: '700', color: '#2563eb' },
   adresKart:    { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#f5f5f5' },
   adresBaslik:  { fontSize: 14, fontWeight: '700', color: '#111827' },
   adresAlt:     { fontSize: 12, color: '#9ca3af', marginTop: 2 },
-  mesafeKutu:   { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#f5f5f5', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8 },
-  mesafeText:   { fontSize: 13, fontWeight: '700', color: '#374151' },
+  mesafeKutu:    { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#eff6ff', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8 },
+  mesafeText:    { fontSize: 13, fontWeight: '700', color: '#374151' },
+  yolTariflBtn:  { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#eff6ff', borderWidth: 1, borderColor: '#bfdbfe', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8 },
+  yolTarifText:  { fontSize: 12, fontWeight: '700', color: '#2563eb' },
+
+  // Nasıl Gidilir
+  ulasimBaslikRow:    { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 },
+  ulasimAnalizBtn:    { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: '#2563eb', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10 },
+  ulasimAnalizBtnText:{ fontSize: 11, fontWeight: '700', color: '#fff' },
+  ulasimBos:          { alignItems: 'center', gap: 10, paddingVertical: 16 },
+  ulasimBosText:      { fontSize: 13, color: '#9ca3af', textAlign: 'center', lineHeight: 19 },
+  ulasimKutu:         { gap: 10 },
+  ulasimPuanRow:      { flexDirection: 'row', alignItems: 'flex-start', gap: 10, backgroundColor: '#f8fafc', borderRadius: 12, padding: 12, marginBottom: 2 },
+  ulasimOzetText:     { flex: 1, fontSize: 13, color: '#374151', lineHeight: 19 },
+  puanBadge:          { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10 },
+  puanText:           { fontSize: 13, fontWeight: '900' },
+  ulasimSatir:        { flexDirection: 'row', alignItems: 'flex-start', gap: 12, paddingVertical: 8, borderTopWidth: 1, borderTopColor: '#f5f5f5' },
+  ulasimIkonKutu:     { width: 36, height: 36, borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
+  ulasimSatirBaslik:  { fontSize: 11, fontWeight: '700', color: '#9ca3af', marginBottom: 2 },
+  ulasimSatirDeger:   { fontSize: 13, color: '#374151', lineHeight: 19 },
 
   // Emlakçı
   emlakciKart:     { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  emlakciLogo:     { width: 54, height: 54, borderRadius: 12, backgroundColor: '#f0fdf4', borderWidth: 1, borderColor: '#bbf7d0', justifyContent: 'center', alignItems: 'center' },
-  emlakciLogoText: { fontSize: 18, fontWeight: '900', color: '#16a34a' },
+  emlakciLogo:     { width: 54, height: 54, borderRadius: 12, backgroundColor: '#eff6ff', borderWidth: 1, borderColor: '#bfdbfe', justifyContent: 'center', alignItems: 'center' },
+  emlakciLogoText: { fontSize: 18, fontWeight: '900', color: '#2563eb' },
   emlakciAd:       { fontSize: 15, fontWeight: '800', color: '#111827' },
   emlakciKonum:    { fontSize: 12, color: '#6b7280' },
   emlakciVergi:    { fontSize: 11, color: '#9ca3af', marginTop: 2 },
-  emlakciBadge:    { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#f0fdf4', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 },
-  emlakciBadgeText:{ fontSize: 11, fontWeight: '700', color: '#16a34a' },
+  emlakciBadge:    { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#eff6ff', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 },
+  emlakciBadgeText:{ fontSize: 11, fontWeight: '700', color: '#2563eb' },
 
   // Yatay bölüm (diğer/benzer ilanlar)
   yatayBolum:     { backgroundColor: '#fff', borderBottomWidth: 8, borderBottomColor: '#f5f5f5', paddingVertical: 16 },
   yatayBaslikRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16, marginBottom: 12 },
-  tumunuGor:      { fontSize: 13, fontWeight: '700', color: '#16a34a' },
+  tumunuGor:      { fontSize: 13, fontWeight: '700', color: '#2563eb' },
 
   // Mini ilan kartı
   miniKart:   { width: 160, backgroundColor: '#fff', borderRadius: 12, overflow: 'hidden', borderWidth: 1, borderColor: '#f0f0f0', elevation: 2, shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 4 },
@@ -641,8 +768,8 @@ const s = StyleSheet.create({
   // Alt bar
   altBar:     { position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: '#fff', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12, paddingBottom: 24, gap: 10, borderTopWidth: 1, borderTopColor: '#f0f0f0', elevation: 8 },
   whatsappBtn:{ width: 50, height: 50, borderRadius: 25, backgroundColor: '#25d366', justifyContent: 'center', alignItems: 'center' },
-  mesajBtn:   { flex: 1, paddingVertical: 14, borderRadius: 25, borderWidth: 1.5, borderColor: '#16a34a', alignItems: 'center' },
-  mesajBtnText:{ fontSize: 15, fontWeight: '700', color: '#16a34a' },
-  araBtn:     { flex: 1, paddingVertical: 14, borderRadius: 25, backgroundColor: '#16a34a', alignItems: 'center' },
+  mesajBtn:   { flex: 1, paddingVertical: 14, borderRadius: 25, borderWidth: 1.5, borderColor: '#2563eb', alignItems: 'center' },
+  mesajBtnText:{ fontSize: 15, fontWeight: '700', color: '#2563eb' },
+  araBtn:     { flex: 1, paddingVertical: 14, borderRadius: 25, backgroundColor: '#2563eb', alignItems: 'center' },
   araBtnText: { fontSize: 15, fontWeight: '700', color: '#fff' },
 });

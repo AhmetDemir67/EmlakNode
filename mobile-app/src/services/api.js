@@ -3,7 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { resetToAna } from './navigationRef';
 
 // Geliştirme: bilgisayarın IP'si (Android emülatör için 10.0.2.2, gerçek cihaz için LAN IP)
-export const API_URL = 'http://10.14.12.193:3000/api';
+export const API_URL = 'http://10.14.15.19:3000/api';
 
 const api = axios.create({ baseURL: API_URL });
 
@@ -81,5 +81,17 @@ export const konusmalariGetir   = ()                    => api.get('/mesajlar');
 export const mesajlariGetir     = (konusmaId)           => api.get(`/mesajlar/${konusmaId}`);
 export const mesajGonder        = (data)                => api.post('/mesajlar', data);
 export const okunmamisSayisi    = ()                    => api.get('/mesajlar/okunmamis');
+
+// Bildirimler
+export const bildirimleriGetir         = ()    => api.get('/bildirimler');
+export const okunmamisBildirimSayisi   = ()    => api.get('/bildirimler/okunmamis');
+export const bildirimOku               = (id)  => api.patch(`/bildirimler/${id}/oku`);
+export const hepsiniOku                = ()    => api.patch('/bildirimler/hepsini-oku');
+
+// AI
+export const aiAciklamaUret  = (data) => api.post('/ai/aciklama-uret', data, { timeout: 60000 });
+export const aiMulkDegerle   = (data) => api.post('/ai/degerleme',     data, { timeout: 60000 });
+export const aiChatbot       = (data) => api.post('/ai/chatbot',       data, { timeout: 60000 });
+export const aiUlasimAnalizi = (data) => api.post('/ai/ulasim',        data, { timeout: 60000 });
 
 export default api;

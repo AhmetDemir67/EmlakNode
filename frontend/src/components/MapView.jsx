@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+﻿import { useEffect, useState, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import { divIcon } from 'leaflet';
 import { Link } from 'react-router-dom';
@@ -68,7 +68,7 @@ const MapResetter = ({ center, zoom }) => {
 // ── Özel fiyat marker ikonu ───────────────────────────────────────
 const fiyatIkonu = (fiyat, tip) =>
   divIcon({
-    html: `<div class="fiyat-marker" style="background:${tip === 'Kiralık' ? '#3b82f6' : '#16a34a'}">${fiyatKisa(fiyat)}</div>`,
+    html: `<div class="fiyat-marker" style="background:${tip === 'Kiralık' ? '#3b82f6' : '#2563eb'}">${fiyatKisa(fiyat)}</div>`,
     className: '',
     iconAnchor: [30, 15],
     popupAnchor: [0, -20],
@@ -189,7 +189,7 @@ const MapView = ({ ilanlar }) => {
 
       {/* ── İlan sayısı rozeti ── */}
       <div className="absolute top-3 left-3 z-[1000] bg-white shadow-md rounded-xl px-3 py-1.5 flex items-center gap-2 text-sm font-semibold text-slate-700 border border-slate-100">
-        <MapPin size={14} className="text-green-600" />
+        <MapPin size={14} className="text-blue-600" />
         {durum.listesi.filter((i) => i._konum).length} ilan haritada
       </div>
 
@@ -197,7 +197,7 @@ const MapView = ({ ilanlar }) => {
       {yukleniyor && (
         <div className="absolute inset-0 z-[2000] bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center gap-4">
           <div className="flex items-center gap-3 text-slate-700 font-semibold">
-            <Loader2 size={22} className="text-green-600 animate-spin" />
+            <Loader2 size={22} className="text-blue-600 animate-spin" />
             <span>Adresler haritaya yerleştiriliyor…</span>
           </div>
           <div className="w-64">
@@ -207,7 +207,7 @@ const MapView = ({ ilanlar }) => {
             </div>
             <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
               <div
-                className="h-full bg-green-600 rounded-full transition-all duration-300"
+                className="h-full bg-blue-600 rounded-full transition-all duration-300"
                 style={{ width: `${yuklemeOrani}%` }}
               />
             </div>
@@ -250,7 +250,7 @@ const MapView = ({ ilanlar }) => {
                       className="w-full h-32 object-cover"
                     />
                     <span className={`absolute top-2 left-2 text-xs font-bold px-2.5 py-1 rounded-full text-white shadow-sm ${
-                      (ilan.tip || 'Satılık') === 'Kiralık' ? 'bg-blue-500' : 'bg-green-600'
+                      (ilan.tip || 'Satılık') === 'Kiralık' ? 'bg-blue-500' : 'bg-blue-600'
                     }`}>
                       {ilan.tip || 'Satılık'}
                     </span>
@@ -260,7 +260,7 @@ const MapView = ({ ilanlar }) => {
                   <div className="p-3 bg-white space-y-2">
 
                     {/* Fiyat */}
-                    <div className="text-lg font-extrabold text-green-600 leading-none">
+                    <div className="text-lg font-extrabold text-blue-600 leading-none">
                       {fiyatTam(ilan.fiyat)}
                     </div>
 
@@ -271,8 +271,8 @@ const MapView = ({ ilanlar }) => {
 
                     {/* ── Adres Bilgisi ── */}
                     {(ilan.ilce || ilan.sehir) && (
-                      <div className="flex items-start gap-1.5 bg-green-50 border border-green-100 rounded-lg px-2.5 py-2">
-                        <Navigation size={12} className="text-green-600 mt-0.5 flex-shrink-0" />
+                      <div className="flex items-start gap-1.5 bg-blue-50 border border-blue-100 rounded-lg px-2.5 py-2">
+                        <Navigation size={12} className="text-blue-600 mt-0.5 flex-shrink-0" />
                         <div className="text-xs text-slate-700 leading-snug">
                           {[ilan.ilce, ilan.sehir].filter(Boolean).join(' / ')}
                         </div>
@@ -283,19 +283,19 @@ const MapView = ({ ilanlar }) => {
                     <div className="flex items-center gap-3 text-xs text-slate-500">
                       {ilan.oda_sayisi && (
                         <span className="flex items-center gap-1">
-                          <BedDouble size={11} className="text-green-500" />
+                          <BedDouble size={11} className="text-blue-500" />
                           {ilan.oda_sayisi}
                         </span>
                       )}
                       {ilan.metrekare && (
                         <span className="flex items-center gap-1">
-                          <Square size={11} className="text-green-500" />
+                          <Square size={11} className="text-blue-500" />
                           {ilan.metrekare} m²
                         </span>
                       )}
                       {ilan.dukkan_adi && (
                         <span className="flex items-center gap-1 truncate">
-                          <Building2 size={11} className="text-green-500 flex-shrink-0" />
+                          <Building2 size={11} className="text-blue-500 flex-shrink-0" />
                           <span className="truncate">{ilan.dukkan_adi}</span>
                         </span>
                       )}
@@ -304,7 +304,7 @@ const MapView = ({ ilanlar }) => {
                     {/* Detay butonu */}
                     <Link
                       to={`/ilan/${ilan.id}`}
-                      className="block w-full text-center bg-green-600 hover:bg-green-700 text-white text-xs font-bold py-2 rounded-xl transition-colors"
+                      className="block w-full text-center bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-2 rounded-xl transition-colors"
                     >
                       İlanı İncele →
                     </Link>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+﻿import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet, ActivityIndicator,
 } from 'react-native';
@@ -86,15 +86,15 @@ const haritaHTML = (ilanlar, merkez, zoom) => {
   * { margin:0; padding:0; box-sizing:border-box; }
   html,body,#map { width:100%; height:100%; }
   .fiyat-marker {
-    background: #16a34a; color:#fff; font-weight:700; font-size:12px;
+    background: #2563eb; color:#fff; font-weight:700; font-size:12px;
     padding:4px 8px; border-radius:8px; white-space:nowrap;
     box-shadow:0 2px 6px rgba(0,0,0,0.3); cursor:pointer;
   }
   .fiyat-marker.kiralik { background:#3b82f6; }
   .popup-baslik { font-weight:700; font-size:13px; margin-bottom:4px; color:#111; }
-  .popup-fiyat  { font-weight:900; font-size:15px; color:#16a34a; margin-bottom:3px; }
+  .popup-fiyat  { font-weight:900; font-size:15px; color:#2563eb; margin-bottom:3px; }
   .popup-konum  { font-size:11px; color:#6b7280; margin-bottom:8px; }
-  .popup-btn    { background:#16a34a; color:#fff; border:none; border-radius:8px;
+  .popup-btn    { background:#2563eb; color:#fff; border:none; border-radius:8px;
                   padding:6px 14px; font-weight:700; font-size:13px; cursor:pointer; width:100%; }
 </style>
 </head>
@@ -191,7 +191,7 @@ export default function HaritaScreen({ route, navigation }) {
     <View style={s.container}>
       {(yukleniyor || !haritaHazir) && (
         <View style={s.yukleniyor}>
-          <ActivityIndicator size="large" color="#16a34a" />
+          <ActivityIndicator size="large" color="#2563eb" />
           <Text style={s.yukleniyorText}>Harita yükleniyor...</Text>
         </View>
       )}
@@ -215,7 +215,7 @@ export default function HaritaScreen({ route, navigation }) {
 
       {haritaHazir && (
         <View style={s.sayacBant}>
-          <Ionicons name="location" size={14} color="#16a34a" />
+          <Ionicons name="location" size={14} color="#2563eb" />
           <Text style={s.sayacText}>
             {ilanlarKonumlu.length} ilan haritada
             {ilanlar.length - ilanlarKonumlu.length > 0

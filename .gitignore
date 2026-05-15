@@ -22,3 +22,6 @@ Thumbs.db
 # Build çıktıları
 dist/
 build/
+
+# Kullanıcı yüklemeleri (yerel tutulur, GitHub'a gitmez)
+uploads/

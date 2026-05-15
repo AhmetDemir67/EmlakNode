@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+﻿import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import ListingCard      from '../components/ListingCard';
 import FilterSidebar    from '../components/FilterSidebar';
@@ -87,12 +87,12 @@ const Home = () => {
   const YukleniyorGrid = () => (
     <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
       {[...Array(6)].map((_, i) => (
-        <div key={i} className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 animate-pulse">
-          <div className="h-52 bg-gray-200" />
+        <div key={i} className="bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-sm border border-gray-100 dark:border-gray-700 animate-pulse">
+          <div className="h-52 bg-gray-200 dark:bg-gray-700" />
           <div className="p-4 space-y-3">
-            <div className="h-5 bg-gray-200 rounded w-2/3" />
-            <div className="h-4 bg-gray-100 rounded w-full" />
-            <div className="h-4 bg-gray-100 rounded w-1/2" />
+            <div className="h-5 bg-gray-200 dark:bg-gray-700 rounded w-2/3" />
+            <div className="h-4 bg-gray-100 dark:bg-gray-700 rounded w-full" />
+            <div className="h-4 bg-gray-100 dark:bg-gray-700 rounded w-1/2" />
           </div>
         </div>
       ))}
@@ -107,7 +107,7 @@ const Home = () => {
         <p className="text-red-600 text-sm mb-5">{hata}</p>
         <button
           onClick={verileriGetir}
-          className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-semibold px-5 py-2.5 rounded-xl transition-colors mx-auto"
+          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2.5 rounded-xl transition-colors mx-auto"
         >
           <RefreshCw size={15} /> Tekrar Dene
         </button>
@@ -117,8 +117,8 @@ const Home = () => {
 
   const SonucYokEkrani = () => (
     <div className="flex flex-col items-center py-20 gap-4 text-center">
-      <div className="w-16 h-16 bg-green-50 rounded-2xl flex items-center justify-center">
-        <AlertCircle size={28} className="text-green-400" />
+      <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center">
+        <AlertCircle size={28} className="text-blue-400" />
       </div>
       <div>
         <p className="font-semibold text-slate-600 mb-1">
@@ -127,7 +127,7 @@ const Home = () => {
         {aktifFiltreSayisi > 0 && (
           <button
             onClick={filtreTemizle}
-            className="inline-flex items-center gap-1.5 text-sm text-green-600 hover:underline font-medium mt-2"
+            className="inline-flex items-center gap-1.5 text-sm text-blue-600 hover:underline font-medium mt-2"
           >
             <X size={14} /> Filtreleri Temizle
           </button>
@@ -141,7 +141,7 @@ const Home = () => {
       <Hero onAra={heroAra} onHaritaAra={() => setGorunum('harita')} />
 
       {/* Stats / Trust Bar */}
-      <div className="bg-white border-b border-gray-100">
+      <div className="bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 transition-colors duration-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 text-center">
             {[
@@ -151,11 +151,11 @@ const Home = () => {
               { value: '7/24',    label: 'Güvenli Platform', Icon: Shield },
             ].map(({ value, label, Icon }) => (
               <div key={label} className="flex flex-col items-center gap-1.5">
-                <div className="w-10 h-10 bg-green-50 rounded-xl flex items-center justify-center">
-                  <Icon size={18} className="text-green-600" />
+                <div className="w-10 h-10 bg-blue-50 dark:bg-blue-900/30 rounded-xl flex items-center justify-center">
+                  <Icon size={18} className="text-blue-600" />
                 </div>
-                <span className="text-xl font-black text-gray-900">{value}</span>
-                <span className="text-xs text-gray-500 font-medium">{label}</span>
+                <span className="text-xl font-black text-gray-900 dark:text-white">{value}</span>
+                <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">{label}</span>
               </div>
             ))}
           </div>
@@ -169,14 +169,14 @@ const Home = () => {
 
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <TrendingUp size={16} className="text-green-600" />
-              <span className="text-green-600 font-semibold text-sm">Güncel İlanlar</span>
+              <TrendingUp size={16} className="text-blue-600" />
+              <span className="text-blue-600 font-semibold text-sm">Güncel İlanlar</span>
             </div>
             <div className="flex items-center gap-3 flex-wrap">
-              <h2 className="text-2xl font-bold text-gray-900">Satılık &amp; Kiralık İlanlar</h2>
-              {yukleniyor && <Loader2 size={16} className="text-green-500 animate-spin" />}
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Satılık &amp; Kiralık İlanlar</h2>
+              {yukleniyor && <Loader2 size={16} className="text-blue-500 animate-spin" />}
               {!yukleniyor && !hata && (
-                <span className="text-xs bg-green-100 text-green-700 font-semibold px-2.5 py-1 rounded-full">
+                <span className="text-xs bg-blue-100 text-blue-700 font-semibold px-2.5 py-1 rounded-full">
                   {ilanlar.length} ilan
                   {aktifFiltreSayisi > 0 && ' bulundu'}
                 </span>
@@ -188,23 +188,23 @@ const Home = () => {
             {/* Mobil filtre butonu */}
             <button
               onClick={() => setMobilFiltre(true)}
-              className="lg:hidden flex items-center gap-2 border border-slate-200 rounded-xl px-3 py-2 text-sm font-semibold text-slate-600 hover:border-green-500 hover:text-green-600 transition-all relative"
+              className="lg:hidden flex items-center gap-2 border border-slate-200 dark:border-gray-700 rounded-xl px-3 py-2 text-sm font-semibold text-slate-600 dark:text-gray-300 hover:border-blue-500 hover:text-blue-600 transition-all relative"
             >
               <SlidersHorizontal size={15} />
               Filtrele
               {aktifFiltreSayisi > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 bg-green-600 text-white text-xs font-bold w-4 h-4 rounded-full flex items-center justify-center">
+                <span className="absolute -top-1.5 -right-1.5 bg-blue-600 text-white text-xs font-bold w-4 h-4 rounded-full flex items-center justify-center">
                   {aktifFiltreSayisi}
                 </span>
               )}
             </button>
 
             {/* Liste / Harita toggle */}
-            <div className="flex items-center bg-slate-100 rounded-xl p-1 gap-1">
+            <div className="flex items-center bg-slate-100 dark:bg-gray-800 rounded-xl p-1 gap-1">
               <button
                 onClick={() => setGorunum('liste')}
                 className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
-                  gorunum === 'liste' ? 'bg-white text-green-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+                  gorunum === 'liste' ? 'bg-white dark:bg-gray-700 text-blue-600 shadow-sm' : 'text-slate-500 dark:text-gray-400 hover:text-slate-700 dark:hover:text-gray-200'
                 }`}
               >
                 <LayoutGrid size={15} /> Liste
@@ -212,7 +212,7 @@ const Home = () => {
               <button
                 onClick={() => setGorunum('harita')}
                 className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
-                  gorunum === 'harita' ? 'bg-white text-green-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+                  gorunum === 'harita' ? 'bg-white dark:bg-gray-700 text-blue-600 shadow-sm' : 'text-slate-500 dark:text-gray-400 hover:text-slate-700 dark:hover:text-gray-200'
                 }`}
               >
                 <Map size={15} /> Harita
@@ -269,11 +269,11 @@ const Home = () => {
             className="absolute inset-0 bg-black/40 backdrop-blur-sm"
             onClick={() => setMobilFiltre(false)}
           />
-          <div className="absolute left-0 top-0 bottom-0 w-80 max-w-[90vw] bg-slate-50 overflow-y-auto shadow-2xl">
-            <div className="flex items-center justify-between p-4 border-b bg-white">
-              <span className="font-bold text-slate-800">Filtreleme</span>
+          <div className="absolute left-0 top-0 bottom-0 w-80 max-w-[90vw] bg-slate-50 dark:bg-gray-900 overflow-y-auto shadow-2xl">
+            <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900">
+              <span className="font-bold text-slate-800 dark:text-white">Filtreleme</span>
               <button onClick={() => setMobilFiltre(false)}
-                className="p-2 rounded-xl hover:bg-slate-100 text-slate-500 transition-colors">
+                className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-gray-800 text-slate-500 dark:text-gray-400 transition-colors">
                 <X size={18} />
               </button>
             </div>
@@ -285,10 +285,10 @@ const Home = () => {
                 aktifSayi={aktifFiltreSayisi}
               />
             </div>
-            <div className="p-4 border-t bg-white sticky bottom-0">
+            <div className="p-4 border-t border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 sticky bottom-0">
               <button
                 onClick={() => setMobilFiltre(false)}
-                className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-xl transition-colors"
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition-colors"
               >
                 {ilanlar.length} İlanı Gör
               </button>

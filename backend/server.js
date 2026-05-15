@@ -13,7 +13,9 @@ const authRoutes      = require('./routes/auth');
 const ilanRoutes      = require('./routes/listings');
 const favorilerRoutes = require('./routes/favoriler');
 const dukkanRoutes    = require('./routes/dukkan');
-const mesajRoutes     = require('./routes/mesajlar');
+const mesajRoutes        = require('./routes/mesajlar');
+const bildirimRoutes     = require('./routes/bildirimler');
+const aiRoutes           = require('./routes/ai');
 
 const app = express();
 
@@ -76,7 +78,9 @@ app.use('/api/auth',      authRoutes);
 app.use('/api/ilanlar',  ilanRoutes);
 app.use('/api/favoriler', favorilerRoutes);
 app.use('/api/dukkanlar', dukkanRoutes);
-app.use('/api/mesajlar',  mesajRoutes);
+app.use('/api/mesajlar',    mesajRoutes);
+app.use('/api/bildirimler', bildirimRoutes);
+app.use('/api/ai',          aiRoutes);
 
 // ----------------------------------------------------------------
 // Global Hata Yakalayıcı
@@ -92,6 +96,22 @@ app.use((err, req, res, next) => {
 const baslat = async () => {
   console.log('Emlak Platform API baslatiliyor...');
   await baglantiTestEt();
+
+  const { sorgu } = require('./config/db');
+  await sorgu(`
+    CREATE TABLE IF NOT EXISTS bildirimler (
+      id           SERIAL PRIMARY KEY,
+      kullanici_id INT REFERENCES kullanicilar(id) ON DELETE CASCADE,
+      tip          VARCHAR(50) NOT NULL DEFAULT 'mesaj',
+      baslik       VARCHAR(200),
+      icerik       TEXT,
+      ilan_id      INT REFERENCES ilanlar(id) ON DELETE SET NULL,
+      konusma_id   INT,
+      okundu       BOOLEAN DEFAULT FALSE,
+      olusturulma  TIMESTAMP DEFAULT NOW()
+    )
+  `);
+  console.log('✅ bildirimler tablosu hazır.');
 
   const PORT = process.env.PORT || 3000;
   app.listen(PORT, () => {

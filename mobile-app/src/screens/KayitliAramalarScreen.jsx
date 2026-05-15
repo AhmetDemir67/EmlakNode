@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+﻿import React, { useState, useCallback } from 'react';
 import {
   View, Text, FlatList, TouchableOpacity,
   StyleSheet, ActivityIndicator, Alert,
@@ -58,7 +58,7 @@ export default function KayitliAramalarScreen({ navigation }) {
   };
 
   if (yukleniyor) {
-    return <View style={s.merkez}><ActivityIndicator size="large" color="#16a34a" /></View>;
+    return <View style={s.merkez}><ActivityIndicator size="large" color="#2563eb" /></View>;
   }
 
   if (aramalar.length === 0) {
@@ -84,7 +84,7 @@ export default function KayitliAramalarScreen({ navigation }) {
         return (
           <TouchableOpacity style={s.kart} activeOpacity={0.85} onPress={() => aramaUygula(filtreler)}>
             <View style={s.ikonWrap}>
-              <Ionicons name="search" size={20} color="#16a34a" />
+              <Ionicons name="search" size={20} color="#2563eb" />
             </View>
             <View style={s.icerik}>
               <Text style={s.baslik}>{item.baslik}</Text>
@@ -108,7 +108,7 @@ const s = StyleSheet.create({
 
   liste:      { padding: 16, gap: 10, backgroundColor: '#f5f5f5' },
   kart:       { backgroundColor: '#fff', borderRadius: 16, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12, elevation: 1, shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 4 },
-  ikonWrap:   { width: 44, height: 44, borderRadius: 12, backgroundColor: '#f0fdf4', justifyContent: 'center', alignItems: 'center' },
+  ikonWrap:   { width: 44, height: 44, borderRadius: 12, backgroundColor: '#eff6ff', justifyContent: 'center', alignItems: 'center' },
   icerik:     { flex: 1, gap: 3 },
   baslik:     { fontSize: 15, fontWeight: '700', color: '#111827' },
   filtreler:  { fontSize: 12, color: '#6b7280' },

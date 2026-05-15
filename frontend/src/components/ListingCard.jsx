@@ -17,7 +17,7 @@ const ListingCard = ({ ilan }) => {
     : false;
 
   return (
-    <Link to={`/ilan/${ilan.id}`} className="block bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 group cursor-pointer hover:-translate-y-0.5">
+    <Link to={`/ilan/${ilan.id}`} className="block bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 dark:border-gray-700 group cursor-pointer hover:-translate-y-0.5">
       {/* Görsel */}
       <div className="relative overflow-hidden">
         <img
@@ -28,7 +28,7 @@ const ListingCard = ({ ilan }) => {
         {/* Üst solda: tip + yeni badge */}
         <div className="absolute top-3 left-3 flex flex-col gap-1.5">
           <span className={`text-xs font-bold px-3 py-1.5 rounded-full shadow-sm ${
-            ilan.tip === 'Satılık' ? 'bg-green-600 text-white' : 'bg-blue-500 text-white'
+            ilan.tip === 'Satılık' ? 'bg-blue-600 text-white' : 'bg-blue-500 text-white'
           }`}>
             {ilan.tip}
           </span>
@@ -58,52 +58,52 @@ const ListingCard = ({ ilan }) => {
       {/* İçerik */}
       <div className="p-4">
         {/* Fiyat */}
-        <div className="text-2xl font-bold text-green-600 mb-1">
+        <div className="text-2xl font-bold text-blue-600 mb-1">
           {fiyatFormatla(ilan.fiyat)}
         </div>
 
         {/* Başlık */}
-        <h3 className="font-semibold text-gray-800 text-sm leading-snug mb-2 line-clamp-2 group-hover:text-green-600 transition-colors">
+        <h3 className="font-semibold text-gray-800 dark:text-gray-100 text-sm leading-snug mb-2 line-clamp-2 group-hover:text-blue-600 transition-colors">
           {ilan.baslik}
         </h3>
 
         {/* Konum */}
-        <div className="flex items-center gap-1 text-gray-500 text-xs mb-3">
-          <MapPin size={13} className="text-green-500 flex-shrink-0" />
+        <div className="flex items-center gap-1 text-gray-500 dark:text-gray-400 text-xs mb-3">
+          <MapPin size={13} className="text-blue-500 flex-shrink-0" />
           <span>{[ilan.ilce, ilan.sehir].filter(Boolean).join(', ') || '—'}</span>
         </div>
 
         {/* Özellikler */}
-        <div className="flex items-center gap-3 pt-3 border-t border-gray-100">
+        <div className="flex items-center gap-3 pt-3 border-t border-gray-100 dark:border-gray-700">
           {ilan.oda_sayisi && (
             <>
-              <div className="flex items-center gap-1 text-gray-600 text-xs">
-                <BedDouble size={14} className="text-gray-400" />
+              <div className="flex items-center gap-1 text-gray-600 dark:text-gray-300 text-xs">
+                <BedDouble size={14} className="text-gray-400 dark:text-gray-500" />
                 <span>{ilan.oda_sayisi}</span>
               </div>
-              <div className="w-px h-3 bg-gray-200" />
+              <div className="w-px h-3 bg-gray-200 dark:bg-gray-600" />
             </>
           )}
           {ilan.metrekare && (
             <>
-              <div className="flex items-center gap-1 text-gray-600 text-xs">
-                <Square size={14} className="text-gray-400" />
+              <div className="flex items-center gap-1 text-gray-600 dark:text-gray-300 text-xs">
+                <Square size={14} className="text-gray-400 dark:text-gray-500" />
                 <span>{ilan.metrekare} m²</span>
               </div>
-              <div className="w-px h-3 bg-gray-200" />
+              <div className="w-px h-3 bg-gray-200 dark:bg-gray-600" />
             </>
           )}
           {ilan.emlak_turu && (
-            <span className="text-xs bg-slate-100 text-slate-600 font-semibold px-2 py-0.5 rounded-full">
+            <span className="text-xs bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-semibold px-2 py-0.5 rounded-full">
               {ilan.emlak_turu}
             </span>
           )}
         </div>
 
         {/* Ofis Bilgisi */}
-        <div className="mt-3 pt-3 border-t border-gray-50 flex items-center justify-between">
+        <div className="mt-3 pt-3 border-t border-gray-50 dark:border-gray-700 flex items-center justify-between">
           <span className="text-xs text-gray-400 truncate max-w-[60%]">{ilan.ofis}</span>
-          <span className="text-xs text-green-600 font-bold group-hover:underline">İncele →</span>
+          <span className="text-xs text-blue-600 font-bold group-hover:underline">İncele →</span>
         </div>
       </div>
     </Link>

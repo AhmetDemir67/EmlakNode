@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity,
   StyleSheet, KeyboardAvoidingView, Platform, Alert, ActivityIndicator,
@@ -30,7 +30,7 @@ export default function GirisScreen({ navigation }) {
   return (
     <View style={s.container}>
       <LinearGradient
-        colors={['#14532d', '#16a34a', '#22c55e']}
+        colors={['#1e3a8a', '#2563eb', '#3b82f6']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={s.ustKisim}
@@ -39,7 +39,7 @@ export default function GirisScreen({ navigation }) {
           <View style={s.logoIkon}>
             <Ionicons name="home" size={30} color="#fff" />
           </View>
-          <Text style={s.logoText}>Emlak<Text style={{ color: '#bbf7d0' }}>Node</Text></Text>
+          <Text style={s.logoText}>Emlak<Text style={{ color: '#bfdbfe' }}>Node</Text></Text>
         </View>
         <Text style={s.slogan}>Hayalindeki evi bul</Text>
         <Text style={s.altSlogan}>Binlerce ilan, güvenilir danışmanlar</Text>
@@ -91,7 +91,7 @@ export default function GirisScreen({ navigation }) {
         <TouchableOpacity onPress={() => navigation.navigate('Kayit')} style={s.kayitLink}>
           <Text style={s.kayitText}>
             Hesabın yok mu?{'  '}
-            <Text style={{ color: '#16a34a', fontWeight: '700' }}>Kayıt Ol</Text>
+            <Text style={{ color: '#2563eb', fontWeight: '700' }}>Kayıt Ol</Text>
           </Text>
         </TouchableOpacity>
       </KeyboardAvoidingView>
@@ -100,20 +100,20 @@ export default function GirisScreen({ navigation }) {
 }
 
 const s = StyleSheet.create({
-  container:  { flex: 1, backgroundColor: '#16a34a' },
+  container:  { flex: 1, backgroundColor: '#2563eb' },
   ustKisim:   { paddingTop: 64, paddingBottom: 52, paddingHorizontal: 28, alignItems: 'center' },
   logoWrap:   { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 18 },
   logoIkon:   { width: 56, height: 56, backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 18, justifyContent: 'center', alignItems: 'center' },
   logoText:   { fontSize: 32, fontWeight: '900', color: '#fff' },
   slogan:     { fontSize: 17, fontWeight: '700', color: '#fff', marginBottom: 6 },
-  altSlogan:  { fontSize: 13, color: '#bbf7d0' },
+  altSlogan:  { fontSize: 13, color: '#bfdbfe' },
   altKisim:   { flex: 1, backgroundColor: '#fff', borderTopLeftRadius: 32, borderTopRightRadius: 32, paddingHorizontal: 28, paddingTop: 32, paddingBottom: 24 },
   formBaslik: { fontSize: 20, fontWeight: '800', color: '#111827', marginBottom: 24 },
   form:       { gap: 14 },
   inputWrap:  { flexDirection: 'row', alignItems: 'center', borderWidth: 1.5, borderColor: '#e5e7eb', borderRadius: 14, paddingHorizontal: 14, paddingVertical: 4, backgroundColor: '#fafafa' },
   inputIkon:  { marginRight: 10 },
   input:      { flex: 1, fontSize: 15, color: '#111827', paddingVertical: 12 },
-  btn:        { backgroundColor: '#16a34a', paddingVertical: 16, borderRadius: 14, alignItems: 'center', marginTop: 6 },
+  btn:        { backgroundColor: '#2563eb', paddingVertical: 16, borderRadius: 14, alignItems: 'center', marginTop: 6 },
   btnText:    { color: '#fff', fontSize: 16, fontWeight: '800' },
   kayitLink:  { alignItems: 'center', marginTop: 24 },
   kayitText:  { fontSize: 14, color: '#6b7280' },

@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+﻿import React, { useState, useCallback } from 'react';
 import {
   View, Text, FlatList, TouchableOpacity, StyleSheet,
   ActivityIndicator,
@@ -61,14 +61,14 @@ export default function MesajlarScreen({ navigation }) {
   }
 
   if (yukleniyor) {
-    return <View style={s.merkez}><ActivityIndicator size="large" color="#16a34a" /></View>;
+    return <View style={s.merkez}><ActivityIndicator size="large" color="#2563eb" /></View>;
   }
 
   return (
     <View style={s.container}>
       {konusmalar.length > 0 && (
         <View style={s.topBant}>
-          <Ionicons name="chatbubbles" size={14} color="#16a34a" />
+          <Ionicons name="chatbubbles" size={14} color="#2563eb" />
           <Text style={s.topBantText}>{konusmalar.length} aktif konuşma</Text>
         </View>
       )}
@@ -97,7 +97,7 @@ export default function MesajlarScreen({ navigation }) {
               activeOpacity={0.8}
             >
               <View style={[s.avatar, okunmamis && s.avatarAktif]}>
-                <Text style={[s.avatarText, okunmamis && { color: '#16a34a' }]}>
+                <Text style={[s.avatarText, okunmamis && { color: '#2563eb' }]}>
                   {bas(item.karsi_ad)}
                 </Text>
               </View>
@@ -135,18 +135,18 @@ export default function MesajlarScreen({ navigation }) {
 
 const s = StyleSheet.create({
   container:      { flex: 1, backgroundColor: '#fff' },
-  topBant:        { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#f0fdf4', paddingHorizontal: 16, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#dcfce7' },
-  topBantText:    { fontSize: 13, fontWeight: '600', color: '#16a34a' },
+  topBant:        { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#eff6ff', paddingHorizontal: 16, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#dbeafe' },
+  topBantText:    { fontSize: 13, fontWeight: '600', color: '#2563eb' },
   merkez:         { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 14, padding: 40 },
   bos:            { alignItems: 'center', paddingTop: 80, gap: 12, paddingHorizontal: 40 },
   bosBaslik:      { fontSize: 16, fontWeight: '700', color: '#374151', textAlign: 'center' },
   bosAlt:         { fontSize: 13, color: '#9ca3af', textAlign: 'center', lineHeight: 20 },
-  btn:            { backgroundColor: '#16a34a', paddingHorizontal: 32, paddingVertical: 12, borderRadius: 12 },
+  btn:            { backgroundColor: '#2563eb', paddingHorizontal: 32, paddingVertical: 12, borderRadius: 12 },
   btnText:        { color: '#fff', fontWeight: '700', fontSize: 14 },
   ayrac:          { height: 1, backgroundColor: '#f5f5f5', marginLeft: 80 },
   konusma:        { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 14, gap: 14 },
   avatar:         { width: 52, height: 52, borderRadius: 26, backgroundColor: '#f3f4f6', justifyContent: 'center', alignItems: 'center', flexShrink: 0 },
-  avatarAktif:    { backgroundColor: '#f0fdf4' },
+  avatarAktif:    { backgroundColor: '#eff6ff' },
   avatarText:     { fontSize: 18, fontWeight: '900', color: '#6b7280' },
   icerik:         { flex: 1, gap: 3 },
   icerikUst:      { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
@@ -155,6 +155,6 @@ const s = StyleSheet.create({
   ilanBaslik:     { fontSize: 12, color: '#9ca3af' },
   sonMesajRow:    { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   sonMesaj:       { fontSize: 13, color: '#6b7280', flex: 1 },
-  okunmamisBadge: { backgroundColor: '#16a34a', borderRadius: 10, minWidth: 20, height: 20, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 5, marginLeft: 6 },
+  okunmamisBadge: { backgroundColor: '#2563eb', borderRadius: 10, minWidth: 20, height: 20, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 5, marginLeft: 6 },
   okunmamisText:  { fontSize: 11, fontWeight: '800', color: '#fff' },
 });

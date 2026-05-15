@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import {
   Home, Mail, Lock, Eye, EyeOff, User, Building2,
@@ -25,8 +25,8 @@ const AramaDropdown = ({ label, value, secenekler, onSec, disabled }) => {
         onClick={() => setAcik(!acik)}
         className={`w-full flex items-center justify-between pl-10 pr-3.5 py-3 border rounded-xl text-sm text-left transition-all
           ${disabled ? 'bg-gray-50 text-gray-400 cursor-not-allowed border-gray-100'
-            : acik    ? 'border-green-500 ring-2 ring-green-100 text-gray-800'
-                      : 'border-gray-200 hover:border-green-300 text-gray-700'
+            : acik    ? 'border-blue-500 ring-2 ring-blue-100 text-gray-800'
+                      : 'border-gray-200 hover:border-blue-300 text-gray-700'
           }`}
       >
         <span className={value ? 'text-gray-800' : 'text-gray-400'}>
@@ -62,7 +62,7 @@ const AramaDropdown = ({ label, value, secenekler, onSec, disabled }) => {
                 onClick={() => { onSec(s); setAcik(false); setArama(''); }}
                 className={`w-full text-left px-4 py-2.5 text-sm transition-colors
                   ${value === s
-                    ? 'bg-green-50 text-green-700 font-semibold'
+                    ? 'bg-blue-50 text-blue-700 font-semibold'
                     : 'text-gray-700 hover:bg-gray-50'
                   }`}
               >
@@ -82,7 +82,7 @@ const AramaDropdown = ({ label, value, secenekler, onSec, disabled }) => {
 // ── Ortak text input ─────────────────────────────────────────────
 const GirisAlani = ({ icon: Icon, label, name, type = 'text', value, onChange, placeholder, autoComplete, sag }) => (
   <div>
-    <label className="block text-sm font-semibold text-gray-700 mb-1.5">{label}</label>
+    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1.5">{label}</label>
     <div className="relative">
       <Icon size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
       <input
@@ -92,8 +92,8 @@ const GirisAlani = ({ icon: Icon, label, name, type = 'text', value, onChange, p
         onChange={onChange}
         placeholder={placeholder}
         autoComplete={autoComplete}
-        className="w-full pl-10 pr-10 py-3 border border-gray-200 rounded-xl text-sm placeholder-gray-400
-          focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 transition-all"
+        className="w-full pl-10 pr-10 py-3 border border-gray-200 dark:border-gray-600 rounded-xl text-sm text-gray-800 dark:text-gray-100 bg-white dark:bg-gray-700 placeholder-gray-400 dark:placeholder-gray-500
+          focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all"
       />
       {sag}
     </div>
@@ -136,9 +136,9 @@ const BireyselForm = () => {
   return (
     <form onSubmit={gonder} className="space-y-4">
       {basarili && (
-        <div className="flex items-center gap-3 bg-green-50 border border-green-200 rounded-xl p-4">
-          <CheckCircle2 size={18} className="text-green-500 flex-shrink-0" />
-          <p className="text-green-700 text-sm font-medium">Kayıt başarılı! Giriş sayfasına yönlendiriliyorsunuz…</p>
+        <div className="flex items-center gap-3 bg-blue-50 border border-blue-200 rounded-xl p-4">
+          <CheckCircle2 size={18} className="text-blue-500 flex-shrink-0" />
+          <p className="text-blue-700 text-sm font-medium">Kayıt başarılı! Giriş sayfasına yönlendiriliyorsunuz…</p>
         </div>
       )}
       {hata && (
@@ -171,7 +171,7 @@ const BireyselForm = () => {
             name="sifre_tekrar" value={form.sifre_tekrar} onChange={degisti}
             placeholder="Şifrenizi tekrar girin" autoComplete="new-password"
             className="w-full pl-10 pr-10 py-3 border border-gray-200 rounded-xl text-sm placeholder-gray-400
-              focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 transition-all"
+              focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all"
           />
           <button type="button" onClick={() => setGoster(g => ({ ...g, tekrar: !g.tekrar }))}
             className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
@@ -182,12 +182,12 @@ const BireyselForm = () => {
           <p className="text-xs text-red-500 mt-1.5 flex items-center gap-1"><AlertCircle size={11} /> Şifreler eşleşmiyor</p>
         )}
         {form.sifre_tekrar && form.sifre === form.sifre_tekrar && form.sifre.length >= 6 && (
-          <p className="text-xs text-green-600 mt-1.5 flex items-center gap-1"><CheckCircle2 size={11} /> Şifreler eşleşiyor</p>
+          <p className="text-xs text-blue-600 mt-1.5 flex items-center gap-1"><CheckCircle2 size={11} /> Şifreler eşleşiyor</p>
         )}
       </div>
 
       <button type="submit" disabled={yukleniyor || basarili}
-        className="w-full bg-green-600 hover:bg-green-700 disabled:opacity-60 disabled:cursor-not-allowed
+        className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed
           text-white font-bold py-3.5 rounded-xl transition-all flex items-center justify-center gap-2 shadow-md mt-2">
         {yukleniyor ? <><Loader2 size={17} className="animate-spin" /> Kayıt Yapılıyor…</> : 'Ücretsiz Kayıt Ol'}
       </button>
@@ -251,9 +251,9 @@ const KurumsalForm = () => {
   return (
     <form onSubmit={gonder} className="space-y-5">
       {basarili && (
-        <div className="flex items-center gap-3 bg-green-50 border border-green-200 rounded-xl p-4">
-          <CheckCircle2 size={18} className="text-green-500 flex-shrink-0" />
-          <p className="text-green-700 text-sm font-medium">
+        <div className="flex items-center gap-3 bg-blue-50 border border-blue-200 rounded-xl p-4">
+          <CheckCircle2 size={18} className="text-blue-500 flex-shrink-0" />
+          <p className="text-blue-700 text-sm font-medium">
             Kurumsal hesabınız oluşturuldu! Giriş sayfasına yönlendiriliyorsunuz…
           </p>
         </div>
@@ -348,7 +348,7 @@ const KurumsalForm = () => {
                 name="sifre_tekrar" value={form.sifre_tekrar} onChange={degisti}
                 placeholder="Şifrenizi tekrar girin" autoComplete="new-password"
                 className="w-full pl-10 pr-10 py-3 border border-gray-200 rounded-xl text-sm placeholder-gray-400
-                  focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 transition-all"
+                  focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all"
               />
               <button type="button" onClick={() => setGoster(g => ({ ...g, tekrar: !g.tekrar }))}
                 className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
@@ -359,14 +359,14 @@ const KurumsalForm = () => {
               <p className="text-xs text-red-500 mt-1.5 flex items-center gap-1"><AlertCircle size={11} /> Şifreler eşleşmiyor</p>
             )}
             {form.sifre_tekrar && form.sifre === form.sifre_tekrar && form.sifre.length >= 6 && (
-              <p className="text-xs text-green-600 mt-1.5 flex items-center gap-1"><CheckCircle2 size={11} /> Şifreler eşleşiyor</p>
+              <p className="text-xs text-blue-600 mt-1.5 flex items-center gap-1"><CheckCircle2 size={11} /> Şifreler eşleşiyor</p>
             )}
           </div>
         </div>
       </div>
 
       <button type="submit" disabled={yukleniyor || basarili}
-        className="w-full bg-green-600 hover:bg-green-700 disabled:opacity-60 disabled:cursor-not-allowed
+        className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed
           text-white font-bold py-3.5 rounded-xl transition-all flex items-center justify-center gap-2 shadow-md">
         {yukleniyor
           ? <><Loader2 size={17} className="animate-spin" /> Hesap Oluşturuluyor…</>
@@ -390,29 +390,29 @@ const Register = () => {
       {/* Logo */}
       <div className="p-6">
         <Link to="/" className="flex items-center gap-2 w-fit">
-          <div className="bg-green-600 text-white p-1.5 rounded-lg">
+          <div className="bg-blue-600 text-white p-1.5 rounded-lg">
             <Home size={20} />
           </div>
           <span className="text-xl font-extrabold text-white tracking-tight">
-            Emlak<span className="text-green-500">Node</span>
+            Emlak<span className="text-blue-500">Node</span>
           </span>
         </Link>
       </div>
 
       {/* Kart */}
       <div className="flex-1 flex items-start justify-center px-4 pb-12 pt-2">
-        <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden">
+        <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden">
 
           {/* Başlık */}
           <div className="text-center pt-8 pb-4 px-8">
-            <div className="inline-flex items-center justify-center w-14 h-14 bg-green-100 rounded-2xl mb-4">
+            <div className="inline-flex items-center justify-center w-14 h-14 bg-blue-100 dark:bg-blue-900/40 rounded-2xl mb-4">
               {aktifTab === 'kurumsal'
-                ? <Building2 size={26} className="text-green-600" />
-                : <User      size={26} className="text-green-600" />
+                ? <Building2 size={26} className="text-blue-600" />
+                : <User      size={26} className="text-blue-600" />
               }
             </div>
-            <h1 className="text-2xl font-extrabold text-gray-900">Hesap Oluştur</h1>
-            <p className="text-gray-400 text-sm mt-1">
+            <h1 className="text-2xl font-extrabold text-gray-900 dark:text-white">Hesap Oluştur</h1>
+            <p className="text-gray-400 dark:text-gray-500 text-sm mt-1">
               {aktifTab === 'kurumsal'
                 ? 'Emlak ofisinizi platforma kaydedin'
                 : 'Ücretsiz kayıt ol, ilan ver'
@@ -421,14 +421,14 @@ const Register = () => {
           </div>
 
           {/* Tab seçici */}
-          <div className="flex mx-8 mb-6 bg-gray-100 rounded-2xl p-1 gap-1">
+          <div className="flex mx-8 mb-6 bg-gray-100 dark:bg-gray-700 rounded-2xl p-1 gap-1">
             <button
               type="button"
               onClick={() => setAktifTab('bireysel')}
               className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold transition-all ${
                 aktifTab === 'bireysel'
-                  ? 'bg-white text-green-700 shadow-sm'
-                  : 'text-gray-500 hover:text-gray-700'
+                  ? 'bg-white dark:bg-gray-600 text-blue-700 shadow-sm'
+                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
               }`}
             >
               <User size={15} /> Bireysel
@@ -438,8 +438,8 @@ const Register = () => {
               onClick={() => setAktifTab('kurumsal')}
               className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold transition-all ${
                 aktifTab === 'kurumsal'
-                  ? 'bg-white text-green-700 shadow-sm'
-                  : 'text-gray-500 hover:text-gray-700'
+                  ? 'bg-white dark:bg-gray-600 text-blue-700 shadow-sm'
+                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
               }`}
             >
               <Building2 size={15} /> Kurumsal
@@ -453,7 +453,7 @@ const Register = () => {
             {/* Giriş linki */}
             <div className="mt-6 text-center text-sm text-gray-500">
               Zaten hesabın var mı?{' '}
-              <Link to="/login" className="text-green-600 font-semibold hover:underline">
+              <Link to="/login" className="text-blue-600 font-semibold hover:underline">
                 Giriş Yap
               </Link>
             </div>

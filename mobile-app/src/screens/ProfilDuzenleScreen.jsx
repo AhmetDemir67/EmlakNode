@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import {
   View, Text, ScrollView, TextInput, TouchableOpacity,
   StyleSheet, Alert, ActivityIndicator, KeyboardAvoidingView, Platform,
@@ -111,7 +111,7 @@ export default function ProfilDuzenleScreen({ navigation }) {
   };
 
   if (yukleniyor) {
-    return <View style={s.merkez}><ActivityIndicator size="large" color="#16a34a" /></View>;
+    return <View style={s.merkez}><ActivityIndicator size="large" color="#2563eb" /></View>;
   }
 
   return (
@@ -119,7 +119,7 @@ export default function ProfilDuzenleScreen({ navigation }) {
       <View style={s.container}>
 
         {/* Header */}
-        <LinearGradient colors={['#14532d', '#16a34a']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={s.header}>
+        <LinearGradient colors={['#1e3a8a', '#2563eb']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={s.header}>
           <TouchableOpacity style={s.geriBtn} onPress={() => navigation.goBack()}>
             <Ionicons name="chevron-back" size={24} color="#fff" />
           </TouchableOpacity>
@@ -133,14 +133,14 @@ export default function ProfilDuzenleScreen({ navigation }) {
             style={[s.tab, aktifTab === 'bilgi' && s.tabAktif]}
             onPress={() => setAktifTab('bilgi')}
           >
-            <Ionicons name="person-outline" size={16} color={aktifTab === 'bilgi' ? '#16a34a' : '#9ca3af'} />
+            <Ionicons name="person-outline" size={16} color={aktifTab === 'bilgi' ? '#2563eb' : '#9ca3af'} />
             <Text style={[s.tabText, aktifTab === 'bilgi' && s.tabTextAktif]}>Bilgileri Güncelle</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[s.tab, aktifTab === 'sifre' && s.tabAktif]}
             onPress={() => setAktifTab('sifre')}
           >
-            <Ionicons name="lock-closed-outline" size={16} color={aktifTab === 'sifre' ? '#16a34a' : '#9ca3af'} />
+            <Ionicons name="lock-closed-outline" size={16} color={aktifTab === 'sifre' ? '#2563eb' : '#9ca3af'} />
             <Text style={[s.tabText, aktifTab === 'sifre' && s.tabTextAktif]}>Şifre Güncelle</Text>
           </TouchableOpacity>
         </View>
@@ -304,9 +304,9 @@ const s = StyleSheet.create({
                     shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 4, elevation: 2 },
   tab:            { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
                     gap: 6, paddingVertical: 10, borderRadius: 10 },
-  tabAktif:       { backgroundColor: '#f0fdf4' },
+  tabAktif:       { backgroundColor: '#eff6ff' },
   tabText:        { fontSize: 13, fontWeight: '600', color: '#9ca3af' },
-  tabTextAktif:   { color: '#16a34a' },
+  tabTextAktif:   { color: '#2563eb' },
 
   icerik:         { padding: 16, paddingTop: 12 },
 
@@ -323,7 +323,7 @@ const s = StyleSheet.create({
   uyariRow:       { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: -8, marginBottom: 8 },
   uyariText:      { fontSize: 12, color: '#ef4444', fontWeight: '600' },
 
-  kaydetBtn:      { backgroundColor: '#16a34a', paddingVertical: 15, borderRadius: 14,
+  kaydetBtn:      { backgroundColor: '#2563eb', paddingVertical: 15, borderRadius: 14,
                     alignItems: 'center', marginTop: 8 },
   kaydetBtnText:  { color: '#fff', fontSize: 16, fontWeight: '800' },
 });

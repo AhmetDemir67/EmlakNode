@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+﻿import React, { useState, useCallback } from 'react';
 import {
   View, Text, ScrollView, TextInput, TouchableOpacity,
   StyleSheet, ActivityIndicator, Alert,
@@ -79,7 +79,7 @@ export default function DukkanBilgileriScreen() {
   if (yukleniyor) {
     return (
       <View style={s.merkez}>
-        <ActivityIndicator size="large" color="#16a34a" />
+        <ActivityIndicator size="large" color="#2563eb" />
       </View>
     );
   }

@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+﻿import React, { useState, useCallback } from 'react';
 import {
   View, Text, FlatList, TouchableOpacity, StyleSheet,
   Image, ActivityIndicator, Modal, ScrollView, Linking,
@@ -30,7 +30,7 @@ const IlanKarti = ({ item, onPress }) => (
     <View style={s.gorselWrap}>
       <Image source={{ uri: item.gorsel || GORSEL_FALLBACK }} style={s.gorsel} resizeMode="cover" />
       <View style={s.badgeRow}>
-        <View style={[s.tipBadge, { backgroundColor: item.tip === 'Kiralık' ? '#3b82f6' : '#16a34a' }]}>
+        <View style={[s.tipBadge, { backgroundColor: item.tip === 'Kiralık' ? '#3b82f6' : '#2563eb' }]}>
           <Text style={s.tipText}>{item.tip || 'Satılık'}</Text>
         </View>
         {item.emlak_turu ? (
@@ -48,7 +48,7 @@ const IlanKarti = ({ item, onPress }) => (
           <Text style={s.fiyat}>{fiyatFormat(item.fiyat)}</Text>
           {item.onceki_fiyat ? (
             <View style={s.dususBadge}>
-              <Ionicons name="trending-down" size={12} color="#16a34a" />
+              <Ionicons name="trending-down" size={12} color="#2563eb" />
               <Text style={s.dususText}>{fiyatFormat(item.onceki_fiyat)} → {fiyatFormat(item.fiyat)}</Text>
             </View>
           ) : null}
@@ -97,10 +97,13 @@ export default function TumIlanlarScreen({ route, navigation }) {
   const [filtreTip, setFiltreTip]         = useState(baslangicTip);
   const [filtreTur, setFiltreTur]         = useState(baslangicTur);
   const [filtreFiyatDustu]               = useState(baslangicFiyatDustu);
+  // Yazma sırasında güncellenen geçici değerler (API çağrısı tetiklemez)
   const [minFiyat, setMinFiyat]           = useState('');
   const [maxFiyat, setMaxFiyat]           = useState('');
   const [minMetrekare, setMinMetrekare]   = useState('');
   const [maxMetrekare, setMaxMetrekare]   = useState('');
+  // Uygula butonuna basınca güncellenen değerler (bunlar API çağrısını tetikler)
+  const [uygulanmis, setUygulanmis]       = useState({ minFiyat: '', maxFiyat: '', minMetrekare: '', maxMetrekare: '' });
   const [siralaMod, setSiralaMod]         = useState(false);
   const [filtreMod, setFiltreMod]         = useState(false);
   const [kaydetMod, setKaydetMod]         = useState(false);
@@ -110,14 +113,14 @@ export default function TumIlanlarScreen({ route, navigation }) {
     setYukleniyor(true);
     try {
       const params = { limit: 100 };
-      if (filtreTip !== 'Tümü') params.tip           = filtreTip;
-      if (filtreTur !== 'Tümü') params.emlak_turu    = filtreTur;
-      if (filtreFiyatDustu)     params.fiyat_dustu   = true;
-      if (baslangicQ)           params.arama         = baslangicQ;
-      if (minFiyat)             params.min_fiyat     = minFiyat;
-      if (maxFiyat)             params.max_fiyat     = maxFiyat;
-      if (minMetrekare)         params.min_metrekare = minMetrekare;
-      if (maxMetrekare)         params.max_metrekare = maxMetrekare;
+      if (filtreTip !== 'Tümü')        params.tip           = filtreTip;
+      if (filtreTur !== 'Tümü')        params.emlak_turu    = filtreTur;
+      if (filtreFiyatDustu)            params.fiyat_dustu   = true;
+      if (baslangicQ)                  params.arama         = baslangicQ;
+      if (uygulanmis.minFiyat)         params.min_fiyat     = uygulanmis.minFiyat;
+      if (uygulanmis.maxFiyat)         params.max_fiyat     = uygulanmis.maxFiyat;
+      if (uygulanmis.minMetrekare)     params.min_metrekare = uygulanmis.minMetrekare;
+      if (uygulanmis.maxMetrekare)     params.max_metrekare = uygulanmis.maxMetrekare;
       const r = await ilanlarGetir(params);
       let liste = r.data.ilanlar || [];
 
@@ -131,12 +134,12 @@ export default function TumIlanlarScreen({ route, navigation }) {
     } finally {
       setYukleniyor(false);
     }
-  }, [filtreTip, filtreTur, filtreFiyatDustu, baslangicQ, sirala, minFiyat, maxFiyat, minMetrekare, maxMetrekare]);
+  }, [filtreTip, filtreTur, filtreFiyatDustu, baslangicQ, sirala, uygulanmis]);
 
   useFocusEffect(useCallback(() => { getir(); }, [getir]));
 
   const aktifSirala = SIRALA_SECENEKLER.find(s => s.key === sirala)?.label || 'Sırala';
-  const filtreAktif = filtreTip !== 'Tümü' || filtreTur !== 'Tümü' || !!minFiyat || !!maxFiyat || !!minMetrekare || !!maxMetrekare;
+  const filtreAktif = filtreTip !== 'Tümü' || filtreTur !== 'Tümü' || !!uygulanmis.minFiyat || !!uygulanmis.maxFiyat || !!uygulanmis.minMetrekare || !!uygulanmis.maxMetrekare;
 
   const aramaKaydet = async () => {
     const token = await AsyncStorage.getItem('token');
@@ -165,7 +168,7 @@ export default function TumIlanlarScreen({ route, navigation }) {
   return (
     <View style={s.container}>
       {/* Header */}
-      <LinearGradient colors={['#14532d', '#16a34a']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={s.header}>
+      <LinearGradient colors={['#1e3a8a', '#2563eb']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={s.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={s.geriBtn}>
           <Ionicons name="arrow-back" size={22} color="#fff" />
         </TouchableOpacity>
@@ -186,7 +189,7 @@ export default function TumIlanlarScreen({ route, navigation }) {
           style={[s.aracBtn, filtreAktif && s.aracBtnAktif]}
           onPress={() => setFiltreMod(true)}
         >
-          <Ionicons name="options-outline" size={15} color={filtreAktif ? '#16a34a' : '#374151'} />
+          <Ionicons name="options-outline" size={15} color={filtreAktif ? '#2563eb' : '#374151'} />
           <Text style={[s.aracText, filtreAktif && s.aracTextAktif]}>Filtrele</Text>
           {filtreAktif ? <View style={s.filtreDot} /> : null}
         </TouchableOpacity>
@@ -207,7 +210,7 @@ export default function TumIlanlarScreen({ route, navigation }) {
 
       {/* Liste */}
       {yukleniyor ? (
-        <ActivityIndicator size="large" color="#16a34a" style={{ marginTop: 60 }} />
+        <ActivityIndicator size="large" color="#2563eb" style={{ marginTop: 60 }} />
       ) : (
         <FlatList
           data={ilanlar}
@@ -269,10 +272,10 @@ export default function TumIlanlarScreen({ route, navigation }) {
               style={s.modalSecim}
               onPress={() => { setSirala(o.key); setSiralaMod(false); }}
             >
-              <Text style={[s.modalSecimText, sirala === o.key && { color: '#16a34a', fontWeight: '700' }]}>
+              <Text style={[s.modalSecimText, sirala === o.key && { color: '#2563eb', fontWeight: '700' }]}>
                 {o.label}
               </Text>
-              {sirala === o.key ? <Ionicons name="checkmark" size={18} color="#16a34a" /> : null}
+              {sirala === o.key ? <Ionicons name="checkmark" size={18} color="#2563eb" /> : null}
             </TouchableOpacity>
           ))}
         </View>
@@ -359,7 +362,10 @@ export default function TumIlanlarScreen({ route, navigation }) {
 
           <TouchableOpacity
             style={s.filtreUygula}
-            onPress={() => { setFiltreMod(false); getir(); }}
+            onPress={() => {
+              setUygulanmis({ minFiyat, maxFiyat, minMetrekare, maxMetrekare });
+              setFiltreMod(false);
+            }}
           >
             <Text style={s.filtreUygulaText}>Uygula</Text>
           </TouchableOpacity>
@@ -370,6 +376,7 @@ export default function TumIlanlarScreen({ route, navigation }) {
               setFiltreTip('Tümü'); setFiltreTur('Tümü');
               setMinFiyat(''); setMaxFiyat('');
               setMinMetrekare(''); setMaxMetrekare('');
+              setUygulanmis({ minFiyat: '', maxFiyat: '', minMetrekare: '', maxMetrekare: '' });
               setFiltreMod(false);
             }}
           >
@@ -389,10 +396,10 @@ const s = StyleSheet.create({
   headerAlt:          { fontSize: 12, color: 'rgba(255,255,255,0.75)', marginTop: 1 },
   araçlar:            { flexDirection: 'row', backgroundColor: '#fff', paddingHorizontal: 16, paddingVertical: 10, gap: 10, borderBottomWidth: 1, borderBottomColor: '#f0f0f0' },
   aracBtn:            { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 5, paddingVertical: 9, borderRadius: 10, borderWidth: 1, borderColor: '#e5e7eb', backgroundColor: '#fafafa' },
-  aracBtnAktif:       { borderColor: '#16a34a', backgroundColor: '#f0fdf4' },
+  aracBtnAktif:       { borderColor: '#2563eb', backgroundColor: '#eff6ff' },
   aracText:           { fontSize: 13, fontWeight: '600', color: '#374151' },
-  aracTextAktif:      { color: '#16a34a' },
-  filtreDot:          { width: 6, height: 6, borderRadius: 3, backgroundColor: '#16a34a' },
+  aracTextAktif:      { color: '#2563eb' },
+  filtreDot:          { width: 6, height: 6, borderRadius: 3, backgroundColor: '#2563eb' },
   kart:               { backgroundColor: '#fff', marginHorizontal: 12, marginVertical: 5, borderRadius: 16, overflow: 'hidden', elevation: 1, shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 4 },
   gorselWrap:         { position: 'relative' },
   gorsel:             { width: '100%', height: 220 },
@@ -411,7 +418,7 @@ const s = StyleSheet.create({
   konumRow:           { flexDirection: 'row', alignItems: 'center', gap: 4 },
   konum:              { fontSize: 12, color: '#9ca3af', flex: 1 },
   dukkan:             { fontSize: 11, color: '#9ca3af', marginTop: 4 },
-  telefonBtn:         { width: 46, height: 46, borderRadius: 12, backgroundColor: '#16a34a', justifyContent: 'center', alignItems: 'center', marginTop: 4 },
+  telefonBtn:         { width: 46, height: 46, borderRadius: 12, backgroundColor: '#2563eb', justifyContent: 'center', alignItems: 'center', marginTop: 4 },
   bos:                { alignItems: 'center', paddingTop: 100, gap: 14 },
   bosText:            { fontSize: 16, color: '#9ca3af', fontWeight: '600' },
   modalArka:          { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)' },
@@ -422,10 +429,10 @@ const s = StyleSheet.create({
   modalSecimText:     { fontSize: 15, color: '#374151' },
   filtreGrupBaslik:   { fontSize: 13, fontWeight: '700', color: '#374151', marginBottom: 10 },
   filtreChip:         { paddingHorizontal: 16, paddingVertical: 9, borderRadius: 20, borderWidth: 1.5, borderColor: '#e5e7eb', backgroundColor: '#fafafa' },
-  filtreChipAktif:    { borderColor: '#16a34a', backgroundColor: '#f0fdf4' },
+  filtreChipAktif:    { borderColor: '#2563eb', backgroundColor: '#eff6ff' },
   filtreChipText:     { fontSize: 13, fontWeight: '600', color: '#6b7280' },
-  filtreChipTextAktif: { color: '#16a34a' },
-  filtreUygula:       { backgroundColor: '#16a34a', paddingVertical: 14, borderRadius: 14, alignItems: 'center', marginTop: 24 },
+  filtreChipTextAktif: { color: '#2563eb' },
+  filtreUygula:       { backgroundColor: '#2563eb', paddingVertical: 14, borderRadius: 14, alignItems: 'center', marginTop: 24 },
   filtreUygulaText:   { color: '#fff', fontSize: 15, fontWeight: '800' },
   filtreTemizle:      { paddingVertical: 12, alignItems: 'center', marginTop: 8 },
   filtreTemizleText:  { fontSize: 14, color: '#9ca3af', fontWeight: '600' },
@@ -433,6 +440,6 @@ const s = StyleSheet.create({
   aralikRow:          { flexDirection: 'row', alignItems: 'center', gap: 10 },
   aralikInput:        { flex: 1, borderWidth: 1.5, borderColor: '#e5e7eb', borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10, fontSize: 14, color: '#111827' },
   aralikAyrac:        { fontSize: 16, color: '#9ca3af', fontWeight: '700' },
-  dususBadge:         { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#f0fdf4', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 4, marginBottom: 6, alignSelf: 'flex-start' },
-  dususText:          { fontSize: 11, fontWeight: '700', color: '#16a34a' },
+  dususBadge:         { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#eff6ff', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 4, marginBottom: 6, alignSelf: 'flex-start' },
+  dususText:          { fontSize: 11, fontWeight: '700', color: '#2563eb' },
 });

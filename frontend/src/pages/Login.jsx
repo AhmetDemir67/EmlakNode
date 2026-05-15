@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   Home, Mail, Lock, Eye, EyeOff, Loader2,
@@ -46,36 +46,36 @@ const Login = () => {
   const kurumsal = aktifTab === 'kurumsal';
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-800 via-slate-700 to-green-900 flex flex-col">
+    <div className="min-h-screen bg-gradient-to-br from-slate-800 via-slate-700 to-blue-900 flex flex-col">
 
       {/* Logo */}
       <div className="p-6">
         <Link to="/" className="flex items-center gap-2 w-fit">
-          <div className="bg-green-600 text-white p-1.5 rounded-lg">
+          <div className="bg-blue-600 text-white p-1.5 rounded-lg">
             <Home size={20} />
           </div>
           <span className="text-xl font-extrabold text-white tracking-tight">
-            Emlak<span className="text-green-500">Node</span>
+            Emlak<span className="text-blue-500">Node</span>
           </span>
         </Link>
       </div>
 
       {/* Kart */}
       <div className="flex-1 flex items-center justify-center px-4 pb-12">
-        <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden">
+        <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl w-full max-w-md overflow-hidden">
 
           {/* Başlık */}
           <div className="text-center pt-8 pb-4 px-8">
-            <div className="inline-flex items-center justify-center w-14 h-14 bg-green-100 rounded-2xl mb-4">
+            <div className="inline-flex items-center justify-center w-14 h-14 bg-blue-100 dark:bg-blue-900/40 rounded-2xl mb-4">
               {kurumsal
-                ? <Building2 size={26} className="text-green-600" />
-                : <User      size={26} className="text-green-600" />
+                ? <Building2 size={26} className="text-blue-600" />
+                : <User      size={26} className="text-blue-600" />
               }
             </div>
-            <h1 className="text-2xl font-extrabold text-gray-900">
+            <h1 className="text-2xl font-extrabold text-gray-900 dark:text-white">
               {kurumsal ? 'Kurumsal Giriş' : 'Tekrar Hoşgeldin'}
             </h1>
-            <p className="text-gray-400 text-sm mt-1">
+            <p className="text-gray-400 dark:text-gray-500 text-sm mt-1">
               {kurumsal
                 ? 'Emlak ofisi hesabınızla giriş yapın'
                 : 'Hesabına giriş yap ve devam et'
@@ -84,14 +84,14 @@ const Login = () => {
           </div>
 
           {/* Tab seçici */}
-          <div className="flex mx-8 mb-6 bg-gray-100 rounded-2xl p-1 gap-1">
+          <div className="flex mx-8 mb-6 bg-gray-100 dark:bg-gray-700 rounded-2xl p-1 gap-1">
             <button
               type="button"
               onClick={() => { setAktifTab('bireysel'); setHata(null); }}
               className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold transition-all ${
                 !kurumsal
-                  ? 'bg-white text-green-700 shadow-sm'
-                  : 'text-gray-500 hover:text-gray-700'
+                  ? 'bg-white dark:bg-gray-600 text-blue-700 shadow-sm'
+                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
               }`}
             >
               <User size={15} /> Bireysel
@@ -101,8 +101,8 @@ const Login = () => {
               onClick={() => { setAktifTab('kurumsal'); setHata(null); }}
               className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold transition-all ${
                 kurumsal
-                  ? 'bg-white text-green-700 shadow-sm'
-                  : 'text-gray-500 hover:text-gray-700'
+                  ? 'bg-white dark:bg-gray-600 text-blue-700 shadow-sm'
+                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
               }`}
             >
               <Building2 size={15} /> Kurumsal
@@ -123,9 +123,9 @@ const Login = () => {
 
             {/* Başarı */}
             {basarili && (
-              <div className="flex items-center gap-3 bg-green-50 border border-green-200 rounded-xl p-4 mb-5">
-                <CheckCircle2 size={18} className="text-green-500 flex-shrink-0" />
-                <p className="text-green-700 text-sm font-medium">
+              <div className="flex items-center gap-3 bg-blue-50 border border-blue-200 rounded-xl p-4 mb-5">
+                <CheckCircle2 size={18} className="text-blue-500 flex-shrink-0" />
+                <p className="text-blue-700 text-sm font-medium">
                   Giriş başarılı! Ana sayfaya yönlendiriliyorsun…
                 </p>
               </div>
@@ -142,7 +142,7 @@ const Login = () => {
             <form onSubmit={handleSubmit} className="space-y-5">
               {/* E-posta */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1.5">
                   {kurumsal ? 'Kurumsal E-posta' : 'E-posta Adresi'}
                 </label>
                 <div className="relative">
@@ -154,8 +154,8 @@ const Login = () => {
                     onChange={handleChange}
                     placeholder={kurumsal ? 'ofis@firma.com' : 'ornek@email.com'}
                     autoComplete="email"
-                    className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl text-sm text-gray-800 placeholder-gray-400
-                      focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 transition-all"
+                    className="w-full pl-10 pr-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl text-sm text-gray-800 dark:text-gray-100 bg-white dark:bg-gray-700 placeholder-gray-400 dark:placeholder-gray-500
+                      focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all"
                   />
                 </div>
               </div>
@@ -163,8 +163,8 @@ const Login = () => {
               {/* Şifre */}
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <label className="text-sm font-semibold text-gray-700">Şifre</label>
-                  <button type="button" className="text-xs text-green-600 hover:underline font-medium">
+                  <label className="text-sm font-semibold text-gray-700 dark:text-gray-200">Şifre</label>
+                  <button type="button" className="text-xs text-blue-600 hover:underline font-medium">
                     Şifremi Unuttum
                   </button>
                 </div>
@@ -177,8 +177,8 @@ const Login = () => {
                     onChange={handleChange}
                     placeholder="Şifrenizi girin"
                     autoComplete="current-password"
-                    className="w-full pl-10 pr-12 py-3 border border-gray-200 rounded-xl text-sm text-gray-800 placeholder-gray-400
-                      focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-100 transition-all"
+                    className="w-full pl-10 pr-12 py-3 border border-gray-200 dark:border-gray-600 rounded-xl text-sm text-gray-800 dark:text-gray-100 bg-white dark:bg-gray-700 placeholder-gray-400 dark:placeholder-gray-500
+                      focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all"
                   />
                   <button
                     type="button"
@@ -194,7 +194,7 @@ const Login = () => {
               <button
                 type="submit"
                 disabled={yukleniyor || basarili}
-                className="w-full bg-green-600 hover:bg-green-700 disabled:opacity-60 disabled:cursor-not-allowed
+                className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed
                   text-white font-bold py-3.5 rounded-xl transition-all flex items-center justify-center gap-2 shadow-md hover:shadow-lg mt-2"
               >
                 {yukleniyor
@@ -207,12 +207,12 @@ const Login = () => {
             </form>
 
             {/* Alt linkler */}
-            <div className="mt-6 text-center text-sm text-gray-500">
+            <div className="mt-6 text-center text-sm text-gray-500 dark:text-gray-400">
               Hesabın yok mu?{' '}
               <Link
                 to="/kayit"
                 state={{ tab: aktifTab }}
-                className="text-green-600 font-semibold hover:underline"
+                className="text-blue-600 font-semibold hover:underline"
               >
                 {kurumsal ? 'Kurumsal Kayıt Ol' : 'Kayıt Ol'}
               </Link>
@@ -220,7 +220,7 @@ const Login = () => {
 
             {/* Demo bilgisi */}
             {!kurumsal && (
-              <div className="mt-5 pt-5 border-t border-gray-100 text-center">
+              <div className="mt-5 pt-5 border-t border-gray-100 dark:border-gray-700 text-center">
                 <p className="text-xs text-gray-400">
                   Test hesabı:{' '}
                   <span className="font-mono font-semibold text-gray-600">ahmet@emlak.com</span>

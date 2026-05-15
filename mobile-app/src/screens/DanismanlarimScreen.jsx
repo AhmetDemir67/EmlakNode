@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+﻿import React, { useState, useCallback } from 'react';
 import {
   View, Text, FlatList, TouchableOpacity,
   StyleSheet, ActivityIndicator, Alert,
@@ -76,7 +76,7 @@ export default function DanismanlarimScreen() {
   if (yukleniyor) {
     return (
       <View style={s.merkez}>
-        <ActivityIndicator size="large" color="#16a34a" />
+        <ActivityIndicator size="large" color="#2563eb" />
       </View>
     );
   }
@@ -84,7 +84,7 @@ export default function DanismanlarimScreen() {
   return (
     <View style={s.container}>
       {/* Özet Banner */}
-      <LinearGradient colors={['#14532d', '#16a34a']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={s.banner}>
+      <LinearGradient colors={['#1e3a8a', '#2563eb']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={s.banner}>
         <View style={s.bannerKart}>
           <Text style={s.bannerSayi}>{danismanlar.length}</Text>
           <Text style={s.bannerLabel}>Toplam Ekip</Text>
@@ -153,8 +153,8 @@ const s = StyleSheet.create({
   eposta:       { fontSize: 12, color: '#6b7280', marginBottom: 6 },
 
   altSatir:     { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  ilanChip:     { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#f0fdf4', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8 },
-  ilanText:     { fontSize: 11, fontWeight: '700', color: '#16a34a' },
+  ilanChip:     { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#eff6ff', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8 },
+  ilanText:     { fontSize: 11, fontWeight: '700', color: '#2563eb' },
   tarih:        { fontSize: 11, color: '#9ca3af' },
 
   bos:          { alignItems: 'center', paddingTop: 60, gap: 10 },

@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+﻿import { useState, useRef, useEffect } from 'react';
 import { Search, MapPin, ChevronDown, X, Map, Building2, Hash } from 'lucide-react';
 
 const TABS = ['Satılık', 'Kiralık', 'Projeler', 'Emlak Ofisleri', 'İlan No'];
@@ -26,8 +26,8 @@ const Dropdown = ({ label, value, items, acik, setAcik, onSec, dropRef, minWidth
       style={{ minWidth }}
       className={`h-full flex items-center gap-2 px-3 py-2 border rounded-xl text-sm font-medium transition-all whitespace-nowrap ${
         acik
-          ? 'border-green-500 bg-green-50 text-green-700 ring-2 ring-green-100'
-          : 'border-gray-200 text-gray-600 hover:border-green-400 hover:text-green-700 bg-white'
+          ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30 text-blue-700 ring-2 ring-blue-100'
+          : 'border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-200 hover:border-blue-400 hover:text-blue-700 bg-white dark:bg-gray-700'
       }`}
     >
       <span className="flex-1 text-left truncate">{value || label}</span>
@@ -35,7 +35,7 @@ const Dropdown = ({ label, value, items, acik, setAcik, onSec, dropRef, minWidth
     </button>
 
     {acik && (
-      <div className="absolute top-full left-0 mt-1.5 bg-white border border-gray-100 rounded-2xl shadow-2xl z-[200] py-1.5 overflow-hidden" style={{ minWidth: Math.max(minWidth, 160) }}>
+      <div className="absolute top-full left-0 mt-1.5 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl shadow-2xl z-[200] py-1.5 overflow-hidden" style={{ minWidth: Math.max(minWidth, 160) }}>
         {items.map((item, i) => {
           const itemLabel = typeof item === 'string' ? item : item.label;
           const isAktif   = typeof item === 'string' ? value === item : value === item.label;
@@ -45,7 +45,7 @@ const Dropdown = ({ label, value, items, acik, setAcik, onSec, dropRef, minWidth
               type="button"
               onClick={() => { onSec(item); setAcik(false); }}
               className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${
-                isAktif ? 'text-green-700 bg-green-50 font-semibold' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-800'
+                isAktif ? 'text-blue-700 bg-blue-50 dark:bg-blue-900/30 font-semibold' : 'text-gray-600 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-800 dark:hover:text-white'
               }`}
             >
               {itemLabel}
@@ -59,15 +59,15 @@ const Dropdown = ({ label, value, items, acik, setAcik, onSec, dropRef, minWidth
 
 // ── Metin girişi (ortak stil) ─────────────────────────────────────
 const MetinGirisi = ({ icon: Icon, value, onChange, onKeyDown, placeholder, type = 'text' }) => (
-  <div className="flex-1 flex items-center gap-2 border border-gray-200 rounded-xl px-3 focus-within:border-green-500 focus-within:ring-2 focus-within:ring-green-100 transition-all min-w-0">
-    <Icon size={16} className="text-green-500 flex-shrink-0" />
+  <div className="flex-1 flex items-center gap-2 border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 rounded-xl px-3 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100 transition-all min-w-0">
+    <Icon size={16} className="text-blue-500 flex-shrink-0" />
     <input
       type={type}
       value={value}
       onChange={onChange}
       onKeyDown={onKeyDown}
       placeholder={placeholder}
-      className="flex-1 outline-none text-sm text-gray-700 placeholder-gray-400 py-3 bg-transparent min-w-0"
+      className="flex-1 outline-none text-sm text-gray-700 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 py-3 bg-transparent min-w-0"
     />
     {value && (
       <button type="button" onClick={() => onChange({ target: { value: '' } })} className="flex-shrink-0">
@@ -147,17 +147,17 @@ const Hero = ({ onAra, onHaritaAra }) => {
 
         <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-white mb-1.5 leading-tight drop-shadow-lg">
           Satılık Ev Arıyorsan Çözüm Net:
-          <span className="text-green-400"> EmlakNode</span>
+          <span className="text-blue-400"> EmlakNode</span>
         </h1>
         <p className="text-white/70 text-sm md:text-base mb-6 drop-shadow">
           Türkiye'nin güvenilir emlak platformu · 500.000+ güncel ilan
         </p>
 
         {/* Arama Kartı */}
-        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl overflow-visible">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-5xl overflow-visible">
 
           {/* Tab'lar */}
-          <div className="flex border-b border-gray-100 overflow-x-auto">
+          <div className="flex border-b border-gray-100 dark:border-gray-700 overflow-x-auto">
             {TABS.map(tab => (
               <button
                 key={tab}
@@ -165,8 +165,8 @@ const Hero = ({ onAra, onHaritaAra }) => {
                 onClick={() => setAktifTab(tab)}
                 className={`flex-shrink-0 px-5 py-3.5 text-sm font-bold border-b-2 -mb-px transition-all ${
                   aktifTab === tab
-                    ? 'text-green-600 border-green-600 bg-green-50/50'
-                    : 'text-gray-500 border-transparent hover:text-gray-700 hover:bg-gray-50/50'
+                    ? 'text-blue-600 border-blue-600 bg-blue-50/50 dark:bg-blue-900/20'
+                    : 'text-gray-500 dark:text-gray-400 border-transparent hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-50/50 dark:hover:bg-gray-700/50'
                 }`}
               >
                 {tab}
@@ -263,7 +263,7 @@ const Hero = ({ onAra, onHaritaAra }) => {
             <button
               type="button"
               onClick={handleAra}
-              className="flex items-center gap-2 bg-green-600 hover:bg-green-700 active:scale-95 text-white px-6 py-2.5 rounded-xl font-bold text-sm transition-all shadow-md whitespace-nowrap"
+              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white px-6 py-2.5 rounded-xl font-bold text-sm transition-all shadow-md whitespace-nowrap"
             >
               <Search size={16} />
               Ara
@@ -274,7 +274,7 @@ const Hero = ({ onAra, onHaritaAra }) => {
               <button
                 type="button"
                 onClick={handleHaritadaAra}
-                className="flex items-center gap-2 border-2 border-green-600 text-green-600 hover:bg-green-50 active:scale-95 px-4 py-2.5 rounded-xl font-bold text-sm transition-all whitespace-nowrap"
+                className="flex items-center gap-2 border-2 border-blue-600 text-blue-600 hover:bg-blue-50 active:scale-95 px-4 py-2.5 rounded-xl font-bold text-sm transition-all whitespace-nowrap"
               >
                 <Map size={15} />
                 Haritada Ara

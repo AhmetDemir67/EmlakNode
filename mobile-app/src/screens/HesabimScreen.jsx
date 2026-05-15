@@ -1,40 +1,41 @@
 import React, { useState, useCallback } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity,
-  StyleSheet, Alert, StatusBar, Linking,
+  StyleSheet, Alert, Switch, StatusBar, Linking,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { resetToAna } from '../services/navigationRef';
+import { useTheme } from '../context/ThemeContext';
 
 /* ─── Yardımcı bileşenler ─── */
 
-const MenuItem = ({ icon, iconBg, iconColor, label, alt, onPress, badge, danger, son }) => (
+const MenuItem = ({ icon, iconBg, iconColor, label, alt, onPress, badge, danger, son, colors }) => (
   <TouchableOpacity
-    style={[s.menuItem, son && { borderBottomWidth: 0 }]}
+    style={[{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 13, gap: 12, borderBottomWidth: son ? 0 : 1, borderBottomColor: colors.border }]}
     onPress={onPress}
     activeOpacity={0.7}
   >
-    <View style={[s.menuIkon, { backgroundColor: iconBg || '#f3f4f6' }]}>
-      <Ionicons name={icon} size={20} color={danger ? '#ef4444' : (iconColor || '#16a34a')} />
+    <View style={[s.menuIkon, { backgroundColor: danger ? '#fff1f2' : (iconBg || colors.bg) }]}>
+      <Ionicons name={icon} size={20} color={danger ? '#ef4444' : (iconColor || '#2563eb')} />
     </View>
     <View style={{ flex: 1 }}>
-      <Text style={[s.menuLabel, danger && { color: '#ef4444' }]}>{label}</Text>
-      {alt ? <Text style={s.menuAlt}>{alt}</Text> : null}
+      <Text style={[s.menuLabel, { color: danger ? '#ef4444' : colors.text }]}>{label}</Text>
+      {alt ? <Text style={[s.menuAlt, { color: colors.textMuted }]}>{alt}</Text> : null}
     </View>
-    {badge ? <View style={s.badge}><Text style={s.badgeText}>{badge}</Text></View> : null}
-    {!danger && <Ionicons name="chevron-forward" size={16} color="#d1d5db" />}
+    {badge ? <View style={[s.badge, { backgroundColor: colors.badge }]}><Text style={[s.badgeText, { color: colors.badgeText }]}>{badge}</Text></View> : null}
+    {!danger && <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />}
   </TouchableOpacity>
 );
 
-const HizliKart = ({ icon, label, renk, onPress }) => (
+const HizliKart = ({ icon, label, renk, onPress, colors }) => (
   <TouchableOpacity style={s.hizliKart} onPress={onPress} activeOpacity={0.8}>
     <View style={[s.hizliIkon, { backgroundColor: renk + '20' }]}>
       <Ionicons name={icon} size={22} color={renk} />
     </View>
-    <Text style={s.hizliLabel}>{label}</Text>
+    <Text style={[s.hizliLabel, { color: colors.text }]}>{label}</Text>
   </TouchableOpacity>
 );
 
@@ -45,6 +46,7 @@ const bas = (str = '') =>
 /* ─── Ana ekran ─── */
 export default function HesabimScreen({ navigation }) {
   const [kullanici, setKullanici] = useState(null);
+  const { tema, toggle, colors } = useTheme();
 
   useFocusEffect(
     useCallback(() => {
@@ -71,13 +73,13 @@ export default function HesabimScreen({ navigation }) {
   /* ── Giriş yapılmamış ── */
   if (!kullanici) {
     return (
-      <View style={s.girisEkran}>
-        <StatusBar barStyle="dark-content" />
-        <View style={s.girisIkon}>
-          <Ionicons name="home" size={40} color="#16a34a" />
+      <View style={[s.girisEkran, { backgroundColor: colors.card }]}>
+        <StatusBar barStyle={tema === 'dark' ? 'light-content' : 'dark-content'} />
+        <View style={[s.girisIkon, { backgroundColor: '#eff6ff' }]}>
+          <Ionicons name="home" size={40} color="#2563eb" />
         </View>
-        <Text style={s.girisBaslik}>EmlakNode'a Hoş Geldiniz</Text>
-        <Text style={s.girisAlt}>
+        <Text style={[s.girisBaslik, { color: colors.text }]}>EmlakNode'a Hoş Geldiniz</Text>
+        <Text style={[s.girisAlt, { color: colors.textSecondary }]}>
           İlanlarınızı yönetmek, favori ilanlarınızı kaydetmek ve daha fazlası için giriş yapın.
         </Text>
         <TouchableOpacity style={s.girisBtn} onPress={() => navigation.navigate('Giris')}>
@@ -85,7 +87,7 @@ export default function HesabimScreen({ navigation }) {
           <Text style={s.girisBtnText}>Giriş Yap</Text>
         </TouchableOpacity>
         <TouchableOpacity style={s.kayitBtn} onPress={() => navigation.navigate('Kayit')}>
-          <Text style={s.kayitBtnText}>Hesabın yok mu? <Text style={{ color: '#16a34a', fontWeight: '700' }}>Kayıt Ol</Text></Text>
+          <Text style={[s.kayitBtnText, { color: colors.textSecondary }]}>Hesabın yok mu? <Text style={{ color: '#2563eb', fontWeight: '700' }}>Kayıt Ol</Text></Text>
         </TouchableOpacity>
       </View>
     );
@@ -94,11 +96,11 @@ export default function HesabimScreen({ navigation }) {
   const kurumsal = !!kullanici.dukkan_id;
 
   return (
-    <ScrollView style={s.container} showsVerticalScrollIndicator={false}>
+    <ScrollView style={[s.container, { backgroundColor: colors.bg }]} showsVerticalScrollIndicator={false}>
       <StatusBar barStyle="light-content" />
 
       {/* ── YEŞİL HEADER BANNER ── */}
-      <LinearGradient colors={['#14532d', '#16a34a', '#22c55e']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.banner}>
+      <LinearGradient colors={['#1e3a8a', '#2563eb', '#3b82f6']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.banner}>
         <TouchableOpacity
           style={s.duzenleBtn}
           onPress={() => navigation.navigate('ProfilDuzenle')}
@@ -130,179 +132,86 @@ export default function HesabimScreen({ navigation }) {
       </LinearGradient>
 
       {/* ── HIZLI AKSİYONLAR ── */}
-      <View style={s.hizliRow}>
-        <HizliKart
-          icon="list-outline"
-          label="İlanlarım"
-          renk="#16a34a"
-          onPress={() => navigation.navigate('Ilanlarim')}
-        />
-        <HizliKart
-          icon="heart-outline"
-          label="Favorilerim"
-          renk="#ef4444"
-          onPress={() => navigation.navigate('Favoriler')}
-        />
+      <View style={[s.hizliRow, { backgroundColor: colors.card }]}>
+        <HizliKart icon="list-outline"  label="İlanlarım"   renk="#2563eb" onPress={() => navigation.navigate('Ilanlarim')} colors={colors} />
+        <HizliKart icon="heart-outline" label="Favorilerim" renk="#ef4444" onPress={() => navigation.navigate('Favoriler')} colors={colors} />
         {kurumsal ? (
-          <HizliKart
-            icon="people-outline"
-            label="Danışmanlar"
-            renk="#3b82f6"
-            onPress={() => yakinda('Danışmanlarım')}
-          />
+          <HizliKart icon="people-outline" label="Danışmanlar" renk="#3b82f6" onPress={() => yakinda('Danışmanlarım')} colors={colors} />
         ) : (
-          <HizliKart
-            icon="search-outline"
-            label="Aramalarım"
-            renk="#8b5cf6"
-            onPress={() => navigation.navigate('KayitliAramalar')}
-          />
+          <HizliKart icon="search-outline" label="Aramalarım" renk="#8b5cf6" onPress={() => navigation.navigate('KayitliAramalar')} colors={colors} />
         )}
       </View>
 
       {/* ── KURUMSAL: DÜKKAN PROFİLİ ── */}
       {kurumsal && (
         <View style={s.grup}>
-          <Text style={s.grupBaslik}>DÜKKAN PROFİLİ</Text>
-          <View style={s.grupKutu}>
-            <MenuItem
-              icon="business-outline"
-              iconBg="#eff6ff"
-              iconColor="#3b82f6"
-              label="Dükkan Bilgilerim"
-              alt="Ofis adı, konum, lisans"
-              onPress={() => navigation.navigate('DukkanBilgileri')}
-            />
-            <MenuItem
-              icon="people-outline"
-              iconBg="#eff6ff"
-              iconColor="#3b82f6"
-              label="Danışmanlarım"
-              alt="Ekip yönetimi"
-              onPress={() => navigation.navigate('Danismanlarim')}
-            />
-            <MenuItem
-              icon="stats-chart-outline"
-              iconBg="#eff6ff"
-              iconColor="#3b82f6"
-              label="İstatistikler"
-              alt="Görüntülenme ve tıklanma verileri"
-              onPress={() => navigation.navigate('Istatistikler')}
-              son
-            />
+          <Text style={[s.grupBaslik, { color: colors.grupBaslik }]}>DÜKKAN PROFİLİ</Text>
+          <View style={[s.grupKutu, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <MenuItem icon="business-outline" iconBg="#eff6ff" iconColor="#3b82f6" label="Dükkan Bilgilerim" alt="Ofis adı, konum, lisans" onPress={() => navigation.navigate('DukkanBilgileri')} colors={colors} />
+            <MenuItem icon="people-outline" iconBg="#eff6ff" iconColor="#3b82f6" label="Danışmanlarım" alt="Ekip yönetimi" onPress={() => navigation.navigate('Danismanlarim')} colors={colors} />
+            <MenuItem icon="stats-chart-outline" iconBg="#eff6ff" iconColor="#3b82f6" label="İstatistikler" alt="Görüntülenme ve tıklanma verileri" onPress={() => navigation.navigate('Istatistikler')} son colors={colors} />
           </View>
         </View>
       )}
 
       {/* ── İLAN YÖNETİMİ ── */}
       <View style={s.grup}>
-        <Text style={s.grupBaslik}>İLAN YÖNETİMİ</Text>
-        <View style={s.grupKutu}>
-          <MenuItem
-            icon="home-outline"
-            iconBg="#f0fdf4"
-            label="İlanlarım"
-            alt="Aktif ve pasif ilanlarınız"
-            onPress={() => navigation.navigate('Ilanlarim')}
-          />
-          <MenuItem
-            icon="add-circle-outline"
-            iconBg="#f0fdf4"
-            label="Yeni İlan Ver"
-            alt={kurumsal ? 'Sınırsız ilan hakkı' : 'Bireysel hesap: 3 ilan hakkı'}
-            onPress={() => navigation.navigate('IlanVer')}
-            badge="YENİ"
-            son
-          />
+        <Text style={[s.grupBaslik, { color: colors.grupBaslik }]}>İLAN YÖNETİMİ</Text>
+        <View style={[s.grupKutu, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          <MenuItem icon="home-outline" iconBg="#eff6ff" label="İlanlarım" alt="Aktif ve pasif ilanlarınız" onPress={() => navigation.navigate('Ilanlarim')} colors={colors} />
+          <MenuItem icon="add-circle-outline" iconBg="#eff6ff" label="Yeni İlan Ver" alt={kurumsal ? 'Sınırsız ilan hakkı' : 'Bireysel hesap: 3 ilan hakkı'} onPress={() => navigation.navigate('IlanVer')} badge="YENİ" son colors={colors} />
         </View>
       </View>
 
       {/* ── BANA ÖZEL ── */}
       <View style={s.grup}>
-        <Text style={s.grupBaslik}>BANA ÖZEL</Text>
-        <View style={s.grupKutu}>
-          <MenuItem
-            icon="heart-outline"
-            iconBg="#fff1f2"
-            iconColor="#ef4444"
-            label="Favorilerim"
-            alt="Beğendiğin ilanlar"
-            onPress={() => navigation.navigate('Favoriler')}
-          />
-          <MenuItem
-            icon="bookmark-outline"
-            iconBg="#eff6ff"
-            iconColor="#3b82f6"
-            label="Kayıtlı Aramalarım"
-            alt="Kaydedilmiş filtreler"
-            onPress={() => navigation.navigate('KayitliAramalar')}
-          />
-          <MenuItem
-            icon="location-outline"
-            iconBg="#faf5ff"
-            iconColor="#8b5cf6"
-            label="Kayıtlı Adreslerim"
-            alt="Ev, iş, okul..."
-            onPress={() => navigation.navigate('KayitliAdresler')}
-            son
-          />
+        <Text style={[s.grupBaslik, { color: colors.grupBaslik }]}>BANA ÖZEL</Text>
+        <View style={[s.grupKutu, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          <MenuItem icon="heart-outline" iconBg="#fff1f2" iconColor="#ef4444" label="Favorilerim" alt="Beğendiğin ilanlar" onPress={() => navigation.navigate('Favoriler')} colors={colors} />
+          <MenuItem icon="bookmark-outline" iconBg="#eff6ff" iconColor="#3b82f6" label="Kayıtlı Aramalarım" alt="Kaydedilmiş filtreler" onPress={() => navigation.navigate('KayitliAramalar')} colors={colors} />
+          <MenuItem icon="location-outline" iconBg="#faf5ff" iconColor="#8b5cf6" label="Kayıtlı Adreslerim" alt="Ev, iş, okul..." onPress={() => navigation.navigate('KayitliAdresler')} son colors={colors} />
         </View>
       </View>
 
       {/* ── HESAP ── */}
       <View style={s.grup}>
-        <Text style={s.grupBaslik}>HESAP</Text>
-        <View style={s.grupKutu}>
-          <MenuItem
-            icon="person-circle-outline"
-            iconBg="#f0fdf4"
-            label="Üyelik Bilgilerim"
-            alt="Ad, e-posta, telefon, şifre"
-            onPress={() => navigation.navigate('ProfilDuzenle')}
-          />
-          <MenuItem
-            icon="notifications-outline"
-            iconBg="#fff7ed"
-            iconColor="#f97316"
-            label="Bildirim Ayarları"
-            onPress={() => Linking.openSettings()}
-          />
-          <MenuItem
-            icon="shield-checkmark-outline"
-            iconBg="#f0fdf4"
-            label="Gizlilik ve Güvenlik"
-            onPress={() => yakinda('Gizlilik')}
-            son
-          />
+        <Text style={[s.grupBaslik, { color: colors.grupBaslik }]}>HESAP</Text>
+        <View style={[s.grupKutu, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          <MenuItem icon="person-circle-outline" iconBg="#eff6ff" label="Üyelik Bilgilerim" alt="Ad, e-posta, telefon, şifre" onPress={() => navigation.navigate('ProfilDuzenle')} colors={colors} />
+          <MenuItem icon="notifications-outline" iconBg="#fff7ed" iconColor="#f97316" label="Bildirim Ayarları" onPress={() => Linking.openSettings()} colors={colors} />
+          <MenuItem icon="shield-checkmark-outline" iconBg="#eff6ff" label="Gizlilik ve Güvenlik" onPress={() => yakinda('Gizlilik')} son colors={colors} />
+        </View>
+      </View>
+
+      {/* ── GÖRÜNÜM ── */}
+      <View style={s.grup}>
+        <Text style={[s.grupBaslik, { color: colors.grupBaslik }]}>GÖRÜNÜM</Text>
+        <View style={[s.grupKutu, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          <View style={[{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 13, gap: 12 }]}>
+            <View style={[s.menuIkon, { backgroundColor: tema === 'dark' ? '#1e293b' : '#f1f5f9' }]}>
+              <Ionicons name={tema === 'dark' ? 'moon' : 'sunny-outline'} size={20} color={tema === 'dark' ? '#93c5fd' : '#f97316'} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={[s.menuLabel, { color: colors.text }]}>Karanlık Mod</Text>
+              <Text style={[s.menuAlt, { color: colors.textMuted }]}>{tema === 'dark' ? 'Açık' : 'Kapalı'}</Text>
+            </View>
+            <Switch
+              value={tema === 'dark'}
+              onValueChange={toggle}
+              trackColor={{ false: '#e5e7eb', true: '#2563eb' }}
+              thumbColor={tema === 'dark' ? '#fff' : '#f4f4f5'}
+            />
+          </View>
         </View>
       </View>
 
       {/* ── DİĞER ── */}
       <View style={s.grup}>
-        <Text style={s.grupBaslik}>DİĞER</Text>
-        <View style={s.grupKutu}>
-          <MenuItem
-            icon="help-circle-outline"
-            iconBg="#f0f9ff"
-            iconColor="#0ea5e9"
-            label="Yardım & Destek"
-            onPress={() => yakinda('Yardım')}
-          />
-          <MenuItem
-            icon="information-circle-outline"
-            iconBg="#f5f3ff"
-            iconColor="#8b5cf6"
-            label="Uygulama Hakkında"
-            onPress={() => Alert.alert('EmlakNode', 'Sürüm 1.0.0\nGeliştirici: EmlakNode Ekibi')}
-          />
-          <MenuItem
-            icon="log-out-outline"
-            iconBg="#fff1f2"
-            label="Çıkış Yap"
-            onPress={cikis}
-            danger
-            son
-          />
+        <Text style={[s.grupBaslik, { color: colors.grupBaslik }]}>DİĞER</Text>
+        <View style={[s.grupKutu, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          <MenuItem icon="help-circle-outline" iconBg="#f0f9ff" iconColor="#0ea5e9" label="Yardım & Destek" onPress={() => yakinda('Yardım')} colors={colors} />
+          <MenuItem icon="information-circle-outline" iconBg="#f5f3ff" iconColor="#8b5cf6" label="Uygulama Hakkında" onPress={() => Alert.alert('EmlakNode', 'Sürüm 1.0.0\nGeliştirici: EmlakNode Ekibi')} colors={colors} />
+          <MenuItem icon="log-out-outline" iconBg="#fff1f2" label="Çıkış Yap" onPress={cikis} danger son colors={colors} />
         </View>
       </View>
 
@@ -312,46 +221,45 @@ export default function HesabimScreen({ navigation }) {
 }
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f5f5f5' },
+  container: { flex: 1 },
 
   /* ── Giriş ekranı ── */
-  girisEkran:   { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 12, padding: 40, backgroundColor: '#fff' },
-  girisIkon:    { width: 88, height: 88, borderRadius: 44, backgroundColor: '#f0fdf4', justifyContent: 'center', alignItems: 'center', marginBottom: 8 },
-  girisBaslik:  { fontSize: 22, fontWeight: '900', color: '#111827', textAlign: 'center' },
-  girisAlt:     { fontSize: 14, color: '#6b7280', textAlign: 'center', lineHeight: 22 },
-  girisBtn:     { flexDirection: 'row', alignItems: 'center', backgroundColor: '#16a34a', paddingHorizontal: 40, paddingVertical: 15, borderRadius: 14, marginTop: 8, width: '100%', justifyContent: 'center' },
+  girisEkran:   { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 12, padding: 40 },
+  girisIkon:    { width: 88, height: 88, borderRadius: 44, justifyContent: 'center', alignItems: 'center', marginBottom: 8 },
+  girisBaslik:  { fontSize: 22, fontWeight: '900', textAlign: 'center' },
+  girisAlt:     { fontSize: 14, textAlign: 'center', lineHeight: 22 },
+  girisBtn:     { flexDirection: 'row', alignItems: 'center', backgroundColor: '#2563eb', paddingHorizontal: 40, paddingVertical: 15, borderRadius: 14, marginTop: 8, width: '100%', justifyContent: 'center' },
   girisBtnText: { color: '#fff', fontSize: 16, fontWeight: '800' },
   kayitBtn:     { paddingVertical: 12 },
-  kayitBtnText: { fontSize: 14, color: '#6b7280' },
+  kayitBtnText: { fontSize: 14 },
 
   /* ── Banner ── */
   banner:       { paddingTop: 52, paddingBottom: 32, alignItems: 'center', gap: 6 },
   duzenleBtn:   { position: 'absolute', top: 52, right: 16, width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.2)', justifyContent: 'center', alignItems: 'center' },
   avatarWrap:   { position: 'relative', marginBottom: 4 },
   avatar:       { width: 80, height: 80, borderRadius: 40, backgroundColor: '#fff', justifyContent: 'center', alignItems: 'center', borderWidth: 3, borderColor: 'rgba(255,255,255,0.5)' },
-  avatarText:   { fontSize: 28, fontWeight: '900', color: '#16a34a' },
-  kurumsalRozet:{ position: 'absolute', bottom: 0, right: 0, width: 24, height: 24, borderRadius: 12, backgroundColor: '#3b82f6', justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: '#16a34a' },
+  avatarText:   { fontSize: 28, fontWeight: '900', color: '#2563eb' },
+  kurumsalRozet:{ position: 'absolute', bottom: 0, right: 0, width: 24, height: 24, borderRadius: 12, backgroundColor: '#3b82f6', justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: '#2563eb' },
   bannerAd:     { fontSize: 20, fontWeight: '900', color: '#fff' },
   bannerEposta: { fontSize: 13, color: 'rgba(255,255,255,0.8)' },
   rolBadge:     { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.2)', paddingHorizontal: 12, paddingVertical: 4, borderRadius: 20, borderWidth: 1, borderColor: 'rgba(255,255,255,0.3)' },
   rolText:      { fontSize: 12, fontWeight: '700', color: '#fff' },
 
   /* ── Hızlı aksiyonlar ── */
-  hizliRow:     { flexDirection: 'row', backgroundColor: '#fff', marginHorizontal: 16, marginTop: -16, borderRadius: 16, padding: 16, gap: 8, elevation: 4, shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 8, shadowOffset: { width: 0, height: 4 } },
+  hizliRow:     { flexDirection: 'row', marginHorizontal: 16, marginTop: -16, borderRadius: 16, padding: 16, gap: 8, elevation: 4, shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 8, shadowOffset: { width: 0, height: 4 } },
   hizliKart:    { flex: 1, alignItems: 'center', gap: 8 },
   hizliIkon:    { width: 48, height: 48, borderRadius: 14, justifyContent: 'center', alignItems: 'center' },
-  hizliLabel:   { fontSize: 11, fontWeight: '700', color: '#374151', textAlign: 'center' },
+  hizliLabel:   { fontSize: 11, fontWeight: '700', textAlign: 'center' },
 
   /* ── Gruplar ── */
   grup:         { marginTop: 20 },
-  grupBaslik:   { fontSize: 11, fontWeight: '700', color: '#9ca3af', paddingHorizontal: 20, paddingBottom: 8, letterSpacing: 0.8 },
-  grupKutu:     { backgroundColor: '#fff', marginHorizontal: 16, borderRadius: 16, overflow: 'hidden', borderWidth: 1, borderColor: '#f0f0f0' },
+  grupBaslik:   { fontSize: 11, fontWeight: '700', paddingHorizontal: 20, paddingBottom: 8, letterSpacing: 0.8 },
+  grupKutu:     { marginHorizontal: 16, borderRadius: 16, overflow: 'hidden', borderWidth: 1 },
 
   /* ── Menu item ── */
-  menuItem:     { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 13, gap: 12, borderBottomWidth: 1, borderBottomColor: '#f9fafb' },
   menuIkon:     { width: 40, height: 40, borderRadius: 12, justifyContent: 'center', alignItems: 'center' },
-  menuLabel:    { fontSize: 15, fontWeight: '600', color: '#111827' },
-  menuAlt:      { fontSize: 12, color: '#9ca3af', marginTop: 1 },
-  badge:        { backgroundColor: '#dcfce7', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 8, marginRight: 4 },
-  badgeText:    { fontSize: 10, fontWeight: '800', color: '#16a34a' },
+  menuLabel:    { fontSize: 15, fontWeight: '600' },
+  menuAlt:      { fontSize: 12, marginTop: 1 },
+  badge:        { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 8, marginRight: 4 },
+  badgeText:    { fontSize: 10, fontWeight: '800' },
 });

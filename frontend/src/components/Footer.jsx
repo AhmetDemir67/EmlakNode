@@ -1,4 +1,4 @@
-import { Home, Phone, Mail, MapPin, Globe, MessageCircle, Send, Video } from 'lucide-react';
+﻿import { Home, Phone, Mail, MapPin, Globe, MessageCircle, Send, Video } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const Footer = () => (
@@ -9,11 +9,11 @@ const Footer = () => (
         {/* Marka */}
         <div>
           <div className="flex items-center gap-2.5 mb-4">
-            <div className="w-9 h-9 bg-green-600 rounded-xl flex items-center justify-center">
+            <div className="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center">
               <Home size={18} className="text-white" />
             </div>
             <span className="text-white text-xl font-black">
-              Emlak<span className="text-green-400">Node</span>
+              Emlak<span className="text-blue-400">Node</span>
             </span>
           </div>
           <p className="text-sm text-gray-400 leading-relaxed mb-5">
@@ -24,7 +24,7 @@ const Footer = () => (
               <a
                 key={i}
                 href="#"
-                className="w-8 h-8 bg-gray-800 hover:bg-green-600 rounded-lg flex items-center justify-center transition-colors"
+                className="w-8 h-8 bg-gray-800 hover:bg-blue-600 rounded-lg flex items-center justify-center transition-colors"
               >
                 <Icon size={15} className="text-gray-300" />
               </a>
@@ -44,7 +44,7 @@ const Footer = () => (
               { label: 'Kayıt Ol',        to: '/kayit' },
             ].map(l => (
               <li key={l.label}>
-                <Link to={l.to} className="text-sm text-gray-400 hover:text-green-400 transition-colors">
+                <Link to={l.to} className="text-sm text-gray-400 hover:text-blue-400 transition-colors">
                   {l.label}
                 </Link>
               </li>
@@ -60,7 +60,7 @@ const Footer = () => (
               <li key={k}>
                 <Link
                   to={`/?emlak_turu=${encodeURIComponent(k)}`}
-                  className="text-sm text-gray-400 hover:text-green-400 transition-colors"
+                  className="text-sm text-gray-400 hover:text-blue-400 transition-colors"
                 >
                   {k}
                 </Link>
@@ -74,15 +74,15 @@ const Footer = () => (
           <h4 className="text-white font-bold text-sm uppercase tracking-wider mb-4">İletişim</h4>
           <ul className="space-y-3.5">
             <li className="flex items-start gap-3 text-sm text-gray-400">
-              <MapPin size={15} className="text-green-400 mt-0.5 flex-shrink-0" />
+              <MapPin size={15} className="text-blue-400 mt-0.5 flex-shrink-0" />
               <span>Merkez Mah. Dijital Sk. No:1<br />İstanbul, Türkiye</span>
             </li>
             <li className="flex items-center gap-3 text-sm text-gray-400">
-              <Phone size={15} className="text-green-400 flex-shrink-0" />
+              <Phone size={15} className="text-blue-400 flex-shrink-0" />
               <span>+90 555 123 45 67</span>
             </li>
             <li className="flex items-center gap-3 text-sm text-gray-400">
-              <Mail size={15} className="text-green-400 flex-shrink-0" />
+              <Mail size={15} className="text-blue-400 flex-shrink-0" />
               <span>info@emlaknode.com</span>
             </li>
           </ul>
@@ -93,11 +93,11 @@ const Footer = () => (
       <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-3">
         <p className="text-xs text-gray-500">© 2024 EmlakNode. Tüm hakları saklıdır.</p>
         <div className="flex items-center gap-4 text-xs text-gray-500">
-          <a href="#" className="hover:text-green-400 transition-colors">Gizlilik Politikası</a>
+          <a href="#" className="hover:text-blue-400 transition-colors">Gizlilik Politikası</a>
           <span>·</span>
-          <a href="#" className="hover:text-green-400 transition-colors">Kullanım Koşulları</a>
+          <a href="#" className="hover:text-blue-400 transition-colors">Kullanım Koşulları</a>
           <span>·</span>
-          <a href="#" className="hover:text-green-400 transition-colors">KVKK</a>
+          <a href="#" className="hover:text-blue-400 transition-colors">KVKK</a>
         </div>
       </div>
     </div>

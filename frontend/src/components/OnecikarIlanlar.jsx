@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+﻿import { useState, useRef } from 'react';
 import { ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -41,7 +41,7 @@ const IlanKarti = ({ ilan }) => {
           onError={e => { e.currentTarget.src = GORSEL_FALLBACK; }}
         />
         <div className="absolute top-2 left-2 flex gap-1.5">
-          <span className="bg-green-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-md tracking-wide">
+          <span className="bg-blue-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-md tracking-wide">
             ÖNE ÇIKAN
           </span>
         </div>
@@ -64,10 +64,10 @@ const IlanKarti = ({ ilan }) => {
             📍 {[ilan.ilce, ilan.sehir].filter(Boolean).join(', ')}
           </p>
         )}
-        <p className="text-green-700 font-extrabold text-sm mt-0.5">{fiyatFormat(ilan.fiyat)}</p>
+        <p className="text-blue-700 font-extrabold text-sm mt-0.5">{fiyatFormat(ilan.fiyat)}</p>
         <button
           onClick={e => { e.stopPropagation(); navigate(`/ilan/${ilan.id}`); }}
-          className="mt-1.5 w-full bg-green-600 hover:bg-green-700 text-white text-xs font-bold py-1.5 rounded-lg transition-colors"
+          className="mt-1.5 w-full bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-1.5 rounded-lg transition-colors"
         >
           İncele
         </button>
@@ -103,7 +103,7 @@ const OnecikarIlanlar = ({ ilanlar = [] }) => {
           <h2 className="text-2xl font-extrabold text-gray-900">Ev Mi Arıyorsun?</h2>
           <a
             href="/ilanlar"
-            className="text-green-600 hover:text-green-700 text-sm font-semibold flex items-center gap-1 transition-colors"
+            className="text-blue-600 hover:text-blue-700 text-sm font-semibold flex items-center gap-1 transition-colors"
           >
             Tüm İlanlar <ArrowRight size={14} />
           </a>
@@ -117,7 +117,7 @@ const OnecikarIlanlar = ({ ilanlar = [] }) => {
               onClick={() => setAktifTab(tab.id)}
               className={`flex-shrink-0 px-4 py-2.5 text-sm font-semibold border-b-2 -mb-px transition-colors whitespace-nowrap ${
                 aktifTab === tab.id
-                  ? 'text-green-600 border-green-600'
+                  ? 'text-blue-600 border-blue-600'
                   : 'text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-300'
               }`}
             >
@@ -130,7 +130,7 @@ const OnecikarIlanlar = ({ ilanlar = [] }) => {
         <div className="relative">
           <button
             onClick={() => kaydir(-1)}
-            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-5 z-10 bg-white shadow-md border border-gray-100 rounded-full w-9 h-9 flex items-center justify-center hover:bg-green-50 hover:border-green-300 transition-colors"
+            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-5 z-10 bg-white shadow-md border border-gray-100 rounded-full w-9 h-9 flex items-center justify-center hover:bg-blue-50 hover:border-blue-300 transition-colors"
           >
             <ChevronLeft size={18} className="text-gray-600" />
           </button>
@@ -152,7 +152,7 @@ const OnecikarIlanlar = ({ ilanlar = [] }) => {
 
           <button
             onClick={() => kaydir(1)}
-            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-5 z-10 bg-white shadow-md border border-gray-100 rounded-full w-9 h-9 flex items-center justify-center hover:bg-green-50 hover:border-green-300 transition-colors"
+            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-5 z-10 bg-white shadow-md border border-gray-100 rounded-full w-9 h-9 flex items-center justify-center hover:bg-blue-50 hover:border-blue-300 transition-colors"
           >
             <ChevronRight size={18} className="text-gray-600" />
           </button>

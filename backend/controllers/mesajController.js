@@ -107,6 +107,16 @@ const mesajGonder = async (req, res) => {
       [konusmaId, gonderen_id, metin.trim()]
     );
 
+    // Alıcıya bildirim oluştur
+    try {
+      const gonderenAd = req.kullanici.ad_soyad || 'Biri';
+      await sorgu(
+        `INSERT INTO bildirimler (kullanici_id, tip, baslik, icerik, ilan_id, konusma_id)
+         VALUES ($1, 'mesaj', $2, $3, $4, $5)`,
+        [parseInt(alici_id), 'Yeni Mesaj', `${gonderenAd} size mesaj gönderdi`, ilan_id || null, konusmaId]
+      );
+    } catch {}
+
     return res.status(201).json({ basarili: true, mesaj: yeniMesaj.rows[0], konusma_id: konusmaId });
   } catch (err) {
     console.error('mesajGonder hata:', err.message);

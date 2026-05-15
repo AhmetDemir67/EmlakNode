@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity,
   TextInput, StyleSheet, Alert, ActivityIndicator, Image,
@@ -8,7 +8,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
-import api, { fotografYukleAPI } from '../services/api';
+import api, { fotografYukleAPI, aiAciklamaUret } from '../services/api';
 
 const TIPLER      = ['Satılık', 'Kiralık'];
 const TURLER      = ['Daire', 'Villa', 'Müstakil Ev', 'Arsa', 'İşyeri', 'Depo'];
@@ -34,6 +34,7 @@ const Alan = ({ label, value, onChangeText, placeholder, keyboardType = 'default
 export default function IlanVerScreen({ navigation }) {
   const [kullanici, setKullanici] = useState(null);
   const [yukleniyor, setYukleniyor] = useState(false);
+  const [aiYukleniyor, setAiYukleniyor] = useState(false);
   const [konumAlinıyor, setKonumAlıniyor] = useState(false);
   const [secilenGorseller, setSecilenGorseller] = useState([]);
   const [form, setForm] = useState({
@@ -135,6 +136,18 @@ export default function IlanVerScreen({ navigation }) {
     }
   };
 
+  const handleAiAciklama = async () => {
+    setAiYukleniyor(true);
+    try {
+      const r = await aiAciklamaUret(form);
+      setForm(f => ({ ...f, aciklama: r.data.aciklama }));
+    } catch {
+      Alert.alert('AI Hatası', 'Açıklama üretilemedi. Lütfen tekrar deneyin.');
+    } finally {
+      setAiYukleniyor(false);
+    }
+  };
+
   const gonder = async () => {
     if (!form.baslik || !form.fiyat || !form.metrekare) {
       Alert.alert('Eksik Alan', 'Başlık, fiyat ve metrekare zorunludur.'); return;
@@ -218,7 +231,7 @@ export default function IlanVerScreen({ navigation }) {
 
   return (
     <ScrollView style={s.container} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-      <LinearGradient colors={['#14532d', '#16a34a']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={s.formHeader}>
+      <LinearGradient colors={['#1e3a8a', '#2563eb']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={s.formHeader}>
         <View style={s.formHeaderIkon}>
           <Ionicons name="home-outline" size={32} color="#fff" />
         </View>
@@ -287,10 +300,21 @@ export default function IlanVerScreen({ navigation }) {
         <Text style={s.grupBaslik}>İlan Bilgileri</Text>
         <Alan label="İlan Başlığı" value={form.baslik} onChangeText={v => setForm(f => ({ ...f, baslik: v }))} placeholder="Örn: Kadıköy 3+1 Daire" zorunlu />
         <View style={s.alanWrap}>
-          <Text style={s.alanLabel}>Açıklama</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+            <Text style={s.alanLabel}>Açıklama</Text>
+            <TouchableOpacity onPress={handleAiAciklama} disabled={aiYukleniyor}
+              style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#f3e8ff', borderWidth: 1, borderColor: '#d8b4fe', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 5, opacity: aiYukleniyor ? 0.5 : 1 }}>
+              {aiYukleniyor
+                ? <ActivityIndicator size={11} color="#9333ea" />
+                : <Ionicons name="sparkles" size={11} color="#9333ea" />}
+              <Text style={{ fontSize: 11, fontWeight: '700', color: '#9333ea' }}>
+                {aiYukleniyor ? 'Üretiliyor...' : form.aciklama ? 'Yeniden Üret' : 'AI ile Üret'}
+              </Text>
+            </TouchableOpacity>
+          </View>
           <TextInput style={[s.alanInput, { height: 90, textAlignVertical: 'top' }]}
             value={form.aciklama} onChangeText={v => setForm(f => ({ ...f, aciklama: v }))}
-            placeholder="İlan detayları..." placeholderTextColor="#9ca3af" multiline
+            placeholder="İlan detayları veya AI ile otomatik oluşturun..." placeholderTextColor="#9ca3af" multiline
             autoCorrect={false} autoCapitalize="none" />
         </View>
         <View style={{ flexDirection: 'row', gap: 12 }}>
@@ -382,14 +406,14 @@ export default function IlanVerScreen({ navigation }) {
         <Text style={s.grupBaslik}>Konum</Text>
         <TouchableOpacity style={s.gpsBtn} onPress={konumAl} disabled={konumAlinıyor}>
           {konumAlinıyor ? (
-            <ActivityIndicator size="small" color="#16a34a" />
+            <ActivityIndicator size="small" color="#2563eb" />
           ) : (
-            <Ionicons name="locate-outline" size={18} color="#16a34a" />
+            <Ionicons name="locate-outline" size={18} color="#2563eb" />
           )}
           <Text style={s.gpsBtnText}>
             {konumAlinıyor ? 'Konum alınıyor...' : 'GPS ile Konum Al'}
           </Text>
-          {form.enlem ? <Ionicons name="checkmark-circle" size={16} color="#16a34a" /> : null}
+          {form.enlem ? <Ionicons name="checkmark-circle" size={16} color="#2563eb" /> : null}
         </TouchableOpacity>
 
         <View style={{ flexDirection: 'row', gap: 12 }}>
@@ -433,14 +457,14 @@ const s = StyleSheet.create({
   grupBaslik:              { fontSize: 12, fontWeight: '700', color: '#6b7280', textTransform: 'uppercase', letterSpacing: 0.6, marginTop: 20, marginBottom: 10 },
   secimRow:                { flexDirection: 'row', gap: 10 },
   secimBtn:                { flex: 1, paddingVertical: 14, borderRadius: 14, borderWidth: 2, borderColor: '#e5e7eb', alignItems: 'center' },
-  secimBtnAktif:           { borderColor: '#16a34a', backgroundColor: '#f0fdf4' },
+  secimBtnAktif:           { borderColor: '#2563eb', backgroundColor: '#eff6ff' },
   secimText:               { fontSize: 14, fontWeight: '700', color: '#6b7280' },
-  secimTextAktif:          { color: '#16a34a' },
+  secimTextAktif:          { color: '#2563eb' },
   secimGrid:               { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   turBtn:                  { paddingHorizontal: 14, paddingVertical: 9, borderRadius: 10, borderWidth: 2, borderColor: '#e5e7eb' },
-  turBtnAktif:             { borderColor: '#16a34a', backgroundColor: '#f0fdf4' },
+  turBtnAktif:             { borderColor: '#2563eb', backgroundColor: '#eff6ff' },
   turText:                 { fontSize: 13, fontWeight: '600', color: '#6b7280' },
-  turTextAktif:            { color: '#16a34a' },
+  turTextAktif:            { color: '#2563eb' },
   fotografBtn:             { borderRadius: 16, overflow: 'hidden', borderWidth: 2, borderColor: '#e5e7eb', borderStyle: 'dashed', minHeight: 160 },
   fotografPlaceholder:     { flex: 1, minHeight: 160, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f9fafb', gap: 6 },
   fotografPlaceholderText: { fontSize: 14, fontWeight: '700', color: '#6b7280' },
@@ -448,21 +472,21 @@ const s = StyleSheet.create({
   onizleme:                { width: '100%', height: 200 },
   fotografKaldir:          { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 6, alignSelf: 'flex-end' },
   fotografKaldirText:      { fontSize: 12, color: '#ef4444', fontWeight: '600' },
-  gpsBtn:                  { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#f0fdf4', borderWidth: 1, borderColor: '#86efac', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12, marginBottom: 12 },
-  gpsBtnText:              { flex: 1, fontSize: 14, fontWeight: '600', color: '#16a34a' },
+  gpsBtn:                  { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#eff6ff', borderWidth: 1, borderColor: '#93c5fd', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12, marginBottom: 12 },
+  gpsBtnText:              { flex: 1, fontSize: 14, fontWeight: '600', color: '#2563eb' },
   alanWrap:                { marginBottom: 12 },
   alanLabel:               { fontSize: 12, fontWeight: '600', color: '#374151', marginBottom: 6 },
   alanInput:               { backgroundColor: '#fff', borderWidth: 1, borderColor: '#e5e7eb', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 11, fontSize: 14, color: '#111827' },
   chipBtn:                 { paddingHorizontal: 14, paddingVertical: 9, borderRadius: 20, borderWidth: 1.5, borderColor: '#e5e7eb', backgroundColor: '#fafafa' },
-  chipBtnAktif:            { borderColor: '#16a34a', backgroundColor: '#f0fdf4' },
+  chipBtnAktif:            { borderColor: '#2563eb', backgroundColor: '#eff6ff' },
   chipBtnText:             { fontSize: 13, fontWeight: '600', color: '#6b7280' },
-  chipBtnTextAktif:        { color: '#16a34a' },
+  chipBtnTextAktif:        { color: '#2563eb' },
   toggleGrid:              { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 12 },
   toggleBtn:               { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 9, borderRadius: 20, borderWidth: 1.5, borderColor: '#e5e7eb', backgroundColor: '#fafafa' },
-  toggleBtnAktif:          { borderColor: '#16a34a', backgroundColor: '#16a34a' },
+  toggleBtnAktif:          { borderColor: '#2563eb', backgroundColor: '#2563eb' },
   toggleText:              { fontSize: 13, fontWeight: '600', color: '#6b7280' },
   toggleTextAktif:         { color: '#fff' },
-  gondBtn:                 { alignItems: 'center', justifyContent: 'center', backgroundColor: '#16a34a', paddingVertical: 16, borderRadius: 16, marginTop: 24 },
+  gondBtn:                 { alignItems: 'center', justifyContent: 'center', backgroundColor: '#2563eb', paddingVertical: 16, borderRadius: 16, marginTop: 24 },
   gondBtnText:             { color: '#fff', fontSize: 16, fontWeight: '800' },
   fotografKucuk:           { width: 90, height: 90, borderRadius: 10, overflow: 'hidden', position: 'relative' },
   fotografKucukGorsel:     { width: 90, height: 90 },
@@ -471,6 +495,6 @@ const s = StyleSheet.create({
   fotografEkleBtnText:     { fontSize: 11, fontWeight: '600', color: '#9ca3af' },
   girisGerekli:            { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 16, padding: 40, backgroundColor: '#f9fafb' },
   girisBaslik:             { fontSize: 18, fontWeight: '800', color: '#111827' },
-  girisBtn:                { backgroundColor: '#16a34a', paddingHorizontal: 40, paddingVertical: 14, borderRadius: 14 },
+  girisBtn:                { backgroundColor: '#2563eb', paddingHorizontal: 40, paddingVertical: 14, borderRadius: 14 },
   girisBtnText:            { color: '#fff', fontSize: 15, fontWeight: '800' },
 });

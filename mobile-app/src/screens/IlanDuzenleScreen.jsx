@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import {
   View, Text, ScrollView, TextInput, TouchableOpacity,
   StyleSheet, ActivityIndicator, Alert,
@@ -70,7 +70,7 @@ export default function IlanDuzenleScreen({ route, navigation }) {
       {/* Fiyat düşüş uyarısı */}
       {fiyatDustu ? (
         <View style={s.dususUyari}>
-          <Ionicons name="trending-down" size={18} color="#16a34a" />
+          <Ionicons name="trending-down" size={18} color="#2563eb" />
           <Text style={s.dususText}>
             {fiyatFormat(eskiFiyat)} → {fiyatFormat(yeniFiyat)} — Fiyat düşüşü kaydedilecek
           </Text>
@@ -189,8 +189,8 @@ export default function IlanDuzenleScreen({ route, navigation }) {
 
 const s = StyleSheet.create({
   container:     { flex: 1, backgroundColor: '#f5f5f5' },
-  dususUyari:    { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#f0fdf4', borderWidth: 1, borderColor: '#86efac', margin: 16, marginBottom: 0, padding: 12, borderRadius: 12 },
-  dususText:     { flex: 1, fontSize: 13, fontWeight: '700', color: '#15803d' },
+  dususUyari:    { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#eff6ff', borderWidth: 1, borderColor: '#93c5fd', margin: 16, marginBottom: 0, padding: 12, borderRadius: 12 },
+  dususText:     { flex: 1, fontSize: 13, fontWeight: '700', color: '#1d4ed8' },
   kart:          { backgroundColor: '#fff', margin: 16, marginBottom: 0, borderRadius: 16, padding: 16, gap: 4 },
   bolumBaslik:   { fontSize: 11, fontWeight: '800', color: '#9ca3af', letterSpacing: 1, marginBottom: 8 },
   etiket:        { fontSize: 13, fontWeight: '600', color: '#374151', marginTop: 8, marginBottom: 4 },
@@ -200,10 +200,10 @@ const s = StyleSheet.create({
   chipRow:       { flexDirection: 'row', gap: 8, flexWrap: 'wrap', marginTop: 4 },
   chipScroll:    { gap: 8, paddingVertical: 4 },
   chip:          { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, borderWidth: 1.5, borderColor: '#e5e7eb', backgroundColor: '#fafafa' },
-  chipAktif:     { borderColor: '#16a34a', backgroundColor: '#f0fdf4' },
+  chipAktif:     { borderColor: '#2563eb', backgroundColor: '#eff6ff' },
   chipText:      { fontSize: 13, fontWeight: '600', color: '#6b7280' },
-  chipTextAktif: { color: '#16a34a' },
-  dususHint:     { fontSize: 12, color: '#16a34a', fontWeight: '600', marginTop: 4 },
-  kaydetBtn:     { margin: 16, backgroundColor: '#16a34a', paddingVertical: 16, borderRadius: 14, alignItems: 'center' },
+  chipTextAktif: { color: '#2563eb' },
+  dususHint:     { fontSize: 12, color: '#2563eb', fontWeight: '600', marginTop: 4 },
+  kaydetBtn:     { margin: 16, backgroundColor: '#2563eb', paddingVertical: 16, borderRadius: 14, alignItems: 'center' },
   kaydetBtnText: { color: '#fff', fontSize: 16, fontWeight: '800' },
 });

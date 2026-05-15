@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+﻿import React, { useState, useCallback } from 'react';
 import {
   View, Text, FlatList, TouchableOpacity,
   StyleSheet, Image, ActivityIndicator, Alert, Modal, ScrollView,
@@ -14,7 +14,7 @@ const fiyatFormat = (f) =>
   new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', maximumFractionDigits: 0 }).format(f);
 
 const DURUM_RENK = {
-  aktif:     '#16a34a',
+  aktif:     '#2563eb',
   pasif:     '#f97316',
   satildi:   '#8b5cf6',
   kiralandı: '#3b82f6',
@@ -90,7 +90,7 @@ export default function IlanlarimScreen({ navigation }) {
   if (yukleniyor) {
     return (
       <View style={s.merkez}>
-        <ActivityIndicator size="large" color="#16a34a" />
+        <ActivityIndicator size="large" color="#2563eb" />
       </View>
     );
   }
@@ -101,7 +101,7 @@ export default function IlanlarimScreen({ navigation }) {
 
   return (
     <View style={s.container}>
-      <LinearGradient colors={['#14532d', '#16a34a']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={s.banner}>
+      <LinearGradient colors={['#1e3a8a', '#2563eb']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={s.banner}>
         <View style={s.bannerKart}>
           <Text style={s.bannerSayi}>{ilanlar.length}</Text>
           <Text style={s.bannerLabel}>Toplam</Text>
@@ -128,7 +128,7 @@ export default function IlanlarimScreen({ navigation }) {
           <View style={s.limitSol}>
             <Ionicons name="home-outline" size={16} color="#374151" />
             <Text style={s.limitText}>
-              <Text style={{ fontWeight: '900', color: kullanilanHak >= maxIlan ? '#ef4444' : '#16a34a' }}>
+              <Text style={{ fontWeight: '900', color: kullanilanHak >= maxIlan ? '#ef4444' : '#2563eb' }}>
                 {kullanilanHak}/{maxIlan}
               </Text>
               {' '}ilan hakkı kullanıldı
@@ -158,7 +158,7 @@ export default function IlanlarimScreen({ navigation }) {
           </View>
         }
         renderItem={({ item }) => {
-          const durumRenk  = DURUM_RENK[item.durum]  || '#16a34a';
+          const durumRenk  = DURUM_RENK[item.durum]  || '#2563eb';
           const durumEtiket = DURUM_ETIKET[item.durum] || 'Aktif';
           return (
             <TouchableOpacity
@@ -185,7 +185,7 @@ export default function IlanlarimScreen({ navigation }) {
                     style={s.duzenleBtn}
                     onPress={() => navigation.navigate('IlanDuzenle', { ilan: item })}
                   >
-                    <Ionicons name="pencil-outline" size={14} color="#16a34a" />
+                    <Ionicons name="pencil-outline" size={14} color="#2563eb" />
                     <Text style={s.duzenleBtnText}>Düzenle</Text>
                   </TouchableOpacity>
 
@@ -248,7 +248,7 @@ export default function IlanlarimScreen({ navigation }) {
             <Text style={s.modalAlt} numberOfLines={1}>{seciliIlan.baslik}</Text>
           ) : null}
           {durumYukleniyor ? (
-            <ActivityIndicator size="large" color="#16a34a" style={{ marginVertical: 24 }} />
+            <ActivityIndicator size="large" color="#2563eb" style={{ marginVertical: 24 }} />
           ) : (
             DURUM_SECENEKLER.map(d => (
               <TouchableOpacity
@@ -257,10 +257,10 @@ export default function IlanlarimScreen({ navigation }) {
                 onPress={() => durumDegistir(d)}
               >
                 <View style={[s.durumNokta, { backgroundColor: DURUM_RENK[d] }]} />
-                <Text style={[s.durumSecimText, seciliIlan?.durum === d && { color: '#16a34a', fontWeight: '700' }]}>
+                <Text style={[s.durumSecimText, seciliIlan?.durum === d && { color: '#2563eb', fontWeight: '700' }]}>
                   {DURUM_ETIKET[d]}
                 </Text>
-                {seciliIlan?.durum === d ? <Ionicons name="checkmark" size={18} color="#16a34a" /> : null}
+                {seciliIlan?.durum === d ? <Ionicons name="checkmark" size={18} color="#2563eb" /> : null}
               </TouchableOpacity>
             ))
           )}
@@ -281,13 +281,13 @@ const s = StyleSheet.create({
   merkez:       { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 14, padding: 40 },
   bos:          { alignItems: 'center', paddingTop: 80, gap: 14 },
   bosBaslik:    { fontSize: 16, fontWeight: '700', color: '#374151' },
-  btn:          { backgroundColor: '#16a34a', paddingHorizontal: 32, paddingVertical: 12, borderRadius: 12 },
+  btn:          { backgroundColor: '#2563eb', paddingHorizontal: 32, paddingVertical: 12, borderRadius: 12 },
   btnText:      { color: '#fff', fontWeight: '700', fontSize: 14 },
 
   limitBar:     { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#fff', paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#f0f0f0' },
   limitSol:     { flexDirection: 'row', alignItems: 'center', gap: 8 },
   limitText:    { fontSize: 13, color: '#374151' },
-  limitEkle:    { fontSize: 13, fontWeight: '700', color: '#16a34a' },
+  limitEkle:    { fontSize: 13, fontWeight: '700', color: '#2563eb' },
   limitDolu:    { fontSize: 12, fontWeight: '700', color: '#ef4444' },
 
   kart:         { backgroundColor: '#fff', borderRadius: 16, overflow: 'hidden', borderWidth: 1, borderColor: '#f3f4f6' },
@@ -295,13 +295,13 @@ const s = StyleSheet.create({
   durum:        { position: 'absolute', top: 10, right: 10, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6, flexDirection: 'row', alignItems: 'center' },
   durumText:    { color: '#fff', fontSize: 10, fontWeight: '700' },
   bilgi:        { padding: 12 },
-  fiyat:        { fontSize: 17, fontWeight: '800', color: '#16a34a' },
+  fiyat:        { fontSize: 17, fontWeight: '800', color: '#2563eb' },
   baslik:       { fontSize: 14, fontWeight: '600', color: '#111827', marginTop: 2 },
   altRow:       { flexDirection: 'row', alignItems: 'center', gap: 3, marginTop: 4 },
   konum:        { fontSize: 12, color: '#9ca3af' },
   aksiyonRow:   { flexDirection: 'row', justifyContent: 'flex-end', gap: 8, marginTop: 10 },
-  duzenleBtn:   { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8, borderWidth: 1, borderColor: '#bbf7d0', backgroundColor: '#f0fdf4' },
-  duzenleBtnText: { fontSize: 12, fontWeight: '700', color: '#16a34a' },
+  duzenleBtn:   { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8, borderWidth: 1, borderColor: '#bfdbfe', backgroundColor: '#eff6ff' },
+  duzenleBtnText: { fontSize: 12, fontWeight: '700', color: '#2563eb' },
   durumBtn:     { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8, borderWidth: 1, borderColor: '#e5e7eb', backgroundColor: '#f9fafb' },
   durumBtnText: { fontSize: 12, fontWeight: '700', color: '#6b7280' },
   silBtn:       { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8, borderWidth: 1, borderColor: '#fecaca', backgroundColor: '#fff5f5' },
@@ -313,7 +313,7 @@ const s = StyleSheet.create({
   modalBaslikText: { fontSize: 17, fontWeight: '800', color: '#111827' },
   modalAlt:     { fontSize: 13, color: '#9ca3af', marginBottom: 16 },
   durumSecim:   { flexDirection: 'row', alignItems: 'center', paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: '#f5f5f5', gap: 12 },
-  durumSecimAktif: { backgroundColor: '#f0fdf4', marginHorizontal: -20, paddingHorizontal: 20, borderRadius: 0 },
+  durumSecimAktif: { backgroundColor: '#eff6ff', marginHorizontal: -20, paddingHorizontal: 20, borderRadius: 0 },
   durumSecimText: { flex: 1, fontSize: 15, color: '#374151' },
   durumNokta:   { width: 12, height: 12, borderRadius: 6 },
 });

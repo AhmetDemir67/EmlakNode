@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+﻿import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, FlatList, TouchableOpacity, TextInput,
   StyleSheet, ActivityIndicator, KeyboardAvoidingView, Platform,
@@ -43,6 +43,23 @@ export default function KonusmaScreen({ route, navigation }) {
       .then(r => setMesajlar(r.data.mesajlar || []))
       .catch(() => {})
       .finally(() => setYukleniyor(false));
+
+    // Yeni mesajlar için 5 saniyede bir polling
+    const interval = setInterval(() => {
+      mesajlariGetir(konusmaId)
+        .then(r => {
+          const yeni = r.data.mesajlar || [];
+          setMesajlar(prev => {
+            if (yeni.length > prev.length) {
+              setTimeout(() => listRef.current?.scrollToEnd({ animated: true }), 100);
+            }
+            return yeni;
+          });
+        })
+        .catch(() => {});
+    }, 5000);
+
+    return () => clearInterval(interval);
   }, [konusmaId]);
 
   const gonder = async () => {
@@ -84,7 +101,7 @@ export default function KonusmaScreen({ route, navigation }) {
       keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
     >
       {/* Header */}
-      <LinearGradient colors={['#14532d', '#16a34a']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={s.headerGrad}>
+      <LinearGradient colors={['#1e3a8a', '#2563eb']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={s.headerGrad}>
         <SafeAreaView>
           <View style={s.header}>
             <TouchableOpacity style={s.geriBtn} onPress={() => navigation.goBack()}>
@@ -105,7 +122,7 @@ export default function KonusmaScreen({ route, navigation }) {
 
       {/* Mesajlar */}
       {yukleniyor ? (
-        <View style={s.merkez}><ActivityIndicator size="large" color="#16a34a" /></View>
+        <View style={s.merkez}><ActivityIndicator size="large" color="#2563eb" /></View>
       ) : (
         <FlatList
           ref={listRef}
@@ -188,7 +205,7 @@ const s = StyleSheet.create({
   mesajWrapSag:  { justifyContent: 'flex-end' },
   mesajWrapSol:  { justifyContent: 'flex-start' },
   mesajKutu:     { maxWidth: '78%', borderRadius: 18, paddingHorizontal: 14, paddingVertical: 10, gap: 4 },
-  mesajKutuSag:  { backgroundColor: '#16a34a', borderBottomRightRadius: 4 },
+  mesajKutuSag:  { backgroundColor: '#2563eb', borderBottomRightRadius: 4 },
   mesajKutuSol:  { backgroundColor: '#fff', borderBottomLeftRadius: 4, borderWidth: 1, borderColor: '#f0f0f0' },
   mesajMetin:    { fontSize: 15, lineHeight: 22 },
   mesajMetinSag: { color: '#fff' },
@@ -197,6 +214,6 @@ const s = StyleSheet.create({
 
   yazmaAlan:     { flexDirection: 'row', alignItems: 'flex-end', paddingHorizontal: 12, paddingVertical: 10, backgroundColor: '#fff', borderTopWidth: 1, borderTopColor: '#f0f0f0', gap: 10 },
   input:         { flex: 1, backgroundColor: '#f5f5f5', borderRadius: 22, paddingHorizontal: 16, paddingVertical: 10, fontSize: 15, color: '#111827', maxHeight: 120 },
-  gonderBtn:     { width: 44, height: 44, borderRadius: 22, backgroundColor: '#16a34a', justifyContent: 'center', alignItems: 'center' },
+  gonderBtn:     { width: 44, height: 44, borderRadius: 22, backgroundColor: '#2563eb', justifyContent: 'center', alignItems: 'center' },
   gonderBtnPasif:{ backgroundColor: '#d1d5db' },
 });

@@ -1,16 +1,18 @@
-import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+﻿import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { useEffect } from 'react';
 import { Toaster } from 'react-hot-toast';
-import Navbar        from './components/Navbar';
-import Footer        from './components/Footer';
-import PrivateRoute  from './components/PrivateRoute';
-import Home          from './pages/Home';
-import Login         from './pages/Login';
-import Register      from './pages/Register';
-import Dashboard     from './pages/Dashboard';
-import ListingDetail from './pages/ListingDetail';
-import Listings      from './pages/Listings';
-import NotFound      from './pages/NotFound';
+import Navbar           from './components/Navbar';
+import Footer           from './components/Footer';
+import PrivateRoute     from './components/PrivateRoute';
+import ChatbotWidget    from './components/ChatbotWidget';
+import Home             from './pages/Home';
+import Login            from './pages/Login';
+import Register         from './pages/Register';
+import Dashboard        from './pages/Dashboard';
+import ListingDetail    from './pages/ListingDetail';
+import Listings         from './pages/Listings';
+import Degerleme        from './pages/Degerleme';
+import NotFound         from './pages/NotFound';
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -19,7 +21,7 @@ function ScrollToTop() {
 }
 
 const WithNavbar = ({ children }) => (
-  <div className="min-h-screen bg-slate-50 flex flex-col">
+  <div className="min-h-screen bg-slate-50 dark:bg-gray-950 flex flex-col transition-colors duration-200">
     <Navbar />
     <div className="flex-1">{children}</div>
     <Footer />
@@ -34,11 +36,12 @@ function App() {
         toastOptions={{
           duration: 3500,
           style: { fontFamily: 'Inter, sans-serif', fontSize: '14px', fontWeight: 500 },
-          success: { iconTheme: { primary: '#16a34a', secondary: '#fff' } },
+          success: { iconTheme: { primary: '#2563eb', secondary: '#fff' } },
           error:   { iconTheme: { primary: '#ef4444', secondary: '#fff' } },
         }}
       />
       <ScrollToTop />
+      <ChatbotWidget />
       <Routes>
         <Route path="/" element={<WithNavbar><Home /></WithNavbar>} />
 
@@ -55,6 +58,10 @@ function App() {
 
         <Route path="/ilan/:id" element={
           <WithNavbar><ListingDetail /></WithNavbar>
+        } />
+
+        <Route path="/degerleme" element={
+          <WithNavbar><Degerleme /></WithNavbar>
         } />
 
         <Route path="*" element={<NotFound />} />
