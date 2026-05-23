@@ -6,6 +6,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { kayitliAramalarGetir, kayitliAramaSil } from '../services/api';
+import { useTheme } from '../context/ThemeContext';
 
 const tarihFormat = (t) => {
   if (!t) return '';
@@ -28,6 +29,7 @@ const filtreleOzetle = (filtreler = {}) => {
 };
 
 export default function KayitliAramalarScreen({ navigation }) {
+  const { colors } = useTheme();
   const [aramalar, setAramalar] = useState([]);
   const [yukleniyor, setYukleniyor] = useState(true);
 
@@ -58,15 +60,15 @@ export default function KayitliAramalarScreen({ navigation }) {
   };
 
   if (yukleniyor) {
-    return <View style={s.merkez}><ActivityIndicator size="large" color="#2563eb" /></View>;
+    return <View style={[s.merkez, { backgroundColor: colors.bg }]}><ActivityIndicator size="large" color="#2563eb" /></View>;
   }
 
   if (aramalar.length === 0) {
     return (
-      <View style={s.merkez}>
-        <Ionicons name="search-outline" size={56} color="#d1d5db" />
-        <Text style={s.bosBaslik}>Kayıtlı arama yok</Text>
-        <Text style={s.bosAlt}>İlan Ara ekranında arama yapıp kaydet butonuna basarak aramalarını buraya ekleyebilirsin.</Text>
+      <View style={[s.merkez, { backgroundColor: colors.bg }]}>
+        <Ionicons name="search-outline" size={56} color={colors.textMuted} />
+        <Text style={[s.bosBaslik, { color: colors.text }]}>Kayıtlı arama yok</Text>
+        <Text style={[s.bosAlt, { color: colors.textSecondary }]}>İlan Ara ekranında arama yapıp kaydet butonuna basarak aramalarını buraya ekleyebilirsin.</Text>
       </View>
     );
   }
@@ -75,21 +77,22 @@ export default function KayitliAramalarScreen({ navigation }) {
     <FlatList
       data={aramalar}
       keyExtractor={item => String(item.id)}
-      contentContainerStyle={s.liste}
+      contentContainerStyle={[s.liste, { backgroundColor: colors.bg }]}
       showsVerticalScrollIndicator={false}
+      style={{ backgroundColor: colors.bg }}
       renderItem={({ item }) => {
         const filtreler = typeof item.filtreler === 'string'
           ? JSON.parse(item.filtreler)
           : item.filtreler || {};
         return (
-          <TouchableOpacity style={s.kart} activeOpacity={0.85} onPress={() => aramaUygula(filtreler)}>
-            <View style={s.ikonWrap}>
+          <TouchableOpacity style={[s.kart, { backgroundColor: colors.card }]} activeOpacity={0.85} onPress={() => aramaUygula(filtreler)}>
+            <View style={[s.ikonWrap, { backgroundColor: colors.badge }]}>
               <Ionicons name="search" size={20} color="#2563eb" />
             </View>
             <View style={s.icerik}>
-              <Text style={s.baslik}>{item.baslik}</Text>
-              <Text style={s.filtreler}>{filtreleOzetle(filtreler)}</Text>
-              <Text style={s.tarih}>{tarihFormat(item.olusturulma_tarihi)}</Text>
+              <Text style={[s.baslik, { color: colors.text }]}>{item.baslik}</Text>
+              <Text style={[s.filtreler, { color: colors.textSecondary }]}>{filtreleOzetle(filtreler)}</Text>
+              <Text style={[s.tarih, { color: colors.textMuted }]}>{tarihFormat(item.olusturulma_tarihi)}</Text>
             </View>
             <TouchableOpacity style={s.silBtn} onPress={() => sil(item.id, item.baslik)}>
               <Ionicons name="trash-outline" size={18} color="#ef4444" />

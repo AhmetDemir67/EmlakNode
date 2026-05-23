@@ -9,6 +9,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ilanlarGetir, kayitliAramaEkle } from '../services/api';
+import { useTheme } from '../context/ThemeContext';
 
 const GORSEL_FALLBACK = 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&q=80';
 
@@ -25,66 +26,70 @@ const SIRALA_SECENEKLER = [
 const TIPLER    = ['Tümü', 'Satılık', 'Kiralık'];
 const TURLER    = ['Tümü', 'Daire', 'Villa', 'Arsa', 'İşyeri', 'Müstakil Ev'];
 
-const IlanKarti = ({ item, onPress }) => (
-  <TouchableOpacity style={s.kart} onPress={onPress} activeOpacity={0.9}>
-    <View style={s.gorselWrap}>
-      <Image source={{ uri: item.gorsel || GORSEL_FALLBACK }} style={s.gorsel} resizeMode="cover" />
-      <View style={s.badgeRow}>
-        <View style={[s.tipBadge, { backgroundColor: item.tip === 'Kiralık' ? '#3b82f6' : '#2563eb' }]}>
-          <Text style={s.tipText}>{item.tip || 'Satılık'}</Text>
-        </View>
-        {item.emlak_turu ? (
-          <View style={s.turBadge}>
-            <Text style={s.turText}>{item.emlak_turu}</Text>
+const IlanKarti = ({ item, onPress }) => {
+  const { colors } = useTheme();
+  return (
+    <TouchableOpacity style={[s.kart, { backgroundColor: colors.card }]} onPress={onPress} activeOpacity={0.9}>
+      <View style={s.gorselWrap}>
+        <Image source={{ uri: item.gorsel || GORSEL_FALLBACK }} style={s.gorsel} resizeMode="cover" />
+        <View style={s.badgeRow}>
+          <View style={[s.tipBadge, { backgroundColor: item.tip === 'Kiralık' ? '#3b82f6' : '#2563eb' }]}>
+            <Text style={s.tipText}>{item.tip || 'Satılık'}</Text>
           </View>
-        ) : null}
-      </View>
-    </View>
-
-    <View style={s.bilgi}>
-      <View style={s.bilgiUst}>
-        <View style={{ flex: 1 }}>
-          <Text style={s.baslik} numberOfLines={2}>{item.baslik}</Text>
-          <Text style={s.fiyat}>{fiyatFormat(item.fiyat)}</Text>
-          {item.onceki_fiyat ? (
-            <View style={s.dususBadge}>
-              <Ionicons name="trending-down" size={12} color="#2563eb" />
-              <Text style={s.dususText}>{fiyatFormat(item.onceki_fiyat)} → {fiyatFormat(item.fiyat)}</Text>
+          {item.emlak_turu ? (
+            <View style={s.turBadge}>
+              <Text style={s.turText}>{item.emlak_turu}</Text>
             </View>
           ) : null}
-          <View style={s.ozellikRow}>
-            {item.oda_sayisi ? <Text style={s.ozellik}>{item.oda_sayisi}</Text> : null}
-            {item.oda_sayisi && item.kat ? <Text style={s.ozellikAyrac}>|</Text> : null}
-            {item.kat ? <Text style={s.ozellik}>{item.kat}. Kat</Text> : null}
-            {item.metrekare ? (
-              <>
-                {(item.oda_sayisi || item.kat) ? <Text style={s.ozellikAyrac}>|</Text> : null}
-                <Text style={s.ozellik}>{item.metrekare} m²</Text>
-              </>
+        </View>
+      </View>
+
+      <View style={s.bilgi}>
+        <View style={s.bilgiUst}>
+          <View style={{ flex: 1 }}>
+            <Text style={[s.baslik, { color: colors.text }]} numberOfLines={2}>{item.baslik}</Text>
+            <Text style={[s.fiyat, { color: colors.text }]}>{fiyatFormat(item.fiyat)}</Text>
+            {item.onceki_fiyat ? (
+              <View style={s.dususBadge}>
+                <Ionicons name="trending-down" size={12} color="#2563eb" />
+                <Text style={s.dususText}>{fiyatFormat(item.onceki_fiyat)} → {fiyatFormat(item.fiyat)}</Text>
+              </View>
+            ) : null}
+            <View style={s.ozellikRow}>
+              {item.oda_sayisi ? <Text style={[s.ozellik, { color: colors.textSecondary }]}>{item.oda_sayisi}</Text> : null}
+              {item.oda_sayisi && item.kat ? <Text style={[s.ozellikAyrac, { color: colors.border }]}>|</Text> : null}
+              {item.kat ? <Text style={[s.ozellik, { color: colors.textSecondary }]}>{item.kat}. Kat</Text> : null}
+              {item.metrekare ? (
+                <>
+                  {(item.oda_sayisi || item.kat) ? <Text style={[s.ozellikAyrac, { color: colors.border }]}>|</Text> : null}
+                  <Text style={[s.ozellik, { color: colors.textSecondary }]}>{item.metrekare} m²</Text>
+                </>
+              ) : null}
+            </View>
+            <View style={s.konumRow}>
+              <Ionicons name="location-outline" size={12} color={colors.textMuted} />
+              <Text style={[s.konum, { color: colors.textMuted }]} numberOfLines={1}>
+                {[item.ilce, item.sehir].filter(Boolean).join(' - ') || '—'}
+              </Text>
+            </View>
+            {item.dukkan_adi ? (
+              <Text style={[s.dukkan, { color: colors.textMuted }]} numberOfLines={1}>{item.dukkan_adi}</Text>
             ) : null}
           </View>
-          <View style={s.konumRow}>
-            <Ionicons name="location-outline" size={12} color="#9ca3af" />
-            <Text style={s.konum} numberOfLines={1}>
-              {[item.ilce, item.sehir].filter(Boolean).join(' - ') || '—'}
-            </Text>
-          </View>
-          {item.dukkan_adi ? (
-            <Text style={s.dukkan} numberOfLines={1}>{item.dukkan_adi}</Text>
-          ) : null}
+          <TouchableOpacity
+            style={s.telefonBtn}
+            onPress={(e) => { e.stopPropagation(); Linking.openURL(`tel:${item.sahip_telefon || '05001234567'}`); }}
+          >
+            <Ionicons name="call" size={20} color="#fff" />
+          </TouchableOpacity>
         </View>
-        <TouchableOpacity
-          style={s.telefonBtn}
-          onPress={(e) => { e.stopPropagation(); Linking.openURL(`tel:${item.sahip_telefon || '05001234567'}`); }}
-        >
-          <Ionicons name="call" size={20} color="#fff" />
-        </TouchableOpacity>
       </View>
-    </View>
-  </TouchableOpacity>
-);
+    </TouchableOpacity>
+  );
+};
 
 export default function TumIlanlarScreen({ route, navigation }) {
+  const { colors } = useTheme();
   const baslangicTip       = route.params?.tip        || 'Tümü';
   const baslangicTur       = route.params?.emlak_turu || 'Tümü';
   const baslangicFiyatDustu = route.params?.fiyat_dustu || false;
@@ -166,7 +171,7 @@ export default function TumIlanlarScreen({ route, navigation }) {
   };
 
   return (
-    <View style={s.container}>
+    <View style={[s.container, { backgroundColor: colors.bg }]}>
       {/* Header */}
       <LinearGradient colors={['#1e3a8a', '#2563eb']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={s.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={s.geriBtn}>
@@ -184,27 +189,27 @@ export default function TumIlanlarScreen({ route, navigation }) {
       </LinearGradient>
 
       {/* Filtrele / Sırala / Harita */}
-      <View style={s.araçlar}>
+      <View style={[s.araçlar, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
         <TouchableOpacity
-          style={[s.aracBtn, filtreAktif && s.aracBtnAktif]}
+          style={[s.aracBtn, { backgroundColor: colors.input, borderColor: colors.border }, filtreAktif && s.aracBtnAktif]}
           onPress={() => setFiltreMod(true)}
         >
-          <Ionicons name="options-outline" size={15} color={filtreAktif ? '#2563eb' : '#374151'} />
-          <Text style={[s.aracText, filtreAktif && s.aracTextAktif]}>Filtrele</Text>
+          <Ionicons name="options-outline" size={15} color={filtreAktif ? '#2563eb' : colors.textSecondary} />
+          <Text style={[s.aracText, { color: colors.textSecondary }, filtreAktif && s.aracTextAktif]}>Filtrele</Text>
           {filtreAktif ? <View style={s.filtreDot} /> : null}
         </TouchableOpacity>
 
-        <TouchableOpacity style={s.aracBtn} onPress={() => setSiralaMod(true)}>
-          <Ionicons name="swap-vertical-outline" size={15} color="#374151" />
-          <Text style={s.aracText}>Sırala</Text>
+        <TouchableOpacity style={[s.aracBtn, { backgroundColor: colors.input, borderColor: colors.border }]} onPress={() => setSiralaMod(true)}>
+          <Ionicons name="swap-vertical-outline" size={15} color={colors.textSecondary} />
+          <Text style={[s.aracText, { color: colors.textSecondary }]}>Sırala</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={s.aracBtn}
+          style={[s.aracBtn, { backgroundColor: colors.input, borderColor: colors.border }]}
           onPress={() => navigation.navigate('Harita', { ilanlar })}
         >
-          <Ionicons name="map-outline" size={15} color="#374151" />
-          <Text style={s.aracText}>Harita</Text>
+          <Ionicons name="map-outline" size={15} color={colors.textSecondary} />
+          <Text style={[s.aracText, { color: colors.textSecondary }]}>Harita</Text>
         </TouchableOpacity>
       </View>
 
@@ -224,8 +229,8 @@ export default function TumIlanlarScreen({ route, navigation }) {
           contentContainerStyle={{ paddingVertical: 8 }}
           ListEmptyComponent={
             <View style={s.bos}>
-              <Ionicons name="home-outline" size={56} color="#d1d5db" />
-              <Text style={s.bosText}>İlan bulunamadı</Text>
+              <Ionicons name="home-outline" size={56} color={colors.border} />
+              <Text style={[s.bosText, { color: colors.textMuted }]}>İlan bulunamadı</Text>
             </View>
           }
         />
@@ -234,20 +239,20 @@ export default function TumIlanlarScreen({ route, navigation }) {
       {/* Arama Kaydet Modalı */}
       <Modal visible={kaydetMod} transparent animationType="slide" onRequestClose={() => setKaydetMod(false)}>
         <TouchableOpacity style={s.modalArka} activeOpacity={1} onPress={() => setKaydetMod(false)} />
-        <View style={[s.modalKutu, { paddingBottom: 32 }]}>
+        <View style={[s.modalKutu, { paddingBottom: 32, backgroundColor: colors.card }]}>
           <View style={s.modalBaslik}>
-            <Text style={s.modalBaslikText}>Aramayı Kaydet</Text>
+            <Text style={[s.modalBaslikText, { color: colors.text }]}>Aramayı Kaydet</Text>
             <TouchableOpacity onPress={() => setKaydetMod(false)}>
-              <Ionicons name="close" size={22} color="#374151" />
+              <Ionicons name="close" size={22} color={colors.textSecondary} />
             </TouchableOpacity>
           </View>
-          <Text style={[s.filtreGrupBaslik, { marginBottom: 8 }]}>Arama Adı</Text>
+          <Text style={[s.filtreGrupBaslik, { marginBottom: 8, color: colors.textSecondary }]}>Arama Adı</Text>
           <TextInput
-            style={s.aramaAdiInput}
+            style={[s.aramaAdiInput, { backgroundColor: colors.input, borderColor: colors.inputBorder, color: colors.text }]}
             value={aramaAdi}
             onChangeText={setAramaAdi}
             placeholder="Aramaya bir isim ver..."
-            placeholderTextColor="#9ca3af"
+            placeholderTextColor={colors.textMuted}
             autoFocus
           />
           <TouchableOpacity style={s.filtreUygula} onPress={aramaKaydetOnayla}>
@@ -259,20 +264,20 @@ export default function TumIlanlarScreen({ route, navigation }) {
       {/* Sıralama Modalı */}
       <Modal visible={siralaMod} transparent animationType="slide" onRequestClose={() => setSiralaMod(false)}>
         <TouchableOpacity style={s.modalArka} activeOpacity={1} onPress={() => setSiralaMod(false)} />
-        <View style={s.modalKutu}>
+        <View style={[s.modalKutu, { backgroundColor: colors.card }]}>
           <View style={s.modalBaslik}>
-            <Text style={s.modalBaslikText}>Sıralama</Text>
+            <Text style={[s.modalBaslikText, { color: colors.text }]}>Sıralama</Text>
             <TouchableOpacity onPress={() => setSiralaMod(false)}>
-              <Ionicons name="close" size={22} color="#374151" />
+              <Ionicons name="close" size={22} color={colors.textSecondary} />
             </TouchableOpacity>
           </View>
           {SIRALA_SECENEKLER.map(o => (
             <TouchableOpacity
               key={o.key}
-              style={s.modalSecim}
+              style={[s.modalSecim, { borderBottomColor: colors.border }]}
               onPress={() => { setSirala(o.key); setSiralaMod(false); }}
             >
-              <Text style={[s.modalSecimText, sirala === o.key && { color: '#2563eb', fontWeight: '700' }]}>
+              <Text style={[s.modalSecimText, { color: colors.textSecondary }, sirala === o.key && { color: '#2563eb', fontWeight: '700' }]}>
                 {o.label}
               </Text>
               {sirala === o.key ? <Ionicons name="checkmark" size={18} color="#2563eb" /> : null}
@@ -284,76 +289,76 @@ export default function TumIlanlarScreen({ route, navigation }) {
       {/* Filtre Modalı */}
       <Modal visible={filtreMod} transparent animationType="slide" onRequestClose={() => setFiltreMod(false)}>
         <TouchableOpacity style={s.modalArka} activeOpacity={1} onPress={() => setFiltreMod(false)} />
-        <View style={[s.modalKutu, { paddingBottom: 32 }]}>
+        <View style={[s.modalKutu, { paddingBottom: 32, backgroundColor: colors.card }]}>
           <View style={s.modalBaslik}>
-            <Text style={s.modalBaslikText}>Filtrele</Text>
+            <Text style={[s.modalBaslikText, { color: colors.text }]}>Filtrele</Text>
             <TouchableOpacity onPress={() => setFiltreMod(false)}>
-              <Ionicons name="close" size={22} color="#374151" />
+              <Ionicons name="close" size={22} color={colors.textSecondary} />
             </TouchableOpacity>
           </View>
 
-          <Text style={s.filtreGrupBaslik}>İlan Tipi</Text>
+          <Text style={[s.filtreGrupBaslik, { color: colors.textSecondary }]}>İlan Tipi</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingHorizontal: 2 }}>
             {TIPLER.map(t => (
               <TouchableOpacity
                 key={t}
                 onPress={() => setFiltreTip(t)}
-                style={[s.filtreChip, filtreTip === t && s.filtreChipAktif]}
+                style={[s.filtreChip, { backgroundColor: colors.input, borderColor: colors.border }, filtreTip === t && s.filtreChipAktif]}
               >
-                <Text style={[s.filtreChipText, filtreTip === t && s.filtreChipTextAktif]}>{t}</Text>
+                <Text style={[s.filtreChipText, { color: colors.textSecondary }, filtreTip === t && s.filtreChipTextAktif]}>{t}</Text>
               </TouchableOpacity>
             ))}
           </ScrollView>
 
-          <Text style={[s.filtreGrupBaslik, { marginTop: 16 }]}>Emlak Türü</Text>
+          <Text style={[s.filtreGrupBaslik, { marginTop: 16, color: colors.textSecondary }]}>Emlak Türü</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingHorizontal: 2 }}>
             {TURLER.map(t => (
               <TouchableOpacity
                 key={t}
                 onPress={() => setFiltreTur(t)}
-                style={[s.filtreChip, filtreTur === t && s.filtreChipAktif]}
+                style={[s.filtreChip, { backgroundColor: colors.input, borderColor: colors.border }, filtreTur === t && s.filtreChipAktif]}
               >
-                <Text style={[s.filtreChipText, filtreTur === t && s.filtreChipTextAktif]}>{t}</Text>
+                <Text style={[s.filtreChipText, { color: colors.textSecondary }, filtreTur === t && s.filtreChipTextAktif]}>{t}</Text>
               </TouchableOpacity>
             ))}
           </ScrollView>
 
-          <Text style={[s.filtreGrupBaslik, { marginTop: 16 }]}>Fiyat Aralığı (TL)</Text>
+          <Text style={[s.filtreGrupBaslik, { marginTop: 16, color: colors.textSecondary }]}>Fiyat Aralığı (TL)</Text>
           <View style={s.aralikRow}>
             <TextInput
-              style={s.aralikInput}
+              style={[s.aralikInput, { backgroundColor: colors.input, borderColor: colors.inputBorder, color: colors.text }]}
               placeholder="Min fiyat"
-              placeholderTextColor="#9ca3af"
+              placeholderTextColor={colors.textMuted}
               keyboardType="numeric"
               value={minFiyat}
               onChangeText={setMinFiyat}
             />
-            <Text style={s.aralikAyrac}>—</Text>
+            <Text style={[s.aralikAyrac, { color: colors.textMuted }]}>—</Text>
             <TextInput
-              style={s.aralikInput}
+              style={[s.aralikInput, { backgroundColor: colors.input, borderColor: colors.inputBorder, color: colors.text }]}
               placeholder="Max fiyat"
-              placeholderTextColor="#9ca3af"
+              placeholderTextColor={colors.textMuted}
               keyboardType="numeric"
               value={maxFiyat}
               onChangeText={setMaxFiyat}
             />
           </View>
 
-          <Text style={[s.filtreGrupBaslik, { marginTop: 16 }]}>Metrekare Aralığı (m²)</Text>
+          <Text style={[s.filtreGrupBaslik, { marginTop: 16, color: colors.textSecondary }]}>Metrekare Aralığı (m²)</Text>
           <View style={s.aralikRow}>
             <TextInput
-              style={s.aralikInput}
+              style={[s.aralikInput, { backgroundColor: colors.input, borderColor: colors.inputBorder, color: colors.text }]}
               placeholder="Min m²"
-              placeholderTextColor="#9ca3af"
+              placeholderTextColor={colors.textMuted}
               keyboardType="numeric"
               value={minMetrekare}
               onChangeText={setMinMetrekare}
             />
-            <Text style={s.aralikAyrac}>—</Text>
+            <Text style={[s.aralikAyrac, { color: colors.textMuted }]}>—</Text>
             <TextInput
-              style={s.aralikInput}
+              style={[s.aralikInput, { backgroundColor: colors.input, borderColor: colors.inputBorder, color: colors.text }]}
               placeholder="Max m²"
-              placeholderTextColor="#9ca3af"
+              placeholderTextColor={colors.textMuted}
               keyboardType="numeric"
               value={maxMetrekare}
               onChangeText={setMaxMetrekare}
@@ -380,7 +385,7 @@ export default function TumIlanlarScreen({ route, navigation }) {
               setFiltreMod(false);
             }}
           >
-            <Text style={s.filtreTemizleText}>Filtreleri Temizle</Text>
+            <Text style={[s.filtreTemizleText, { color: colors.textMuted }]}>Filtreleri Temizle</Text>
           </TouchableOpacity>
         </View>
       </Modal>

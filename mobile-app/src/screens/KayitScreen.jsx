@@ -8,14 +8,15 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { kayitOl, girisYap, kurumsalKayitOl } from '../services/api';
+import { useTheme } from '../context/ThemeContext';
 
-const InputAlan = ({ icon, placeholder, value, onChangeText, keyboard, cap, sifre, gizle, onGizleToggle }) => (
-  <View style={s.inputWrap}>
-    <Ionicons name={icon || 'person-outline'} size={18} color="#9ca3af" style={s.inputIkon} />
+const InputAlan = ({ icon, placeholder, value, onChangeText, keyboard, cap, sifre, gizle, onGizleToggle, colors }) => (
+  <View style={[s.inputWrap, { borderColor: colors?.inputBorder || '#e5e7eb', backgroundColor: colors?.input || '#fafafa' }]}>
+    <Ionicons name={icon || 'person-outline'} size={18} color={colors?.textMuted || '#9ca3af'} style={s.inputIkon} />
     <TextInput
-      style={s.input}
+      style={[s.input, { color: colors?.text || '#111827' }]}
       placeholder={placeholder}
-      placeholderTextColor="#9ca3af"
+      placeholderTextColor={colors?.textMuted || '#9ca3af'}
       value={value}
       onChangeText={onChangeText}
       keyboardType={keyboard || 'default'}
@@ -24,13 +25,14 @@ const InputAlan = ({ icon, placeholder, value, onChangeText, keyboard, cap, sifr
     />
     {sifre && (
       <TouchableOpacity onPress={onGizleToggle} style={{ padding: 4 }}>
-        <Ionicons name={gizle ? 'eye-off-outline' : 'eye-outline'} size={18} color="#9ca3af" />
+        <Ionicons name={gizle ? 'eye-off-outline' : 'eye-outline'} size={18} color={colors?.textMuted || '#9ca3af'} />
       </TouchableOpacity>
     )}
   </View>
 );
 
 export default function KayitScreen({ navigation }) {
+  const { colors } = useTheme();
   const [tip, setTip] = useState('bireysel');
   const [bireysel, setBireysel] = useState({ ad_soyad: '', eposta: '', sifre: '', sifreTekrar: '' });
   const [kurumsal, setKurumsal] = useState({
@@ -100,40 +102,40 @@ export default function KayitScreen({ navigation }) {
           <Text style={s.slogan}>Hesap oluştur, ilan ver</Text>
         </LinearGradient>
 
-        {/* Beyaz Form Kartı */}
-        <View style={s.kart}>
+        {/* Form Kartı */}
+        <View style={[s.kart, { backgroundColor: colors.card }]}>
 
           {/* Hesap tipi seçimi */}
           <View style={s.tipSatir}>
             <TouchableOpacity
-              style={[s.tipKart, tip === 'bireysel' && s.tipKartSecili]}
+              style={[s.tipKart, { borderColor: colors.border, backgroundColor: colors.input }, tip === 'bireysel' && s.tipKartSecili]}
               onPress={() => setTip('bireysel')}
               activeOpacity={0.8}
             >
-              <Ionicons name="person-outline" size={26} color={tip === 'bireysel' ? '#2563eb' : '#9ca3af'} />
-              <Text style={[s.tipLabel, tip === 'bireysel' && s.tipLabelSecili]}>Bireysel</Text>
+              <Ionicons name="person-outline" size={26} color={tip === 'bireysel' ? '#2563eb' : colors.textMuted} />
+              <Text style={[s.tipLabel, { color: colors.textMuted }, tip === 'bireysel' && s.tipLabelSecili]}>Bireysel</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[s.tipKart, tip === 'kurumsal' && s.tipKartSecili]}
+              style={[s.tipKart, { borderColor: colors.border, backgroundColor: colors.input }, tip === 'kurumsal' && s.tipKartSecili]}
               onPress={() => setTip('kurumsal')}
               activeOpacity={0.8}
             >
-              <Ionicons name="business-outline" size={26} color={tip === 'kurumsal' ? '#2563eb' : '#9ca3af'} />
-              <Text style={[s.tipLabel, tip === 'kurumsal' && s.tipLabelSecili]}>Emlak Ofisi</Text>
+              <Ionicons name="business-outline" size={26} color={tip === 'kurumsal' ? '#2563eb' : colors.textMuted} />
+              <Text style={[s.tipLabel, { color: colors.textMuted }, tip === 'kurumsal' && s.tipLabelSecili]}>Emlak Ofisi</Text>
             </TouchableOpacity>
           </View>
 
           {/* BİREYSEL FORM */}
           {tip === 'bireysel' && (
             <View style={s.form}>
-              <InputAlan icon="person-outline" placeholder="Ad Soyad"
+              <InputAlan icon="person-outline" placeholder="Ad Soyad" colors={colors}
                 value={bireysel.ad_soyad} onChangeText={bSet('ad_soyad')} />
-              <InputAlan icon="mail-outline" placeholder="E-posta adresiniz"
+              <InputAlan icon="mail-outline" placeholder="E-posta adresiniz" colors={colors}
                 value={bireysel.eposta} onChangeText={bSet('eposta')} keyboard="email-address" cap="none" />
-              <InputAlan icon="lock-closed-outline" placeholder="Şifreniz (min. 6 karakter)"
+              <InputAlan icon="lock-closed-outline" placeholder="Şifreniz (min. 6 karakter)" colors={colors}
                 value={bireysel.sifre} onChangeText={bSet('sifre')} cap="none"
                 sifre gizle={gizle} onGizleToggle={() => setGizle(g => !g)} />
-              <InputAlan icon="lock-closed-outline" placeholder="Şifrenizi tekrar girin"
+              <InputAlan icon="lock-closed-outline" placeholder="Şifrenizi tekrar girin" colors={colors}
                 value={bireysel.sifreTekrar} onChangeText={bSet('sifreTekrar')} cap="none"
                 sifre gizle={gizle} onGizleToggle={() => setGizle(g => !g)} />
               <TouchableOpacity style={s.btn} onPress={bireyselKayit} disabled={yukleniyor}>
@@ -145,32 +147,32 @@ export default function KayitScreen({ navigation }) {
           {/* KURUMSAL FORM */}
           {tip === 'kurumsal' && (
             <View style={s.form}>
-              <InputAlan icon="person-outline" placeholder="Yetkili Adı Soyadı"
+              <InputAlan icon="person-outline" placeholder="Yetkili Adı Soyadı" colors={colors}
                 value={kurumsal.ad_soyad} onChangeText={kSet('ad_soyad')} />
-              <InputAlan icon="mail-outline" placeholder="E-posta adresiniz"
+              <InputAlan icon="mail-outline" placeholder="E-posta adresiniz" colors={colors}
                 value={kurumsal.eposta} onChangeText={kSet('eposta')} keyboard="email-address" cap="none" />
-              <InputAlan icon="lock-closed-outline" placeholder="Şifreniz (min. 6 karakter)"
+              <InputAlan icon="lock-closed-outline" placeholder="Şifreniz (min. 6 karakter)" colors={colors}
                 value={kurumsal.sifre} onChangeText={kSet('sifre')} cap="none"
                 sifre gizle={gizle} onGizleToggle={() => setGizle(g => !g)} />
-              <InputAlan icon="lock-closed-outline" placeholder="Şifrenizi tekrar girin"
+              <InputAlan icon="lock-closed-outline" placeholder="Şifrenizi tekrar girin" colors={colors}
                 value={kurumsal.sifreTekrar} onChangeText={kSet('sifreTekrar')} cap="none"
                 sifre gizle={gizle} onGizleToggle={() => setGizle(g => !g)} />
 
               <View style={s.bolumBaslikWrap}>
-                <View style={s.bolumCizgi} />
-                <Text style={s.bolumBaslik}>Ofis Bilgileri</Text>
-                <View style={s.bolumCizgi} />
+                <View style={[s.bolumCizgi, { backgroundColor: colors.border }]} />
+                <Text style={[s.bolumBaslik, { color: colors.textMuted }]}>Ofis Bilgileri</Text>
+                <View style={[s.bolumCizgi, { backgroundColor: colors.border }]} />
               </View>
 
-              <InputAlan icon="storefront-outline" placeholder="Ofis / Dükkan Adı"
+              <InputAlan icon="storefront-outline" placeholder="Ofis / Dükkan Adı" colors={colors}
                 value={kurumsal.dukkan_adi} onChangeText={kSet('dukkan_adi')} />
-              <InputAlan icon="map-outline" placeholder="Şehir"
+              <InputAlan icon="map-outline" placeholder="Şehir" colors={colors}
                 value={kurumsal.sehir} onChangeText={kSet('sehir')} />
-              <InputAlan icon="location-outline" placeholder="İlçe"
+              <InputAlan icon="location-outline" placeholder="İlçe" colors={colors}
                 value={kurumsal.ilce} onChangeText={kSet('ilce')} />
-              <InputAlan icon="document-text-outline" placeholder="Vergi No"
+              <InputAlan icon="document-text-outline" placeholder="Vergi No" colors={colors}
                 value={kurumsal.vergi_no} onChangeText={kSet('vergi_no')} keyboard="numeric" cap="none" />
-              <InputAlan icon="ribbon-outline" placeholder="Yetki Belge No"
+              <InputAlan icon="ribbon-outline" placeholder="Yetki Belge No" colors={colors}
                 value={kurumsal.yetki_belge_no} onChangeText={kSet('yetki_belge_no')} cap="none" />
 
               <TouchableOpacity style={s.btn} onPress={kurumsalKayit} disabled={yukleniyor}>
@@ -180,7 +182,7 @@ export default function KayitScreen({ navigation }) {
           )}
 
           <TouchableOpacity onPress={() => navigation.navigate('Giris')} style={s.girisLink}>
-            <Text style={s.girisText}>
+            <Text style={[s.girisText, { color: colors.textSecondary }]}>
               Zaten hesabın var mı?{'  '}
               <Text style={{ color: '#2563eb', fontWeight: '700' }}>Giriş Yap</Text>
             </Text>

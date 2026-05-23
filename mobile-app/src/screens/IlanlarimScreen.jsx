@@ -8,6 +8,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { kullaniciilanlarim, ilanSil, ilanDurumGuncelle } from '../services/api';
+import { useTheme } from '../context/ThemeContext';
 
 const GORSEL_FALLBACK = 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=600&q=80';
 const fiyatFormat = (f) =>
@@ -28,6 +29,7 @@ const DURUM_ETIKET = {
 const DURUM_SECENEKLER = ['aktif', 'pasif', 'satildi', 'kiralandı'];
 
 export default function IlanlarimScreen({ navigation }) {
+  const { colors } = useTheme();
   const [ilanlar, setIlanlar]           = useState([]);
   const [yukleniyor, setYukleniyor]     = useState(true);
   const [kullanici, setKullanici]       = useState(null);
@@ -77,9 +79,9 @@ export default function IlanlarimScreen({ navigation }) {
 
   if (!kullanici) {
     return (
-      <View style={s.merkez}>
-        <Ionicons name="lock-closed-outline" size={56} color="#d1d5db" />
-        <Text style={s.bosBaslik}>Giriş Yapmanız Gerekiyor</Text>
+      <View style={[s.merkez, { backgroundColor: colors.bg }]}>
+        <Ionicons name="lock-closed-outline" size={56} color={colors.textMuted} />
+        <Text style={[s.bosBaslik, { color: colors.text }]}>Giriş Yapmanız Gerekiyor</Text>
         <TouchableOpacity style={s.btn} onPress={() => navigation.navigate('Giris')}>
           <Text style={s.btnText}>Giriş Yap</Text>
         </TouchableOpacity>
@@ -89,7 +91,7 @@ export default function IlanlarimScreen({ navigation }) {
 
   if (yukleniyor) {
     return (
-      <View style={s.merkez}>
+      <View style={[s.merkez, { backgroundColor: colors.bg }]}>
         <ActivityIndicator size="large" color="#2563eb" />
       </View>
     );
@@ -100,7 +102,7 @@ export default function IlanlarimScreen({ navigation }) {
   const satildiSayi = ilanlar.filter(i => i.durum === 'satildi' || i.durum === 'kiralandı').length;
 
   return (
-    <View style={s.container}>
+    <View style={[s.container, { backgroundColor: colors.bg }]}>
       <LinearGradient colors={['#1e3a8a', '#2563eb']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={s.banner}>
         <View style={s.bannerKart}>
           <Text style={s.bannerSayi}>{ilanlar.length}</Text>
@@ -124,10 +126,10 @@ export default function IlanlarimScreen({ navigation }) {
       </LinearGradient>
       {/* Bireysel limit göstergesi */}
       {!kurumsal && (
-        <View style={s.limitBar}>
+        <View style={[s.limitBar, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
           <View style={s.limitSol}>
-            <Ionicons name="home-outline" size={16} color="#374151" />
-            <Text style={s.limitText}>
+            <Ionicons name="home-outline" size={16} color={colors.text} />
+            <Text style={[s.limitText, { color: colors.text }]}>
               <Text style={{ fontWeight: '900', color: kullanilanHak >= maxIlan ? '#ef4444' : '#2563eb' }}>
                 {kullanilanHak}/{maxIlan}
               </Text>
@@ -162,7 +164,7 @@ export default function IlanlarimScreen({ navigation }) {
           const durumEtiket = DURUM_ETIKET[item.durum] || 'Aktif';
           return (
             <TouchableOpacity
-              style={s.kart}
+              style={[s.kart, { backgroundColor: colors.card, borderColor: colors.border }]}
               onPress={() => navigation.navigate('IlanDetay', { id: item.id })}
             >
               <Image source={{ uri: item.gorsel || GORSEL_FALLBACK }} style={s.gorsel} resizeMode="cover" />
@@ -175,7 +177,7 @@ export default function IlanlarimScreen({ navigation }) {
               </TouchableOpacity>
               <View style={s.bilgi}>
                 <Text style={s.fiyat}>{fiyatFormat(item.fiyat)}</Text>
-                <Text style={s.baslik} numberOfLines={1}>{item.baslik}</Text>
+                <Text style={[s.baslik, { color: colors.text }]} numberOfLines={1}>{item.baslik}</Text>
                 <View style={s.altRow}>
                   <Ionicons name="location-outline" size={12} color="#9ca3af" />
                   <Text style={s.konum}>{[item.ilce, item.sehir].filter(Boolean).join(', ') || '—'}</Text>
@@ -237,15 +239,15 @@ export default function IlanlarimScreen({ navigation }) {
       {/* Durum Değiştir Modalı */}
       <Modal visible={durumMod} transparent animationType="slide" onRequestClose={() => setDurumMod(false)}>
         <TouchableOpacity style={s.modalArka} activeOpacity={1} onPress={() => setDurumMod(false)} />
-        <View style={s.modalKutu}>
+        <View style={[s.modalKutu, { backgroundColor: colors.card }]}>
           <View style={s.modalBaslik}>
-            <Text style={s.modalBaslikText}>Durum Değiştir</Text>
+            <Text style={[s.modalBaslikText, { color: colors.text }]}>Durum Değiştir</Text>
             <TouchableOpacity onPress={() => setDurumMod(false)}>
-              <Ionicons name="close" size={22} color="#374151" />
+              <Ionicons name="close" size={22} color={colors.text} />
             </TouchableOpacity>
           </View>
           {seciliIlan ? (
-            <Text style={s.modalAlt} numberOfLines={1}>{seciliIlan.baslik}</Text>
+            <Text style={[s.modalAlt, { color: colors.textMuted }]} numberOfLines={1}>{seciliIlan.baslik}</Text>
           ) : null}
           {durumYukleniyor ? (
             <ActivityIndicator size="large" color="#2563eb" style={{ marginVertical: 24 }} />
@@ -272,7 +274,7 @@ export default function IlanlarimScreen({ navigation }) {
 }
 
 const s = StyleSheet.create({
-  container:    { flex: 1, backgroundColor: '#f9fafb' },
+  container:    { flex: 1 },
   banner:       { flexDirection: 'row', paddingVertical: 16, paddingHorizontal: 8 },
   bannerKart:   { flex: 1, alignItems: 'center', gap: 3 },
   bannerSayi:   { fontSize: 22, fontWeight: '900', color: '#fff' },

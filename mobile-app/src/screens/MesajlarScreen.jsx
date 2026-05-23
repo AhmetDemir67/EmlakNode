@@ -7,6 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { konusmalariGetir } from '../services/api';
+import { useTheme } from '../context/ThemeContext';
 
 const tarihKisa = (t) => {
   if (!t) return '';
@@ -24,6 +25,7 @@ const bas = (str = '') =>
   str.split(' ').map(w => w.charAt(0).toUpperCase()).slice(0, 2).join('');
 
 export default function MesajlarScreen({ navigation }) {
+  const { colors } = useTheme();
   const [konusmalar, setKonusmalar] = useState([]);
   const [yukleniyor, setYukleniyor] = useState(true);
   const [giris, setGiris]           = useState(false);
@@ -50,9 +52,9 @@ export default function MesajlarScreen({ navigation }) {
 
   if (!giris) {
     return (
-      <View style={s.merkez}>
-        <Ionicons name="chatbubbles-outline" size={56} color="#d1d5db" />
-        <Text style={s.bosBaslik}>Mesajlarınıza erişmek için giriş yapın</Text>
+      <View style={[s.merkez, { backgroundColor: colors.bg }]}>
+        <Ionicons name="chatbubbles-outline" size={56} color={colors.border} />
+        <Text style={[s.bosBaslik, { color: colors.textSecondary }]}>Mesajlarınıza erişmek için giriş yapın</Text>
         <TouchableOpacity style={s.btn} onPress={() => navigation.navigate('Giris')}>
           <Text style={s.btnText}>Giriş Yap</Text>
         </TouchableOpacity>
@@ -61,13 +63,13 @@ export default function MesajlarScreen({ navigation }) {
   }
 
   if (yukleniyor) {
-    return <View style={s.merkez}><ActivityIndicator size="large" color="#2563eb" /></View>;
+    return <View style={[s.merkez, { backgroundColor: colors.bg }]}><ActivityIndicator size="large" color="#2563eb" /></View>;
   }
 
   return (
-    <View style={s.container}>
+    <View style={[s.container, { backgroundColor: colors.bg }]}>
       {konusmalar.length > 0 && (
-        <View style={s.topBant}>
+        <View style={[s.topBant, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
           <Ionicons name="chatbubbles" size={14} color="#2563eb" />
           <Text style={s.topBantText}>{konusmalar.length} aktif konuşma</Text>
         </View>
@@ -75,19 +77,19 @@ export default function MesajlarScreen({ navigation }) {
       <FlatList
         data={konusmalar}
         keyExtractor={i => String(i.id)}
-        ItemSeparatorComponent={() => <View style={s.ayrac} />}
+        ItemSeparatorComponent={() => <View style={[s.ayrac, { backgroundColor: colors.border }]} />}
         ListEmptyComponent={
           <View style={s.bos}>
-            <Ionicons name="chatbubble-outline" size={56} color="#d1d5db" />
-            <Text style={s.bosBaslik}>Henüz mesajınız yok</Text>
-            <Text style={s.bosAlt}>İlan sahipleriyle ilgili ilan sayfasından iletişime geçebilirsiniz.</Text>
+            <Ionicons name="chatbubble-outline" size={56} color={colors.border} />
+            <Text style={[s.bosBaslik, { color: colors.textSecondary }]}>Henüz mesajınız yok</Text>
+            <Text style={[s.bosAlt, { color: colors.textMuted }]}>İlan sahipleriyle ilgili ilan sayfasından iletişime geçebilirsiniz.</Text>
           </View>
         }
         renderItem={({ item }) => {
           const okunmamis = parseInt(item.okunmamis) > 0;
           return (
             <TouchableOpacity
-              style={s.konusma}
+              style={[s.konusma, { backgroundColor: colors.card }]}
               onPress={() => navigation.navigate('Konusma', {
                 konusmaId: item.id,
                 karsiAd: item.karsi_ad,
@@ -96,24 +98,24 @@ export default function MesajlarScreen({ navigation }) {
               })}
               activeOpacity={0.8}
             >
-              <View style={[s.avatar, okunmamis && s.avatarAktif]}>
-                <Text style={[s.avatarText, okunmamis && { color: '#2563eb' }]}>
+              <View style={[s.avatar, { backgroundColor: colors.input }, okunmamis && s.avatarAktif]}>
+                <Text style={[s.avatarText, { color: colors.textMuted }, okunmamis && { color: '#2563eb' }]}>
                   {bas(item.karsi_ad)}
                 </Text>
               </View>
               <View style={s.icerik}>
                 <View style={s.icerikUst}>
-                  <Text style={[s.karsiAd, okunmamis && { fontWeight: '800' }]} numberOfLines={1}>
+                  <Text style={[s.karsiAd, { color: colors.text }, okunmamis && { fontWeight: '800' }]} numberOfLines={1}>
                     {item.karsi_ad || 'Kullanıcı'}
                   </Text>
-                  <Text style={s.tarih}>{tarihKisa(item.son_tarih)}</Text>
+                  <Text style={[s.tarih, { color: colors.textMuted }]}>{tarihKisa(item.son_tarih)}</Text>
                 </View>
                 {item.ilan_baslik ? (
-                  <Text style={s.ilanBaslik} numberOfLines={1}>🏠 {item.ilan_baslik}</Text>
+                  <Text style={[s.ilanBaslik, { color: colors.textMuted }]} numberOfLines={1}>🏠 {item.ilan_baslik}</Text>
                 ) : null}
                 <View style={s.sonMesajRow}>
                   <Text
-                    style={[s.sonMesaj, okunmamis && { color: '#111827', fontWeight: '700' }]}
+                    style={[s.sonMesaj, { color: colors.textMuted }, okunmamis && { color: colors.text, fontWeight: '700' }]}
                     numberOfLines={1}
                   >
                     {item.son_mesaj || 'Konuşma başlatıldı'}

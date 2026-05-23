@@ -68,8 +68,6 @@ export default function HesabimScreen({ navigation }) {
       },
     ]);
 
-  const yakinda = (f) => Alert.alert(f, 'Bu özellik yakında eklenecek.');
-
   /* ── Giriş yapılmamış ── */
   if (!kullanici) {
     return (
@@ -136,7 +134,7 @@ export default function HesabimScreen({ navigation }) {
         <HizliKart icon="list-outline"  label="İlanlarım"   renk="#2563eb" onPress={() => navigation.navigate('Ilanlarim')} colors={colors} />
         <HizliKart icon="heart-outline" label="Favorilerim" renk="#ef4444" onPress={() => navigation.navigate('Favoriler')} colors={colors} />
         {kurumsal ? (
-          <HizliKart icon="people-outline" label="Danışmanlar" renk="#3b82f6" onPress={() => yakinda('Danışmanlarım')} colors={colors} />
+          <HizliKart icon="people-outline" label="Danışmanlar" renk="#3b82f6" onPress={() => navigation.navigate('Danismanlarim')} colors={colors} />
         ) : (
           <HizliKart icon="search-outline" label="Aramalarım" renk="#8b5cf6" onPress={() => navigation.navigate('KayitliAramalar')} colors={colors} />
         )}
@@ -179,7 +177,7 @@ export default function HesabimScreen({ navigation }) {
         <View style={[s.grupKutu, { backgroundColor: colors.card, borderColor: colors.border }]}>
           <MenuItem icon="person-circle-outline" iconBg="#eff6ff" label="Üyelik Bilgilerim" alt="Ad, e-posta, telefon, şifre" onPress={() => navigation.navigate('ProfilDuzenle')} colors={colors} />
           <MenuItem icon="notifications-outline" iconBg="#fff7ed" iconColor="#f97316" label="Bildirim Ayarları" onPress={() => Linking.openSettings()} colors={colors} />
-          <MenuItem icon="shield-checkmark-outline" iconBg="#eff6ff" label="Gizlilik ve Güvenlik" onPress={() => yakinda('Gizlilik')} son colors={colors} />
+          <MenuItem icon="shield-checkmark-outline" iconBg="#eff6ff" label="Gizlilik ve Güvenlik" onPress={() => navigation.navigate('GizlilikGuvenlik')} son colors={colors} />
         </View>
       </View>
 
@@ -209,7 +207,7 @@ export default function HesabimScreen({ navigation }) {
       <View style={s.grup}>
         <Text style={[s.grupBaslik, { color: colors.grupBaslik }]}>DİĞER</Text>
         <View style={[s.grupKutu, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <MenuItem icon="help-circle-outline" iconBg="#f0f9ff" iconColor="#0ea5e9" label="Yardım & Destek" onPress={() => yakinda('Yardım')} colors={colors} />
+          <MenuItem icon="help-circle-outline" iconBg="#f0f9ff" iconColor="#0ea5e9" label="Yardım & Destek" onPress={() => navigation.navigate('YardimDestek')} colors={colors} />
           <MenuItem icon="information-circle-outline" iconBg="#f5f3ff" iconColor="#8b5cf6" label="Uygulama Hakkında" onPress={() => Alert.alert('EmlakNode', 'Sürüm 1.0.0\nGeliştirici: EmlakNode Ekibi')} colors={colors} />
           <MenuItem icon="log-out-outline" iconBg="#fff1f2" label="Çıkış Yap" onPress={cikis} danger son colors={colors} />
         </View>

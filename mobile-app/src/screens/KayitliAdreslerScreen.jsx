@@ -6,8 +6,10 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { kayitliAdreslerGetir, kayitliAdresSil, kayitliAdresEkle } from '../services/api';
+import { useTheme } from '../context/ThemeContext';
 
 export default function KayitliAdreslerScreen({ navigation }) {
+  const { colors } = useTheme();
   const [adresler, setAdresler] = useState([]);
   const [yukleniyor, setYukleniyor] = useState(true);
   const [eklemeMod, setEklemeMod] = useState(false);
@@ -58,20 +60,20 @@ export default function KayitliAdreslerScreen({ navigation }) {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#f5f5f5' }}>
+    <View style={{ flex: 1, backgroundColor: colors.bg }}>
 
       <Modal visible={eklemeMod} transparent animationType="slide" onRequestClose={() => setEklemeMod(false)}>
         <TouchableOpacity style={s.modalArka} activeOpacity={1} onPress={() => setEklemeMod(false)} />
-        <View style={s.modalKutu}>
-          <View style={s.modalUst}>
-            <Text style={s.modalBaslik}>Adres Ekle</Text>
+        <View style={[s.modalKutu, { backgroundColor: colors.card }]}>
+          <View style={[s.modalUst, { borderBottomColor: colors.border }]}>
+            <Text style={[s.modalBaslik, { color: colors.text }]}>Adres Ekle</Text>
             <TouchableOpacity onPress={() => setEklemeMod(false)}>
-              <Ionicons name="close" size={22} color="#374151" />
+              <Ionicons name="close" size={22} color={colors.text} />
             </TouchableOpacity>
           </View>
-          <TextInput style={s.input} placeholder="Başlık (örn. Ev, İş Yeri)" value={yeniBaslik} onChangeText={setYeniBaslik} placeholderTextColor="#9ca3af" />
-          <TextInput style={s.input} placeholder="Şehir" value={yeniSehir} onChangeText={setYeniSehir} placeholderTextColor="#9ca3af" />
-          <TextInput style={s.input} placeholder="İlçe" value={yeniIlce} onChangeText={setYeniIlce} placeholderTextColor="#9ca3af" />
+          <TextInput style={[s.input, { backgroundColor: colors.input, borderColor: colors.inputBorder, color: colors.text }]} placeholder="Başlık (örn. Ev, İş Yeri)" value={yeniBaslik} onChangeText={setYeniBaslik} placeholderTextColor={colors.textMuted} />
+          <TextInput style={[s.input, { backgroundColor: colors.input, borderColor: colors.inputBorder, color: colors.text }]} placeholder="Şehir" value={yeniSehir} onChangeText={setYeniSehir} placeholderTextColor={colors.textMuted} />
+          <TextInput style={[s.input, { backgroundColor: colors.input, borderColor: colors.inputBorder, color: colors.text }]} placeholder="İlçe" value={yeniIlce} onChangeText={setYeniIlce} placeholderTextColor={colors.textMuted} />
           <TouchableOpacity style={s.kaydetBtn} onPress={adresEkle}>
             <Text style={s.kaydetBtnText}>Kaydet</Text>
           </TouchableOpacity>
@@ -79,30 +81,30 @@ export default function KayitliAdreslerScreen({ navigation }) {
       </Modal>
 
       {yukleniyor ? (
-        <View style={s.merkez}><ActivityIndicator size="large" color="#2563eb" /></View>
+        <View style={[s.merkez, { backgroundColor: colors.bg }]}><ActivityIndicator size="large" color="#2563eb" /></View>
       ) : adresler.length === 0 ? (
-        <View style={s.merkez}>
-          <Ionicons name="location-outline" size={56} color="#d1d5db" />
-          <Text style={s.bosBaslik}>Kayıtlı adres yok</Text>
-          <Text style={s.bosAlt}>Sağ alttaki + butonuna basarak adres ekleyebilirsin.</Text>
+        <View style={[s.merkez, { backgroundColor: colors.bg }]}>
+          <Ionicons name="location-outline" size={56} color={colors.textMuted} />
+          <Text style={[s.bosBaslik, { color: colors.text }]}>Kayıtlı adres yok</Text>
+          <Text style={[s.bosAlt, { color: colors.textSecondary }]}>Sağ alttaki + butonuna basarak adres ekleyebilirsin.</Text>
         </View>
       ) : (
         <FlatList
           data={adresler}
           keyExtractor={item => String(item.id)}
-          contentContainerStyle={s.liste}
+          contentContainerStyle={[s.liste, { backgroundColor: colors.bg }]}
           showsVerticalScrollIndicator={false}
           renderItem={({ item }) => {
             const altText = [item.adres, item.ilce, item.sehir].filter(Boolean).join(', ');
             const koordinat = item.enlem && item.boylam;
             return (
-              <View style={s.kart}>
-                <View style={s.ikonWrap}>
+              <View style={[s.kart, { backgroundColor: colors.card }]}>
+                <View style={[s.ikonWrap, { backgroundColor: colors.badge }]}>
                   <Ionicons name="location" size={20} color="#2563eb" />
                 </View>
                 <View style={s.icerik}>
-                  <Text style={s.baslik}>{item.baslik}</Text>
-                  {altText ? <Text style={s.altText}>{altText}</Text> : null}
+                  <Text style={[s.baslik, { color: colors.text }]}>{item.baslik}</Text>
+                  {altText ? <Text style={[s.altText, { color: colors.textSecondary }]}>{altText}</Text> : null}
                   {koordinat ? (
                     <TouchableOpacity onPress={() => haritadaGor(item)}>
                       <Text style={s.haritaLink}>Haritada Gör</Text>
@@ -142,7 +144,7 @@ const s = StyleSheet.create({
   fab:        { position: 'absolute', bottom: 24, right: 20, width: 56, height: 56, borderRadius: 28, backgroundColor: '#2563eb', justifyContent: 'center', alignItems: 'center', elevation: 6, shadowColor: '#2563eb', shadowOpacity: 0.4, shadowRadius: 8 },
   modalArka:  { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)' },
   modalKutu:  { backgroundColor: '#fff', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 20, paddingBottom: 40, gap: 12 },
-  modalUst:   { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
+  modalUst:   { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4, paddingBottom: 12, borderBottomWidth: 1 },
   modalBaslik:{ fontSize: 17, fontWeight: '800', color: '#111827' },
   input:      { borderWidth: 1.5, borderColor: '#e5e7eb', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12, fontSize: 15, color: '#111827' },
   kaydetBtn:  { backgroundColor: '#2563eb', paddingVertical: 14, borderRadius: 14, alignItems: 'center', marginTop: 4 },

@@ -46,10 +46,12 @@ export const profilGuncelle = (data) => api.put('/auth/profil', data);
 export const sifreGuncelle  = (data) => api.put('/auth/sifre', data);
 
 // Dükkan
-export const dukkanGetir        = (id)    => api.get(`/dukkanlar/${id}`);
-export const dukkanGuncelle     = (id, d) => api.put(`/dukkanlar/${id}`, d);
-export const danismanlarGetir   = (id)    => api.get(`/dukkanlar/${id}/danismanlar`);
-export const istatistiklerGetir = (id)    => api.get(`/dukkanlar/${id}/istatistikler`);
+export const dukkanGetir        = (id)       => api.get(`/dukkanlar/${id}`);
+export const dukkanGuncelle     = (id, d)    => api.put(`/dukkanlar/${id}`, d);
+export const danismanlarGetir   = (id)       => api.get(`/dukkanlar/${id}/danismanlar`);
+export const danismanEkle       = (id, d)    => api.post(`/dukkanlar/${id}/danismanlar`, d);
+export const danismanCikar      = (id, kulId) => api.delete(`/dukkanlar/${id}/danismanlar/${kulId}`);
+export const istatistiklerGetir = (id)       => api.get(`/dukkanlar/${id}/istatistikler`);
 
 // Favoriler
 export const favorilerGetir = ()        => api.get('/favoriler');
@@ -76,6 +78,12 @@ export const konusmalariGetir = ()          => api.get('/mesajlar');
 export const mesajlariGetir   = (konusmaId) => api.get(`/mesajlar/${konusmaId}`);
 export const mesajGonder      = (data)      => api.post('/mesajlar', data);
 export const okunmamisSayisi  = ()          => api.get('/mesajlar/okunmamis');
+
+// Bildirimler
+export const bildirimleriGetir        = ()   => api.get('/bildirimler');
+export const okunmamisBildirimSayisi  = ()   => api.get('/bildirimler/okunmamis');
+export const bildirimOku              = (id) => api.patch(`/bildirimler/${id}/oku`);
+export const hepsiniOku               = ()   => api.patch('/bildirimler/hepsini-oku');
 
 // AI
 export const aiAciklamaUret  = (data) => api.post('/ai/aciklama-uret', data, { timeout: 30000 });

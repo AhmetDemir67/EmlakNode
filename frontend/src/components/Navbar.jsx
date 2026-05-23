@@ -3,9 +3,10 @@ import { Link, useNavigate } from 'react-router-dom';
 import {
   Home, Menu, X, ChevronDown, LogOut,
   PlusCircle, FileText, MessageSquare, User, Bookmark,
-  MapPin, Briefcase, Palmtree, Repeat2, Sun, Moon, Sparkles,
+  MapPin, Briefcase, Palmtree, Repeat2, Sun, Moon, Sparkles, Bell,
 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
+import { okunmamisSayisi, okunmamisBildirimSayisi } from '../services/api';
 
 // ── Dropdown verileri ────────────────────────────────────────────
 const SATILIK_SECENEKLER = [
@@ -89,6 +90,9 @@ const Navbar = () => {
   const [kulAcik, setKulAcik]       = useState(false);
   const kulDropRef                  = useRef(null);
 
+  const [mesajSayisi, setMesajSayisi]         = useState(0);
+  const [bildirimSayisi, setBildirimSayisi]   = useState(0);
+
   const kullanici = (() => {
     try { return JSON.parse(localStorage.getItem('kullanici')) || null; }
     catch { return null; }
@@ -97,6 +101,8 @@ const Navbar = () => {
   const cikisYap = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('kullanici');
+    setMesajSayisi(0);
+    setBildirimSayisi(0);
     navigate('/');
   };
 
@@ -107,6 +113,20 @@ const Navbar = () => {
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, []);
+
+  useEffect(() => {
+    if (!kullanici) return;
+    const fetchSayilar = async () => {
+      try {
+        const [m, b] = await Promise.all([okunmamisSayisi(), okunmamisBildirimSayisi()]);
+        setMesajSayisi(m.data.sayi || 0);
+        setBildirimSayisi(b.data.sayi || 0);
+      } catch { /* sessiz */ }
+    };
+    fetchSayilar();
+    const interval = setInterval(fetchSayilar, 30000);
+    return () => clearInterval(interval);
+  }, [kullanici?.id]);
 
   const basTurkce = (str = '') =>
     str.split(' ').map(s => s.charAt(0).toUpperCase()).slice(0, 2).join('');
@@ -174,8 +194,15 @@ const Navbar = () => {
                           : 'border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 hover:border-blue-400 hover:bg-blue-50/50 dark:hover:bg-blue-900/20'
                       }`}
                     >
-                      <div className="w-7 h-7 bg-blue-600 rounded-lg flex items-center justify-center text-white text-xs font-extrabold">
-                        {basTurkce(kullanici.ad_soyad)}
+                      <div className="relative w-7 h-7 flex-shrink-0">
+                        <div className="w-7 h-7 bg-blue-600 rounded-lg flex items-center justify-center text-white text-xs font-extrabold">
+                          {basTurkce(kullanici.ad_soyad)}
+                        </div>
+                        {(mesajSayisi + bildirimSayisi) > 0 && (
+                          <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-500 text-white text-[9px] font-black rounded-full flex items-center justify-center leading-none">
+                            {(mesajSayisi + bildirimSayisi) > 9 ? '9+' : mesajSayisi + bildirimSayisi}
+                          </span>
+                        )}
                       </div>
                       <div className="text-left hidden lg:block">
                         <div className="text-xs font-bold leading-none">{kullanici.ad_soyad?.split(' ')[0]}</div>
@@ -204,7 +231,23 @@ const Navbar = () => {
                         </Link>
                         <Link to="/panel?sekme=mesajlar" onClick={() => setKulAcik(false)}
                           className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:text-blue-700 transition-colors">
-                          <MessageSquare size={15} className="text-blue-500" /> Mesajlarım
+                          <MessageSquare size={15} className="text-blue-500" />
+                          <span className="flex-1">Mesajlarım</span>
+                          {mesajSayisi > 0 && (
+                            <span className="bg-red-500 text-white text-[10px] font-black px-1.5 py-0.5 rounded-full leading-none">
+                              {mesajSayisi > 9 ? '9+' : mesajSayisi}
+                            </span>
+                          )}
+                        </Link>
+                        <Link to="/panel?sekme=bildirimler" onClick={() => setKulAcik(false)}
+                          className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:text-blue-700 transition-colors">
+                          <Bell size={15} className="text-blue-500" />
+                          <span className="flex-1">Bildirimler</span>
+                          {bildirimSayisi > 0 && (
+                            <span className="bg-red-500 text-white text-[10px] font-black px-1.5 py-0.5 rounded-full leading-none">
+                              {bildirimSayisi > 9 ? '9+' : bildirimSayisi}
+                            </span>
+                          )}
                         </Link>
                         <Link to="/panel?sekme=uyelik" onClick={() => setKulAcik(false)}
                           className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:text-blue-700 transition-colors">
@@ -312,7 +355,23 @@ const Navbar = () => {
                   </Link>
                   <Link to="/panel?sekme=mesajlar" onClick={() => setMenuAcik(false)}
                     className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-semibold text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:text-blue-600">
-                    <MessageSquare size={14} className="text-blue-500" /> Mesajlarım
+                    <MessageSquare size={14} className="text-blue-500" />
+                    <span className="flex-1">Mesajlarım</span>
+                    {mesajSayisi > 0 && (
+                      <span className="bg-red-500 text-white text-[10px] font-black px-1.5 py-0.5 rounded-full leading-none">
+                        {mesajSayisi > 9 ? '9+' : mesajSayisi}
+                      </span>
+                    )}
+                  </Link>
+                  <Link to="/panel?sekme=bildirimler" onClick={() => setMenuAcik(false)}
+                    className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-semibold text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:text-blue-600">
+                    <Bell size={14} className="text-blue-500" />
+                    <span className="flex-1">Bildirimler</span>
+                    {bildirimSayisi > 0 && (
+                      <span className="bg-red-500 text-white text-[10px] font-black px-1.5 py-0.5 rounded-full leading-none">
+                        {bildirimSayisi > 9 ? '9+' : bildirimSayisi}
+                      </span>
+                    )}
                   </Link>
                   <Link to="/panel?sekme=uyelik" onClick={() => setMenuAcik(false)}
                     className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-semibold text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:text-blue-600">

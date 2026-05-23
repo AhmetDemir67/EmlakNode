@@ -6,6 +6,7 @@ import { WebView } from 'react-native-webview';
 import { Ionicons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
 import { ilanlarGetir } from '../services/api';
+import { useTheme } from '../context/ThemeContext';
 
 const fiyatFormat = (f) =>
   new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 0 }).format(f) + ' TL';
@@ -145,6 +146,7 @@ if (typeof L !== 'undefined') {
 };
 
 export default function HaritaScreen({ route, navigation }) {
+  const { colors } = useTheme();
   const webRef = useRef(null);
   const [ilanlar, setIlanlar]       = useState([]);
   const [yukleniyor, setYukleniyor] = useState(true);
@@ -188,11 +190,11 @@ export default function HaritaScreen({ route, navigation }) {
   };
 
   return (
-    <View style={s.container}>
+    <View style={[s.container, { backgroundColor: colors.bg }]}>
       {(yukleniyor || !haritaHazir) && (
-        <View style={s.yukleniyor}>
+        <View style={[s.yukleniyor, { backgroundColor: colors.bg }]}>
           <ActivityIndicator size="large" color="#2563eb" />
-          <Text style={s.yukleniyorText}>Harita yükleniyor...</Text>
+          <Text style={[s.yukleniyorText, { color: colors.textSecondary }]}>Harita yükleniyor...</Text>
         </View>
       )}
 

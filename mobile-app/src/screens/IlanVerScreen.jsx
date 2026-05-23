@@ -9,29 +9,34 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
 import api, { fotografYukleAPI, aiAciklamaUret } from '../services/api';
+import { useTheme } from '../context/ThemeContext';
 
 const TIPLER      = ['Satılık', 'Kiralık'];
 const TURLER      = ['Daire', 'Villa', 'Müstakil Ev', 'Arsa', 'İşyeri', 'Depo'];
 const ISINMA      = ['Kombi', 'Doğalgaz', 'Merkezi', 'Klima', 'Soba', 'Yok'];
 const ODA_SECENEKLERI = ['Stüdyo', '1+1', '2+1', '3+1', '4+1', '5+1', '6+1', '7+'];
 
-const Alan = ({ label, value, onChangeText, placeholder, keyboardType = 'default', zorunlu }) => (
-  <View style={s.alanWrap}>
-    <Text style={s.alanLabel}>{label}{zorunlu && <Text style={{ color: '#ef4444' }}> *</Text>}</Text>
-    <TextInput
-      style={s.alanInput}
-      value={value}
-      onChangeText={onChangeText}
-      placeholder={placeholder}
-      placeholderTextColor="#9ca3af"
-      keyboardType={keyboardType}
-      autoCorrect={false}
-      autoCapitalize="none"
-    />
-  </View>
-);
+const Alan = ({ label, value, onChangeText, placeholder, keyboardType = 'default', zorunlu }) => {
+  const { colors } = useTheme();
+  return (
+    <View style={s.alanWrap}>
+      <Text style={[s.alanLabel, { color: colors.textSecondary }]}>{label}{zorunlu && <Text style={{ color: '#ef4444' }}> *</Text>}</Text>
+      <TextInput
+        style={[s.alanInput, { backgroundColor: colors.input, borderColor: colors.inputBorder, color: colors.text }]}
+        value={value}
+        onChangeText={onChangeText}
+        placeholder={placeholder}
+        placeholderTextColor={colors.textMuted}
+        keyboardType={keyboardType}
+        autoCorrect={false}
+        autoCapitalize="none"
+      />
+    </View>
+  );
+};
 
 export default function IlanVerScreen({ navigation }) {
+  const { colors } = useTheme();
   const [kullanici, setKullanici] = useState(null);
   const [yukleniyor, setYukleniyor] = useState(false);
   const [aiYukleniyor, setAiYukleniyor] = useState(false);
@@ -216,9 +221,9 @@ export default function IlanVerScreen({ navigation }) {
 
   if (!kullanici) {
     return (
-      <View style={s.girisGerekli}>
-        <Ionicons name="lock-closed-outline" size={64} color="#d1d5db" />
-        <Text style={s.girisBaslik}>Giriş Yapmanız Gerekiyor</Text>
+      <View style={[s.girisGerekli, { backgroundColor: colors.bg }]}>
+        <Ionicons name="lock-closed-outline" size={64} color={colors.border} />
+        <Text style={[s.girisBaslik, { color: colors.text }]}>Giriş Yapmanız Gerekiyor</Text>
         <TouchableOpacity style={s.girisBtn} onPress={() => navigation.navigate('Giris')}>
           <Text style={s.girisBtnText}>Giriş Yap</Text>
         </TouchableOpacity>
@@ -230,7 +235,7 @@ export default function IlanVerScreen({ navigation }) {
   const bireyselLimit  = !kurumsal;
 
   return (
-    <ScrollView style={s.container} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+    <ScrollView style={[s.container, { backgroundColor: colors.bg }]} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
       <LinearGradient colors={['#1e3a8a', '#2563eb']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={s.formHeader}>
         <View style={s.formHeaderIkon}>
           <Ionicons name="home-outline" size={32} color="#fff" />
@@ -255,29 +260,29 @@ export default function IlanVerScreen({ navigation }) {
         )}
 
         {/* İlan Tipi */}
-        <Text style={s.grupBaslik}>İlan Tipi</Text>
+        <Text style={[s.grupBaslik, { color: colors.grupBaslik }]}>İlan Tipi</Text>
         <View style={s.secimRow}>
           {TIPLER.map(t => (
             <TouchableOpacity key={t} onPress={() => setForm(f => ({ ...f, tip: t }))}
-              style={[s.secimBtn, form.tip === t && s.secimBtnAktif]}>
-              <Text style={[s.secimText, form.tip === t && s.secimTextAktif]}>{t}</Text>
+              style={[s.secimBtn, { borderColor: colors.border, backgroundColor: colors.input }, form.tip === t && s.secimBtnAktif]}>
+              <Text style={[s.secimText, { color: colors.textSecondary }, form.tip === t && s.secimTextAktif]}>{t}</Text>
             </TouchableOpacity>
           ))}
         </View>
 
         {/* Emlak Türü */}
-        <Text style={s.grupBaslik}>Emlak Türü</Text>
+        <Text style={[s.grupBaslik, { color: colors.grupBaslik }]}>Emlak Türü</Text>
         <View style={s.secimGrid}>
           {TURLER.map(t => (
             <TouchableOpacity key={t} onPress={() => setForm(f => ({ ...f, emlak_turu: t }))}
-              style={[s.turBtn, form.emlak_turu === t && s.turBtnAktif]}>
-              <Text style={[s.turText, form.emlak_turu === t && s.turTextAktif]}>{t}</Text>
+              style={[s.turBtn, { borderColor: colors.border, backgroundColor: colors.input }, form.emlak_turu === t && s.turBtnAktif]}>
+              <Text style={[s.turText, { color: colors.textSecondary }, form.emlak_turu === t && s.turTextAktif]}>{t}</Text>
             </TouchableOpacity>
           ))}
         </View>
 
         {/* Fotoğraf */}
-        <Text style={s.grupBaslik}>Fotoğraf ({secilenGorseller.length} seçildi)</Text>
+        <Text style={[s.grupBaslik, { color: colors.grupBaslik }]}>Fotoğraf ({secilenGorseller.length} seçildi)</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ height: 100 }} contentContainerStyle={{ gap: 10, alignItems: 'center' }}>
           {secilenGorseller.map((uri, idx) => (
             <View key={idx} style={s.fotografKucuk}>
@@ -290,18 +295,18 @@ export default function IlanVerScreen({ navigation }) {
               </TouchableOpacity>
             </View>
           ))}
-          <TouchableOpacity style={s.fotografEkleBtn} onPress={fotografSecModal}>
-            <Ionicons name="camera-outline" size={28} color="#9ca3af" />
-            <Text style={s.fotografEkleBtnText}>Ekle</Text>
+          <TouchableOpacity style={[s.fotografEkleBtn, { borderColor: colors.border, backgroundColor: colors.input }]} onPress={fotografSecModal}>
+            <Ionicons name="camera-outline" size={28} color={colors.textMuted} />
+            <Text style={[s.fotografEkleBtnText, { color: colors.textMuted }]}>Ekle</Text>
           </TouchableOpacity>
         </ScrollView>
 
         {/* Temel Bilgiler */}
-        <Text style={s.grupBaslik}>İlan Bilgileri</Text>
+        <Text style={[s.grupBaslik, { color: colors.grupBaslik }]}>İlan Bilgileri</Text>
         <Alan label="İlan Başlığı" value={form.baslik} onChangeText={v => setForm(f => ({ ...f, baslik: v }))} placeholder="Örn: Kadıköy 3+1 Daire" zorunlu />
         <View style={s.alanWrap}>
           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-            <Text style={s.alanLabel}>Açıklama</Text>
+            <Text style={[s.alanLabel, { color: colors.textSecondary }]}>Açıklama</Text>
             <TouchableOpacity onPress={handleAiAciklama} disabled={aiYukleniyor}
               style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#f3e8ff', borderWidth: 1, borderColor: '#d8b4fe', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 5, opacity: aiYukleniyor ? 0.5 : 1 }}>
               {aiYukleniyor
@@ -312,9 +317,9 @@ export default function IlanVerScreen({ navigation }) {
               </Text>
             </TouchableOpacity>
           </View>
-          <TextInput style={[s.alanInput, { height: 90, textAlignVertical: 'top' }]}
+          <TextInput style={[s.alanInput, { height: 90, textAlignVertical: 'top', backgroundColor: colors.input, borderColor: colors.inputBorder, color: colors.text }]}
             value={form.aciklama} onChangeText={v => setForm(f => ({ ...f, aciklama: v }))}
-            placeholder="İlan detayları veya AI ile otomatik oluşturun..." placeholderTextColor="#9ca3af" multiline
+            placeholder="İlan detayları veya AI ile otomatik oluşturun..." placeholderTextColor={colors.textMuted} multiline
             autoCorrect={false} autoCapitalize="none" />
         </View>
         <View style={{ flexDirection: 'row', gap: 12 }}>
@@ -328,15 +333,15 @@ export default function IlanVerScreen({ navigation }) {
 
         {/* Oda Sayısı Seçici */}
         <View style={s.alanWrap}>
-          <Text style={s.alanLabel}>Oda Sayısı</Text>
+          <Text style={[s.alanLabel, { color: colors.textSecondary }]}>Oda Sayısı</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
             {ODA_SECENEKLERI.map(o => (
               <TouchableOpacity
                 key={o}
                 onPress={() => setForm(f => ({ ...f, oda_sayisi: f.oda_sayisi === o ? '' : o }))}
-                style={[s.chipBtn, form.oda_sayisi === o && s.chipBtnAktif]}
+                style={[s.chipBtn, { backgroundColor: colors.input, borderColor: colors.border }, form.oda_sayisi === o && s.chipBtnAktif]}
               >
-                <Text style={[s.chipBtnText, form.oda_sayisi === o && s.chipBtnTextAktif]}>{o}</Text>
+                <Text style={[s.chipBtnText, { color: colors.textSecondary }, form.oda_sayisi === o && s.chipBtnTextAktif]}>{o}</Text>
               </TouchableOpacity>
             ))}
           </ScrollView>
@@ -361,22 +366,22 @@ export default function IlanVerScreen({ navigation }) {
 
         {/* Isıtma Tipi */}
         <View style={s.alanWrap}>
-          <Text style={s.alanLabel}>Isıtma Tipi</Text>
+          <Text style={[s.alanLabel, { color: colors.textSecondary }]}>Isıtma Tipi</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
             {ISINMA.map(i => (
               <TouchableOpacity
                 key={i}
                 onPress={() => setForm(f => ({ ...f, isinma_tipi: f.isinma_tipi === i ? '' : i }))}
-                style={[s.chipBtn, form.isinma_tipi === i && s.chipBtnAktif]}
+                style={[s.chipBtn, { backgroundColor: colors.input, borderColor: colors.border }, form.isinma_tipi === i && s.chipBtnAktif]}
               >
-                <Text style={[s.chipBtnText, form.isinma_tipi === i && s.chipBtnTextAktif]}>{i}</Text>
+                <Text style={[s.chipBtnText, { color: colors.textSecondary }, form.isinma_tipi === i && s.chipBtnTextAktif]}>{i}</Text>
               </TouchableOpacity>
             ))}
           </ScrollView>
         </View>
 
         {/* Özellikler */}
-        <Text style={s.grupBaslik}>Özellikler</Text>
+        <Text style={[s.grupBaslik, { color: colors.grupBaslik }]}>Özellikler</Text>
         <View style={s.toggleGrid}>
           {[
             ['balkon',           'Balkon'],
@@ -390,20 +395,20 @@ export default function IlanVerScreen({ navigation }) {
             <TouchableOpacity
               key={key}
               onPress={() => setForm(f => ({ ...f, [key]: !f[key] }))}
-              style={[s.toggleBtn, form[key] && s.toggleBtnAktif]}
+              style={[s.toggleBtn, { borderColor: colors.border, backgroundColor: colors.input }, form[key] && s.toggleBtnAktif]}
             >
               <Ionicons
                 name={form[key] ? 'checkmark-circle' : 'ellipse-outline'}
                 size={16}
-                color={form[key] ? '#fff' : '#9ca3af'}
+                color={form[key] ? '#fff' : colors.textMuted}
               />
-              <Text style={[s.toggleText, form[key] && s.toggleTextAktif]}>{label}</Text>
+              <Text style={[s.toggleText, { color: colors.textSecondary }, form[key] && s.toggleTextAktif]}>{label}</Text>
             </TouchableOpacity>
           ))}
         </View>
 
         {/* Konum */}
-        <Text style={s.grupBaslik}>Konum</Text>
+        <Text style={[s.grupBaslik, { color: colors.grupBaslik }]}>Konum</Text>
         <TouchableOpacity style={s.gpsBtn} onPress={konumAl} disabled={konumAlinıyor}>
           {konumAlinıyor ? (
             <ActivityIndicator size="small" color="#2563eb" />

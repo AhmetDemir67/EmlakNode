@@ -3,7 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { resetToAna } from './navigationRef';
 
 // Geliştirme: bilgisayarın IP'si (Android emülatör için 10.0.2.2, gerçek cihaz için LAN IP)
-export const API_URL = 'http://10.14.15.19:3000/api';
+export const API_URL = 'http://10.14.9.56:3000/api';
 
 const api = axios.create({ baseURL: API_URL });
 
@@ -54,6 +54,8 @@ export const fotografYukleAPI = (formData) =>
 export const dukkanGetir       = (id)     => api.get(`/dukkanlar/${id}`);
 export const dukkanGuncelle    = (id, d)  => api.put(`/dukkanlar/${id}`, d);
 export const danismanlarGetir  = (id)     => api.get(`/dukkanlar/${id}/danismanlar`);
+export const danismanEkle      = (id, d)  => api.post(`/dukkanlar/${id}/danismanlar`, d);
+export const danismanCikar     = (id, kulId) => api.delete(`/dukkanlar/${id}/danismanlar/${kulId}`);
 export const istatistiklerGetir = (id)   => api.get(`/dukkanlar/${id}/istatistikler`);
 
 export const profilGetir      = ()     => api.get('/auth/profil');

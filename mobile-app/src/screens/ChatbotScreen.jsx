@@ -8,6 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { aiChatbot } from '../services/api';
 import RobotFace from '../components/RobotFace';
+import { useTheme } from '../context/ThemeContext';
 
 const BASLANGIC = {
   rol: 'model',
@@ -22,6 +23,7 @@ const HIZLI_SORULAR = [
 ];
 
 export default function ChatbotScreen({ navigation }) {
+  const { colors } = useTheme();
   const [mesajlar, setMesajlar] = useState([BASLANGIC]);
   const [input, setInput]       = useState('');
   const [yukleniyor, setYuk]    = useState(false);
@@ -50,13 +52,17 @@ export default function ChatbotScreen({ navigation }) {
     }
   };
 
-  const renderMesaj = ({ item, index }) => {
+  const renderMesaj = ({ item }) => {
     const kullanici = item.rol === 'user';
     return (
       <View style={[s.mesajRow, kullanici && s.mesajRowSag]}>
         {!kullanici && <RobotFace size={28} />}
-        <View style={[s.baloncuk, kullanici ? s.kullaniciBaloncu : s.botBaloncuk]}>
-          <Text style={[s.baloncukText, kullanici && s.kullaniciText]}>{item.metin}</Text>
+        <View style={[s.baloncuk,
+          kullanici
+            ? s.kullaniciBaloncu
+            : [s.botBaloncuk, { backgroundColor: colors.card, borderColor: colors.border }]
+        ]}>
+          <Text style={[s.baloncukText, kullanici ? s.kullaniciText : { color: colors.text }]}>{item.metin}</Text>
         </View>
         {kullanici && (
           <View style={s.userAvatar}>
@@ -68,7 +74,7 @@ export default function ChatbotScreen({ navigation }) {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
       {/* Header */}
       <LinearGradient colors={['#1e3a8a', '#1d4ed8', '#2563eb']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={s.header}>
         <TouchableOpacity style={s.geriBtn} onPress={() => navigation.goBack()}>
@@ -98,6 +104,7 @@ export default function ChatbotScreen({ navigation }) {
         <FlatList
           ref={listRef}
           data={mesajlar}
+          style={{ backgroundColor: colors.bg }}
           keyExtractor={(_, i) => String(i)}
           renderItem={renderMesaj}
           contentContainerStyle={s.liste}
@@ -106,7 +113,7 @@ export default function ChatbotScreen({ navigation }) {
             yukleniyor ? (
               <View style={s.mesajRow}>
                 <RobotFace size={28} />
-                <View style={s.yaziyorKutu}>
+                <View style={[s.yaziyorKutu, { backgroundColor: colors.card, borderColor: colors.border }]}>
                   <View style={s.noktaRow}>
                     {[0, 150, 300].map(delay => (
                       <View key={delay} style={[s.nokta, { opacity: 0.5 }]} />
@@ -120,7 +127,7 @@ export default function ChatbotScreen({ navigation }) {
 
         {/* Hızlı sorular — sadece başlangıçta */}
         {mesajlar.length === 1 && !yukleniyor && (
-          <View style={s.hizliRow}>
+          <View style={[s.hizliRow, { backgroundColor: colors.bg }]}>
             {HIZLI_SORULAR.map(s2 => (
               <TouchableOpacity key={s2} style={s.hizliChip} onPress={() => gonder(s2)}>
                 <Text style={s.hizliText} numberOfLines={1}>{s2}</Text>
@@ -130,13 +137,13 @@ export default function ChatbotScreen({ navigation }) {
         )}
 
         {/* Input alanı */}
-        <View style={s.inputBar}>
+        <View style={[s.inputBar, { backgroundColor: colors.card, borderTopColor: colors.border }]}>
           <TextInput
-            style={s.input}
+            style={[s.input, { backgroundColor: colors.input, borderColor: colors.inputBorder, color: colors.text }]}
             value={input}
             onChangeText={setInput}
             placeholder="Mesajınızı yazın…"
-            placeholderTextColor="#9ca3af"
+            placeholderTextColor={colors.textMuted}
             multiline
             maxLength={500}
             onSubmitEditing={() => gonder()}

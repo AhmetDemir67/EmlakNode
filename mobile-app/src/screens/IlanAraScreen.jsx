@@ -4,6 +4,7 @@ import {
   StyleSheet, Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTheme } from '../context/ThemeContext';
 
 const { width } = Dimensions.get('window');
 
@@ -35,6 +36,7 @@ const KATEGORILER = [
 ];
 
 export default function IlanAraScreen({ navigation }) {
+  const { colors } = useTheme();
   const [arama, setArama] = useState('');
   const [acikKategori, setAcikKategori] = useState(null);
 
@@ -59,20 +61,20 @@ export default function IlanAraScreen({ navigation }) {
   };
 
   return (
-    <ScrollView style={s.container} showsVerticalScrollIndicator={false}>
+    <ScrollView style={[s.container, { backgroundColor: colors.bg }]} showsVerticalScrollIndicator={false}>
 
       {/* Header */}
-      <View style={s.header}>
-        <Text style={s.logo}>Emlak<Text style={{ color: '#2563eb' }}>Node</Text></Text>
+      <View style={[s.header, { backgroundColor: colors.bg }]}>
+        <Text style={[s.logo, { color: colors.text }]}>Emlak<Text style={{ color: '#2563eb' }}>Node</Text></Text>
         <TouchableOpacity>
-          <Ionicons name="notifications-outline" size={24} color="#374151" />
+          <Ionicons name="notifications-outline" size={24} color={colors.text} />
         </TouchableOpacity>
       </View>
 
       {/* Hero */}
-      <View style={s.hero}>
+      <View style={[s.hero, { backgroundColor: colors.bg }]}>
         <View style={{ flex: 1, paddingRight: 12 }}>
-          <Text style={s.heroBaslik}>Hayalindeki Evi{'\n'}EmlakNode'le Bul!</Text>
+          <Text style={[s.heroBaslik, { color: colors.text }]}>Hayalindeki Evi{'\n'}EmlakNode'le Bul!</Text>
         </View>
         <View style={s.heroBina}>
           <Ionicons name="business" size={72} color="#2563eb" style={{ opacity: 0.18 }} />
@@ -80,12 +82,12 @@ export default function IlanAraScreen({ navigation }) {
       </View>
 
       {/* Arama */}
-      <View style={s.aramaWrap}>
+      <View style={[s.aramaWrap, { backgroundColor: colors.card, borderColor: '#93c5fd' }]}>
         <Ionicons name="search-outline" size={18} color="#2563eb" style={{ marginRight: 10 }} />
         <TextInput
-          style={s.aramaInput}
+          style={[s.aramaInput, { color: colors.text }]}
           placeholder="Kelime, ilan no, il, ilçe, mahalle..."
-          placeholderTextColor="#9ca3af"
+          placeholderTextColor={colors.textMuted}
           value={arama}
           onChangeText={setArama}
           onSubmitEditing={aramaYap}
@@ -95,39 +97,40 @@ export default function IlanAraScreen({ navigation }) {
         />
         {arama.length > 0 ? (
           <TouchableOpacity onPress={() => setArama('')}>
-            <Ionicons name="close-circle" size={18} color="#9ca3af" />
+            <Ionicons name="close-circle" size={18} color={colors.textMuted} />
           </TouchableOpacity>
         ) : null}
       </View>
 
       {/* Kategori Listesi */}
-      <View style={s.kategorilerKutu}>
+      <View style={[s.kategorilerKutu, { backgroundColor: colors.card, borderColor: colors.border }]}>
         {KATEGORILER.map((kat, idx) => (
           <View key={kat.id}>
             <TouchableOpacity
               style={[
                 s.kategoriRow,
-                idx < KATEGORILER.length - 1 && s.kategoriRowBorder,
+                { backgroundColor: colors.card },
+                idx < KATEGORILER.length - 1 && [s.kategoriRowBorder, { borderBottomColor: colors.border }],
               ]}
               onPress={() => kategoriTikla(kat.id)}
               activeOpacity={0.7}
             >
-              <View style={s.kategoriIkon}>
+              <View style={[s.kategoriIkon, { backgroundColor: colors.badge }]}>
                 <Ionicons name={kat.icon} size={26} color="#2563eb" />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={s.kategoriBaslik}>{kat.baslik}</Text>
-                <Text style={s.kategoriAlt}>{kat.alt}</Text>
+                <Text style={[s.kategoriBaslik, { color: colors.text }]}>{kat.baslik}</Text>
+                <Text style={[s.kategoriAlt, { color: colors.textMuted }]}>{kat.alt}</Text>
               </View>
               <Ionicons
                 name={acikKategori === kat.id ? 'chevron-up' : 'chevron-forward'}
                 size={18}
-                color="#9ca3af"
+                color={colors.textMuted}
               />
             </TouchableOpacity>
 
             {acikKategori === kat.id ? (
-              <View style={s.altKatWrap}>
+              <View style={[s.altKatWrap, { backgroundColor: colors.input, borderBottomColor: colors.border }]}>
                 <ScrollView
                   horizontal
                   showsHorizontalScrollIndicator={false}
@@ -136,7 +139,7 @@ export default function IlanAraScreen({ navigation }) {
                   {kat.turler.map(tur => (
                     <TouchableOpacity
                       key={tur}
-                      style={s.altKatChip}
+                      style={[s.altKatChip, { backgroundColor: colors.card }]}
                       onPress={() => altKategoriTikla(kat, tur)}
                     >
                       <Text style={s.altKatChipText}>{tur}</Text>
@@ -150,31 +153,31 @@ export default function IlanAraScreen({ navigation }) {
       </View>
 
       {/* EmlakNode Seçimleri */}
-      <Text style={s.secimlerBaslik}>EmlakNode Seçimleri</Text>
+      <Text style={[s.secimlerBaslik, { color: colors.text }]}>EmlakNode Seçimleri</Text>
       <View style={s.secimlerGrid}>
         <TouchableOpacity
-          style={s.secimKart}
+          style={[s.secimKart, { backgroundColor: colors.card, borderColor: colors.border }]}
           activeOpacity={0.85}
           onPress={() => navigation.navigate('TumIlanlar', {
             tip: 'Satılık', fiyat_dustu: true, baslik: 'Fiyatı Düşen Satılıklar',
           })}
         >
-          <Text style={s.secimBaslik}>Fiyatı Düşen{'\n'}Satılıklar</Text>
-          <Text style={s.secimAlt}>Fiyatı düşen satılıkları gözden geçir.</Text>
+          <Text style={[s.secimBaslik, { color: colors.text }]}>Fiyatı Düşen{'\n'}Satılıklar</Text>
+          <Text style={[s.secimAlt, { color: colors.textSecondary }]}>Fiyatı düşen satılıkları gözden geçir.</Text>
           <View style={s.secimIkonWrap}>
             <Ionicons name="trending-down-outline" size={28} color="#2563eb" />
           </View>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={s.secimKart}
+          style={[s.secimKart, { backgroundColor: colors.card, borderColor: colors.border }]}
           activeOpacity={0.85}
           onPress={() => navigation.navigate('TumIlanlar', {
             tip: 'Kiralık', fiyat_dustu: true, baslik: 'Fiyatı Düşen Kiralıklar',
           })}
         >
-          <Text style={s.secimBaslik}>Fiyatı Düşen{'\n'}Kiralıklar</Text>
-          <Text style={s.secimAlt}>Hesabını bilene fiyatı düşen kiralıklar burada.</Text>
+          <Text style={[s.secimBaslik, { color: colors.text }]}>Fiyatı Düşen{'\n'}Kiralıklar</Text>
+          <Text style={[s.secimAlt, { color: colors.textSecondary }]}>Hesabını bilene fiyatı düşen kiralıklar burada.</Text>
           <View style={s.secimIkonWrap}>
             <Ionicons name="trending-down-outline" size={28} color="#3b82f6" />
           </View>

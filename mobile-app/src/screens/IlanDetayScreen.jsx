@@ -12,6 +12,7 @@ import {
   kayitliAdreslerGetir, mesajGonder,
   aiUlasimAnalizi,
 } from '../services/api';
+import { useTheme } from '../context/ThemeContext';
 
 const { width, height } = Dimensions.get('window');
 const FALLBACK = 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&q=80';
@@ -43,31 +44,36 @@ const haversine = (lat1, lon1, lat2, lon2) => {
   return (R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))).toFixed(1);
 };
 
-const BilgiSatir = ({ label, value, son }) => (
-  <View style={[s.bilgiSatir, son && { borderBottomWidth: 0 }]}>
-    <Text style={s.bilgiLabel}>{label}</Text>
-    <Text style={s.bilgiValue}>{String(value).toUpperCase()}</Text>
-  </View>
-);
+const BilgiSatir = ({ label, value, son }) => {
+  const { colors } = useTheme();
+  return (
+    <View style={[s.bilgiSatir, { borderBottomColor: colors.border }, son && { borderBottomWidth: 0 }]}>
+      <Text style={[s.bilgiLabel, { color: colors.textSecondary }]}>{label}</Text>
+      <Text style={[s.bilgiValue, { color: colors.text }]}>{String(value).toUpperCase()}</Text>
+    </View>
+  );
+};
 
 const MiniIlanKart = ({ item, onPress }) => {
+  const { colors } = useTheme();
   const gorsel = (Array.isArray(item.fotograflar) && item.fotograflar[0]) || item.gorsel || FALLBACK;
   return (
-    <TouchableOpacity style={s.miniKart} onPress={onPress} activeOpacity={0.85}>
+    <TouchableOpacity style={[s.miniKart, { backgroundColor: colors.card, borderColor: colors.border }]} onPress={onPress} activeOpacity={0.85}>
       <Image source={{ uri: gorsel }} style={s.miniGorsel} resizeMode="cover" />
       <View style={[s.miniTip, { backgroundColor: item.tip === 'Kiralık' ? '#3b82f6' : '#2563eb' }]}>
         <Text style={s.miniTipText}>{item.tip}</Text>
       </View>
       <View style={s.miniAlt}>
-        <Text style={s.miniFiyat}>{fiyatFormat(item.fiyat)}</Text>
-        <Text style={s.miniBaslik} numberOfLines={1}>{item.baslik}</Text>
-        {item.metrekare ? <Text style={s.miniMeta}>{item.metrekare} m²</Text> : null}
+        <Text style={[s.miniFiyat, { color: colors.text }]}>{fiyatFormat(item.fiyat)}</Text>
+        <Text style={[s.miniBaslik, { color: colors.textSecondary }]} numberOfLines={1}>{item.baslik}</Text>
+        {item.metrekare ? <Text style={[s.miniMeta, { color: colors.textMuted }]}>{item.metrekare} m²</Text> : null}
       </View>
     </TouchableOpacity>
   );
 };
 
 export default function IlanDetayScreen({ route, navigation }) {
+  const { colors } = useTheme();
   const { id } = route.params;
   const [ilan, setIlan]               = useState(null);
   const [yukleniyor, setYukleniyor]   = useState(true);
@@ -142,14 +148,14 @@ export default function IlanDetayScreen({ route, navigation }) {
   };
 
   if (yukleniyor) {
-    return <View style={s.merkez}><ActivityIndicator size="large" color="#2563eb" /></View>;
+    return <View style={[s.merkez, { backgroundColor: colors.bg }]}><ActivityIndicator size="large" color="#2563eb" /></View>;
   }
 
   if (!ilan) {
     return (
-      <View style={s.merkez}>
-        <Ionicons name="alert-circle-outline" size={48} color="#d1d5db" />
-        <Text style={s.bosText}>İlan bulunamadı</Text>
+      <View style={[s.merkez, { backgroundColor: colors.bg }]}>
+        <Ionicons name="alert-circle-outline" size={48} color={colors.border} />
+        <Text style={[s.bosText, { color: colors.textMuted }]}>İlan bulunamadı</Text>
         <TouchableOpacity style={s.geriBtn2} onPress={() => navigation.goBack()}>
           <Text style={s.geriBtn2Text}>Geri Dön</Text>
         </TouchableOpacity>
@@ -190,7 +196,7 @@ export default function IlanDetayScreen({ route, navigation }) {
   const gorunenBilgiler = bilgiAcik ? bilgiler : bilgiler.slice(0, 7);
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#fff' }}>
+    <View style={{ flex: 1, backgroundColor: colors.bg }}>
 
       {/* LIGHTBOX */}
       <Modal visible={lightboxAcik} transparent={false} animationType="fade" onRequestClose={() => setLightboxAcik(false)}>
@@ -234,18 +240,18 @@ export default function IlanDetayScreen({ route, navigation }) {
       </Modal>
 
       {/* HEADER */}
-      <SafeAreaView style={s.headerSafe}>
-        <View style={s.header}>
+      <SafeAreaView style={[s.headerSafe, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
+        <View style={[s.header, { backgroundColor: colors.card }]}>
           <TouchableOpacity style={s.headerBtn} onPress={() => navigation.goBack()}>
-            <Ionicons name="chevron-back" size={26} color="#111827" />
+            <Ionicons name="chevron-back" size={26} color={colors.text} />
           </TouchableOpacity>
-          <Text style={s.headerBaslik}>İlan Detayları</Text>
+          <Text style={[s.headerBaslik, { color: colors.text }]}>İlan Detayları</Text>
           <View style={s.headerSag}>
             <TouchableOpacity style={s.headerBtn} onPress={favoriToggle}>
-              <Ionicons name={favori ? 'heart' : 'heart-outline'} size={24} color={favori ? '#ef4444' : '#111827'} />
+              <Ionicons name={favori ? 'heart' : 'heart-outline'} size={24} color={favori ? '#ef4444' : colors.text} />
             </TouchableOpacity>
             <TouchableOpacity style={[s.headerBtn, { marginLeft: 4 }]} onPress={paylasma}>
-              <Ionicons name="share-social-outline" size={23} color="#111827" />
+              <Ionicons name="share-social-outline" size={23} color={colors.text} />
             </TouchableOpacity>
           </View>
         </View>
@@ -254,8 +260,8 @@ export default function IlanDetayScreen({ route, navigation }) {
       <ScrollView showsVerticalScrollIndicator={false}>
 
         {/* BAŞLIK */}
-        <View style={s.baslikWrap}>
-          <Text style={s.baslik}>{ilan.baslik}</Text>
+        <View style={[s.baslikWrap, { backgroundColor: colors.card }]}>
+          <Text style={[s.baslik, { color: colors.text }]}>{ilan.baslik}</Text>
         </View>
 
         {/* CAROUSEL */}
@@ -298,39 +304,39 @@ export default function IlanDetayScreen({ route, navigation }) {
         </View>
 
         {/* FİYAT / ÖZET / KONUM */}
-        <View style={s.fiyatWrap}>
+        <View style={[s.fiyatWrap, { backgroundColor: colors.card, borderBottomColor: colors.bg }]}>
           <View style={s.tipRow}>
             <View style={[s.ilanTipBadge, { backgroundColor: ilan.tip === 'Kiralık' ? '#3b82f6' : '#2563eb' }]}>
               <Text style={s.ilanTipText}>{ilan.tip || 'Satılık'}</Text>
             </View>
             {ilan.emlak_turu ? (
-              <View style={s.ilanTurBadge}>
-                <Text style={s.ilanTurText}>{ilan.emlak_turu}</Text>
+              <View style={[s.ilanTurBadge, { backgroundColor: colors.input }]}>
+                <Text style={[s.ilanTurText, { color: colors.textSecondary }]}>{ilan.emlak_turu}</Text>
               </View>
             ) : null}
             {ilan.goruntuleme_sayisi > 0 ? (
               <View style={s.goruntulemeChip}>
-                <Ionicons name="eye-outline" size={12} color="#9ca3af" />
-                <Text style={s.goruntulemeText}>{Number(ilan.goruntuleme_sayisi).toLocaleString('tr-TR')} görüntüleme</Text>
+                <Ionicons name="eye-outline" size={12} color={colors.textMuted} />
+                <Text style={[s.goruntulemeText, { color: colors.textMuted }]}>{Number(ilan.goruntuleme_sayisi).toLocaleString('tr-TR')} görüntüleme</Text>
               </View>
             ) : null}
           </View>
-          <Text style={s.fiyat}>{fiyatFormat(ilan.fiyat)}</Text>
+          <Text style={[s.fiyat, { color: colors.text }]}>{fiyatFormat(ilan.fiyat)}</Text>
           <View style={s.chipRow}>
-            {ilan.oda_sayisi ? <Text style={s.chip}>{ilan.oda_sayisi}</Text> : null}
-            {ilan.oda_sayisi && ilan.kat ? <Text style={s.chipAyrac}>|</Text> : null}
-            {ilan.kat ? <Text style={s.chip}>{ilan.kat}. Kat</Text> : null}
+            {ilan.oda_sayisi ? <Text style={[s.chip, { color: colors.textSecondary }]}>{ilan.oda_sayisi}</Text> : null}
+            {ilan.oda_sayisi && ilan.kat ? <Text style={[s.chipAyrac, { color: colors.border }]}>|</Text> : null}
+            {ilan.kat ? <Text style={[s.chip, { color: colors.textSecondary }]}>{ilan.kat}. Kat</Text> : null}
             {ilan.metrekare ? (
               <>
-                {(ilan.oda_sayisi || ilan.kat) ? <Text style={s.chipAyrac}>|</Text> : null}
-                <Text style={s.chip}>{ilan.metrekare} m²</Text>
+                {(ilan.oda_sayisi || ilan.kat) ? <Text style={[s.chipAyrac, { color: colors.border }]}>|</Text> : null}
+                <Text style={[s.chip, { color: colors.textSecondary }]}>{ilan.metrekare} m²</Text>
               </>
             ) : null}
           </View>
           {konumKisa ? (
             <View style={s.konumRow}>
               <Ionicons name="location" size={14} color="#2563eb" />
-              <Text style={s.konumText}>{konumKisa}</Text>
+              <Text style={[s.konumText, { color: colors.textSecondary }]}>{konumKisa}</Text>
               <TouchableOpacity onPress={() => navigation.navigate('Harita', { ilanlar: [ilan] })}>
                 <Text style={s.konumGor}>Konumunu Gör</Text>
               </TouchableOpacity>
@@ -339,8 +345,8 @@ export default function IlanDetayScreen({ route, navigation }) {
         </View>
 
         {/* İLAN BİLGİLERİ */}
-        <View style={s.bolum}>
-          <Text style={s.bolumBaslik}>İLAN BİLGİLERİ</Text>
+        <View style={[s.bolum, { backgroundColor: colors.card, borderBottomColor: colors.bg }]}>
+          <Text style={[s.bolumBaslik, { color: colors.grupBaslik }]}>İLAN BİLGİLERİ</Text>
           {gorunenBilgiler.map((b, i) => (
             <BilgiSatir key={i} label={b.label} value={b.value} son={i === gorunenBilgiler.length - 1} />
           ))}
@@ -354,9 +360,9 @@ export default function IlanDetayScreen({ route, navigation }) {
 
         {/* İLAN AÇIKLAMASI */}
         {ilan.aciklama ? (
-          <View style={s.bolum}>
-            <Text style={s.bolumBaslik}>İLAN AÇIKLAMASI</Text>
-            <Text style={s.aciklamaText} numberOfLines={aciklamaAcik ? undefined : 5}>
+          <View style={[s.bolum, { backgroundColor: colors.card, borderBottomColor: colors.bg }]}>
+            <Text style={[s.bolumBaslik, { color: colors.grupBaslik }]}>İLAN AÇIKLAMASI</Text>
+            <Text style={[s.aciklamaText, { color: colors.textSecondary }]} numberOfLines={aciklamaAcik ? undefined : 5}>
               {ilan.aciklama}
             </Text>
             <TouchableOpacity style={s.devamiBtn} onPress={() => setAciklamaAcik(!aciklamaAcik)}>
@@ -367,11 +373,11 @@ export default function IlanDetayScreen({ route, navigation }) {
         ) : null}
 
         {/* ADRESE UZAKLIĞI */}
-        <View style={s.bolum}>
-          <Text style={s.bolumBaslik}>ADRESE UZAKLIĞI</Text>
+        <View style={[s.bolum, { backgroundColor: colors.card, borderBottomColor: colors.bg }]}>
+          <Text style={[s.bolumBaslik, { color: colors.grupBaslik }]}>ADRESE UZAKLIĞI</Text>
           {adresler.length === 0 ? (
             <View style={s.adresBos}>
-              <Text style={s.adresBosText}>Adreslerinizi ekleyerek, adresinizin ilan konumuna olan uzaklığını görebilirsiniz.</Text>
+              <Text style={[s.adresBosText, { color: colors.textSecondary }]}>Adreslerinizi ekleyerek, adresinizin ilan konumuna olan uzaklığını görebilirsiniz.</Text>
               <TouchableOpacity style={s.adresEkleBtn} onPress={() => navigation.navigate('KayitliAdresler')}>
                 <Ionicons name="add" size={16} color="#2563eb" />
                 <Text style={s.adresEkleBtnText}>Adres Ekle</Text>
@@ -391,12 +397,12 @@ export default function IlanDetayScreen({ route, navigation }) {
                 : `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(adresMetin)}&destination=${encodeURIComponent(ilanAdresMetin)}&travelmode=driving`;
 
               return (
-                <View key={adres.id} style={s.adresKart}>
+                <View key={adres.id} style={[s.adresKart, { borderBottomColor: colors.border }]}>
                   <Ionicons name="location-outline" size={18} color="#2563eb" />
                   <View style={{ flex: 1 }}>
-                    <Text style={s.adresBaslik}>{adres.baslik}</Text>
+                    <Text style={[s.adresBaslik, { color: colors.text }]}>{adres.baslik}</Text>
                     {adres.sehir
-                      ? <Text style={s.adresAlt}>{[adres.ilce, adres.sehir].filter(Boolean).join(', ')}</Text>
+                      ? <Text style={[s.adresAlt, { color: colors.textMuted }]}>{[adres.ilce, adres.sehir].filter(Boolean).join(', ')}</Text>
                       : null
                     }
                   </View>
@@ -418,9 +424,9 @@ export default function IlanDetayScreen({ route, navigation }) {
         </View>
 
         {/* NASIL GİDİLİR */}
-        <View style={s.bolum}>
+        <View style={[s.bolum, { backgroundColor: colors.card, borderBottomColor: colors.bg }]}>
           <View style={s.ulasimBaslikRow}>
-            <Text style={s.bolumBaslik}>NASIL GİDİLİR?</Text>
+            <Text style={[s.bolumBaslik, { color: colors.grupBaslik }]}>NASIL GİDİLİR?</Text>
             {!ulasim && (
               <TouchableOpacity
                 style={[s.ulasimAnalizBtn, ulasimYukleniyor && { opacity: 0.6 }]}
@@ -445,8 +451,8 @@ export default function IlanDetayScreen({ route, navigation }) {
 
           {!ulasim && !ulasimYukleniyor && (
             <View style={s.ulasimBos}>
-              <Ionicons name="bus-outline" size={32} color="#d1d5db" />
-              <Text style={s.ulasimBosText}>
+              <Ionicons name="bus-outline" size={32} color={colors.border} />
+              <Text style={[s.ulasimBosText, { color: colors.textMuted }]}>
                 Bu ilan için AI destekli ulaşım analizi yapın: metro, otobüs, araç ve yürüyüş süreleri.
               </Text>
             </View>
@@ -455,7 +461,7 @@ export default function IlanDetayScreen({ route, navigation }) {
           {ulasimYukleniyor && (
             <View style={s.ulasimBos}>
               <ActivityIndicator size="small" color="#2563eb" />
-              <Text style={s.ulasimBosText}>Konum analiz ediliyor...</Text>
+              <Text style={[s.ulasimBosText, { color: colors.textMuted }]}>Konum analiz ediliyor...</Text>
             </View>
           )}
 
@@ -463,8 +469,8 @@ export default function IlanDetayScreen({ route, navigation }) {
             <View style={s.ulasimKutu}>
               {/* Puan */}
               {ulasim.puan != null && (
-                <View style={s.ulasimPuanRow}>
-                  <Text style={s.ulasimOzetText}>{ulasim.ozet}</Text>
+                <View style={[s.ulasimPuanRow, { backgroundColor: colors.input }]}>
+                  <Text style={[s.ulasimOzetText, { color: colors.textSecondary }]}>{ulasim.ozet}</Text>
                   <View style={[s.puanBadge, { backgroundColor: ulasim.puan >= 7 ? '#dcfce7' : ulasim.puan >= 4 ? '#fef9c3' : '#fee2e2' }]}>
                     <Text style={[s.puanText, { color: ulasim.puan >= 7 ? '#16a34a' : ulasim.puan >= 4 ? '#ca8a04' : '#dc2626' }]}>
                       {ulasim.puan}/10
@@ -478,13 +484,13 @@ export default function IlanDetayScreen({ route, navigation }) {
                 { ikon: 'car-outline',      renk: '#d97706', baslik: 'Araçla',              deger: ulasim.araba },
                 { ikon: 'walk-outline',     renk: '#16a34a', baslik: 'Yürüyerek',           deger: ulasim.yuruyus },
               ].filter(r => r.deger && r.deger !== 'null').map((row, i) => (
-                <View key={i} style={s.ulasimSatir}>
+                <View key={i} style={[s.ulasimSatir, { borderTopColor: colors.border }]}>
                   <View style={[s.ulasimIkonKutu, { backgroundColor: row.renk + '15' }]}>
                     <Ionicons name={row.ikon} size={18} color={row.renk} />
                   </View>
                   <View style={{ flex: 1 }}>
-                    <Text style={s.ulasimSatirBaslik}>{row.baslik}</Text>
-                    <Text style={s.ulasimSatirDeger}>{row.deger}</Text>
+                    <Text style={[s.ulasimSatirBaslik, { color: colors.textMuted }]}>{row.baslik}</Text>
+                    <Text style={[s.ulasimSatirDeger, { color: colors.textSecondary }]}>{row.deger}</Text>
                   </View>
                 </View>
               ))}
@@ -494,8 +500,8 @@ export default function IlanDetayScreen({ route, navigation }) {
 
         {/* EMLAKÇI KÜNYESİ */}
         {ilan.dukkan_adi ? (
-          <View style={s.bolum}>
-            <Text style={s.bolumBaslik}>EMLAKÇI KÜNYESİ</Text>
+          <View style={[s.bolum, { backgroundColor: colors.card, borderBottomColor: colors.bg }]}>
+            <Text style={[s.bolumBaslik, { color: colors.grupBaslik }]}>EMLAKÇI KÜNYESİ</Text>
             <View style={s.emlakciKart}>
               <View style={s.emlakciLogo}>
                 <Text style={s.emlakciLogoText}>
@@ -503,12 +509,12 @@ export default function IlanDetayScreen({ route, navigation }) {
                 </Text>
               </View>
               <View style={{ flex: 1, gap: 3 }}>
-                <Text style={s.emlakciAd}>{ilan.dukkan_adi}</Text>
+                <Text style={[s.emlakciAd, { color: colors.text }]}>{ilan.dukkan_adi}</Text>
                 {(ilan.dukkan_sehir || ilan.dukkan_ilce) ? (
-                  <Text style={s.emlakciKonum}>{[ilan.dukkan_ilce, ilan.dukkan_sehir].filter(Boolean).join(' - ')}</Text>
+                  <Text style={[s.emlakciKonum, { color: colors.textSecondary }]}>{[ilan.dukkan_ilce, ilan.dukkan_sehir].filter(Boolean).join(' - ')}</Text>
                 ) : null}
                 {ilan.vergi_no ? (
-                  <Text style={s.emlakciVergi}>Vergi No: {ilan.vergi_no}</Text>
+                  <Text style={[s.emlakciVergi, { color: colors.textMuted }]}>Vergi No: {ilan.vergi_no}</Text>
                 ) : null}
               </View>
               <View style={s.emlakciBadge}>
@@ -521,9 +527,9 @@ export default function IlanDetayScreen({ route, navigation }) {
 
         {/* EMLAKÇININ DİĞER İLANLARI */}
         {emlakciilanlar.length > 0 ? (
-          <View style={s.yatayBolum}>
+          <View style={[s.yatayBolum, { backgroundColor: colors.card, borderBottomColor: colors.bg }]}>
             <View style={s.yatayBaslikRow}>
-              <Text style={s.bolumBaslik}>EMLAKÇININ DİĞER İLANLARI</Text>
+              <Text style={[s.bolumBaslik, { color: colors.grupBaslik }]}>EMLAKÇININ DİĞER İLANLARI</Text>
               <TouchableOpacity onPress={() => navigation.navigate('TumIlanlar', { dukkan_id: ilan.dukkan_id, baslik: ilan.dukkan_adi })}>
                 <Text style={s.tumunuGor}>Tümünü Gör</Text>
               </TouchableOpacity>
@@ -543,9 +549,9 @@ export default function IlanDetayScreen({ route, navigation }) {
 
         {/* BENZER İLANLAR */}
         {benzerilanlar.length > 0 ? (
-          <View style={s.yatayBolum}>
+          <View style={[s.yatayBolum, { backgroundColor: colors.card, borderBottomColor: colors.bg }]}>
             <View style={s.yatayBaslikRow}>
-              <Text style={s.bolumBaslik}>BENZER İLANLAR</Text>
+              <Text style={[s.bolumBaslik, { color: colors.grupBaslik }]}>BENZER İLANLAR</Text>
             </View>
             <FlatList
               data={benzerilanlar}
@@ -561,8 +567,8 @@ export default function IlanDetayScreen({ route, navigation }) {
         ) : null}
 
         {/* HATALI İLAN BİLDİR */}
-        <View style={s.bildir}>
-          <Text style={s.bildirText}>İlanla ilgili şikayetlerinizi bize bildirebilirsiniz</Text>
+        <View style={[s.bildir, { backgroundColor: colors.card, borderBottomColor: colors.bg }]}>
+          <Text style={[s.bildirText, { color: colors.textSecondary }]}>İlanla ilgili şikayetlerinizi bize bildirebilirsiniz</Text>
           <TouchableOpacity style={s.bildirBtn} onPress={() =>
             Alert.alert(
               'Hatalı İlan Bildir',
@@ -581,12 +587,12 @@ export default function IlanDetayScreen({ route, navigation }) {
         </View>
 
         {/* GÜVENLİK ÖNERİLERİ */}
-        <View style={s.guvenlik}>
-          <Text style={s.guvenlikBaslik}>GÜVENLİK ÖNERİLERİ</Text>
-          <Text style={s.guvenlikText}>
+        <View style={[s.guvenlik, { backgroundColor: colors.card }]}>
+          <Text style={[s.guvenlikBaslik, { color: colors.grupBaslik }]}>GÜVENLİK ÖNERİLERİ</Text>
+          <Text style={[s.guvenlikText, { color: colors.textSecondary }]}>
             Gayrimenkulu görmeden, hiçbir sebeple kapora ve benzeri bir ödeme gerçekleştirmeyin.
           </Text>
-          <Text style={s.guvenlikText}>
+          <Text style={[s.guvenlikText, { color: colors.textSecondary }]}>
             Şüphe duyduğunuz ilanları lütfen bize bildirin.
           </Text>
         </View>
@@ -595,7 +601,7 @@ export default function IlanDetayScreen({ route, navigation }) {
       </ScrollView>
 
       {/* ALT BAR */}
-      <View style={s.altBar}>
+      <View style={[s.altBar, { backgroundColor: colors.card, borderTopColor: colors.border }]}>
         <TouchableOpacity
           style={s.whatsappBtn}
           onPress={() => {
@@ -607,7 +613,7 @@ export default function IlanDetayScreen({ route, navigation }) {
           <Ionicons name="logo-whatsapp" size={26} color="#fff" />
         </TouchableOpacity>
         <TouchableOpacity
-          style={s.mesajBtn}
+          style={[s.mesajBtn, { borderColor: '#2563eb' }]}
           onPress={async () => {
             const token = await AsyncStorage.getItem('token');
             if (!token) { navigation.navigate('Giris'); return; }

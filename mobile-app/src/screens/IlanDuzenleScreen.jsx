@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { ilanGuncelle } from '../services/api';
+import { useTheme } from '../context/ThemeContext';
 
 const fiyatFormat = (f) =>
   new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 0 }).format(f) + ' TL';
@@ -14,6 +15,7 @@ const ODA_TIPLER = ['Stüdyo', '1+1', '2+1', '3+1', '4+1', '5+1', '6+1'];
 const ISINMA    = ['Kombi', 'Doğalgaz', 'Merkezi', 'Klima', 'Soba', 'Yok'];
 
 export default function IlanDuzenleScreen({ route, navigation }) {
+  const { colors } = useTheme();
   const { ilan } = route.params;
 
   const [baslik, setBaslik]         = useState(ilan.baslik || '');
@@ -64,8 +66,10 @@ export default function IlanDuzenleScreen({ route, navigation }) {
     }
   };
 
+  const inputStyle = [s.input, { backgroundColor: colors.input, borderColor: colors.inputBorder, color: colors.text }];
+
   return (
-    <ScrollView style={s.container} showsVerticalScrollIndicator={false}>
+    <ScrollView style={[s.container, { backgroundColor: colors.bg }]} showsVerticalScrollIndicator={false}>
 
       {/* Fiyat düşüş uyarısı */}
       {fiyatDustu ? (
@@ -77,99 +81,101 @@ export default function IlanDuzenleScreen({ route, navigation }) {
         </View>
       ) : null}
 
-      <View style={s.kart}>
-        <Text style={s.bolumBaslik}>TEMEL BİLGİLER</Text>
+      <View style={[s.kart, { backgroundColor: colors.card }]}>
+        <Text style={[s.bolumBaslik, { color: colors.grupBaslik }]}>TEMEL BİLGİLER</Text>
 
-        <Text style={s.etiket}>Başlık *</Text>
-        <TextInput style={s.input} value={baslik} onChangeText={setBaslik} placeholder="İlan başlığı" />
+        <Text style={[s.etiket, { color: colors.textSecondary }]}>Başlık *</Text>
+        <TextInput style={inputStyle} value={baslik} onChangeText={setBaslik} placeholder="İlan başlığı" placeholderTextColor={colors.textMuted} />
 
-        <Text style={s.etiket}>Fiyat (₺) *</Text>
+        <Text style={[s.etiket, { color: colors.textSecondary }]}>Fiyat (₺) *</Text>
         <TextInput
-          style={s.input}
+          style={inputStyle}
           value={fiyat}
           onChangeText={setFiyat}
           keyboardType="numeric"
           placeholder="Örn: 2500000"
+          placeholderTextColor={colors.textMuted}
         />
         {fiyatDustu ? (
           <Text style={s.dususHint}>↓ Eski fiyat: {fiyatFormat(eskiFiyat)}</Text>
         ) : null}
 
-        <Text style={s.etiket}>İlan Tipi</Text>
+        <Text style={[s.etiket, { color: colors.textSecondary }]}>İlan Tipi</Text>
         <View style={s.chipRow}>
           {TIPLER.map(t => (
             <TouchableOpacity
               key={t}
-              style={[s.chip, tip === t && s.chipAktif]}
+              style={[s.chip, { backgroundColor: colors.input, borderColor: colors.border }, tip === t && s.chipAktif]}
               onPress={() => setTip(t)}
             >
-              <Text style={[s.chipText, tip === t && s.chipTextAktif]}>{t}</Text>
+              <Text style={[s.chipText, { color: colors.textSecondary }, tip === t && s.chipTextAktif]}>{t}</Text>
             </TouchableOpacity>
           ))}
         </View>
       </View>
 
-      <View style={s.kart}>
-        <Text style={s.bolumBaslik}>DETAYLAR</Text>
+      <View style={[s.kart, { backgroundColor: colors.card }]}>
+        <Text style={[s.bolumBaslik, { color: colors.grupBaslik }]}>DETAYLAR</Text>
 
         <View style={s.ikilRow}>
           <View style={{ flex: 1 }}>
-            <Text style={s.etiket}>Metrekare (m²)</Text>
-            <TextInput style={s.input} value={metrekare} onChangeText={setMetrekare} keyboardType="numeric" placeholder="120" />
+            <Text style={[s.etiket, { color: colors.textSecondary }]}>Metrekare (m²)</Text>
+            <TextInput style={inputStyle} value={metrekare} onChangeText={setMetrekare} keyboardType="numeric" placeholder="120" placeholderTextColor={colors.textMuted} />
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={s.etiket}>Bulunduğu Kat</Text>
-            <TextInput style={s.input} value={kat} onChangeText={setKat} keyboardType="numeric" placeholder="3" />
+            <Text style={[s.etiket, { color: colors.textSecondary }]}>Bulunduğu Kat</Text>
+            <TextInput style={inputStyle} value={kat} onChangeText={setKat} keyboardType="numeric" placeholder="3" placeholderTextColor={colors.textMuted} />
           </View>
         </View>
 
-        <Text style={s.etiket}>Oda Sayısı</Text>
+        <Text style={[s.etiket, { color: colors.textSecondary }]}>Oda Sayısı</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.chipScroll}>
           {ODA_TIPLER.map(o => (
             <TouchableOpacity
               key={o}
-              style={[s.chip, odaSayisi === o && s.chipAktif]}
+              style={[s.chip, { backgroundColor: colors.input, borderColor: colors.border }, odaSayisi === o && s.chipAktif]}
               onPress={() => setOdaSayisi(odaSayisi === o ? '' : o)}
             >
-              <Text style={[s.chipText, odaSayisi === o && s.chipTextAktif]}>{o}</Text>
+              <Text style={[s.chipText, { color: colors.textSecondary }, odaSayisi === o && s.chipTextAktif]}>{o}</Text>
             </TouchableOpacity>
           ))}
         </ScrollView>
 
-        <Text style={s.etiket}>Isıtma Tipi</Text>
+        <Text style={[s.etiket, { color: colors.textSecondary }]}>Isıtma Tipi</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.chipScroll}>
           {ISINMA.map(i => (
             <TouchableOpacity
               key={i}
-              style={[s.chip, isinma === i && s.chipAktif]}
+              style={[s.chip, { backgroundColor: colors.input, borderColor: colors.border }, isinma === i && s.chipAktif]}
               onPress={() => setIsinma(isinma === i ? '' : i)}
             >
-              <Text style={[s.chipText, isinma === i && s.chipTextAktif]}>{i}</Text>
+              <Text style={[s.chipText, { color: colors.textSecondary }, isinma === i && s.chipTextAktif]}>{i}</Text>
             </TouchableOpacity>
           ))}
         </ScrollView>
       </View>
 
-      <View style={s.kart}>
-        <Text style={s.bolumBaslik}>KONUM</Text>
+      <View style={[s.kart, { backgroundColor: colors.card }]}>
+        <Text style={[s.bolumBaslik, { color: colors.grupBaslik }]}>KONUM</Text>
 
-        <Text style={s.etiket}>Şehir</Text>
-        <TextInput style={s.input} value={sehir} onChangeText={setSehir} placeholder="İstanbul" />
+        <Text style={[s.etiket, { color: colors.textSecondary }]}>Şehir</Text>
+        <TextInput style={inputStyle} value={sehir} onChangeText={setSehir} placeholder="İstanbul" placeholderTextColor={colors.textMuted} />
 
-        <Text style={s.etiket}>İlçe</Text>
-        <TextInput style={s.input} value={ilce} onChangeText={setIlce} placeholder="Kadıköy" />
+        <Text style={[s.etiket, { color: colors.textSecondary }]}>İlçe</Text>
+        <TextInput style={inputStyle} value={ilce} onChangeText={setIlce} placeholder="Kadıköy" placeholderTextColor={colors.textMuted} />
 
-        <Text style={s.etiket}>Mahalle</Text>
-        <TextInput style={s.input} value={mahalle} onChangeText={setMahalle} placeholder="Moda Mahallesi" />
+        <Text style={[s.etiket, { color: colors.textSecondary }]}>Mahalle</Text>
+        <TextInput style={inputStyle} value={mahalle} onChangeText={setMahalle} placeholder="Moda Mahallesi" placeholderTextColor={colors.textMuted} />
       </View>
 
-      <View style={s.kart}>
-        <Text style={s.bolumBaslik}>AÇIKLAMA</Text>
+      <View style={[s.kart, { backgroundColor: colors.card }]}>
+        <Text style={[s.bolumBaslik, { color: colors.grupBaslik }]}>AÇIKLAMA</Text>
         <TextInput
-          style={[s.input, s.aciklamaInput]}
+          style={[inputStyle, s.aciklamaInput]}
           value={aciklama}
           onChangeText={setAciklama}
           placeholder="İlan açıklaması..."
+          placeholderTextColor={colors.textMuted}
           multiline
           textAlignVertical="top"
         />

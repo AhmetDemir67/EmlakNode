@@ -7,8 +7,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { girisYap } from '../services/api';
+import { useTheme } from '../context/ThemeContext';
 
 export default function GirisScreen({ navigation }) {
+  const { colors, tema } = useTheme();
   const [eposta, setEposta]         = useState('');
   const [sifre, setSifre]           = useState('');
   const [gizle, setGizle]           = useState(true);
@@ -46,18 +48,18 @@ export default function GirisScreen({ navigation }) {
       </LinearGradient>
 
       <KeyboardAvoidingView
-        style={s.altKisim}
+        style={[s.altKisim, { backgroundColor: colors.card }]}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <Text style={s.formBaslik}>Giriş Yapın</Text>
+        <Text style={[s.formBaslik, { color: colors.text }]}>Giriş Yapın</Text>
 
         <View style={s.form}>
-          <View style={s.inputWrap}>
-            <Ionicons name="mail-outline" size={18} color="#9ca3af" style={s.inputIkon} />
+          <View style={[s.inputWrap, { borderColor: colors.inputBorder, backgroundColor: colors.input }]}>
+            <Ionicons name="mail-outline" size={18} color={colors.textMuted} style={s.inputIkon} />
             <TextInput
-              style={s.input}
+              style={[s.input, { color: colors.text }]}
               placeholder="E-posta adresiniz"
-              placeholderTextColor="#9ca3af"
+              placeholderTextColor={colors.textMuted}
               value={eposta}
               onChangeText={setEposta}
               keyboardType="email-address"
@@ -65,18 +67,18 @@ export default function GirisScreen({ navigation }) {
             />
           </View>
 
-          <View style={s.inputWrap}>
-            <Ionicons name="lock-closed-outline" size={18} color="#9ca3af" style={s.inputIkon} />
+          <View style={[s.inputWrap, { borderColor: colors.inputBorder, backgroundColor: colors.input }]}>
+            <Ionicons name="lock-closed-outline" size={18} color={colors.textMuted} style={s.inputIkon} />
             <TextInput
-              style={s.input}
+              style={[s.input, { color: colors.text }]}
               placeholder="Şifreniz"
-              placeholderTextColor="#9ca3af"
+              placeholderTextColor={colors.textMuted}
               value={sifre}
               onChangeText={setSifre}
               secureTextEntry={gizle}
             />
             <TouchableOpacity onPress={() => setGizle(!gizle)} style={{ padding: 4 }}>
-              <Ionicons name={gizle ? 'eye-off-outline' : 'eye-outline'} size={18} color="#9ca3af" />
+              <Ionicons name={gizle ? 'eye-off-outline' : 'eye-outline'} size={18} color={colors.textMuted} />
             </TouchableOpacity>
           </View>
 
@@ -89,7 +91,7 @@ export default function GirisScreen({ navigation }) {
         </View>
 
         <TouchableOpacity onPress={() => navigation.navigate('Kayit')} style={s.kayitLink}>
-          <Text style={s.kayitText}>
+          <Text style={[s.kayitText, { color: colors.textSecondary }]}>
             Hesabın yok mu?{'  '}
             <Text style={{ color: '#2563eb', fontWeight: '700' }}>Kayıt Ol</Text>
           </Text>
@@ -107,14 +109,14 @@ const s = StyleSheet.create({
   logoText:   { fontSize: 32, fontWeight: '900', color: '#fff' },
   slogan:     { fontSize: 17, fontWeight: '700', color: '#fff', marginBottom: 6 },
   altSlogan:  { fontSize: 13, color: '#bfdbfe' },
-  altKisim:   { flex: 1, backgroundColor: '#fff', borderTopLeftRadius: 32, borderTopRightRadius: 32, paddingHorizontal: 28, paddingTop: 32, paddingBottom: 24 },
-  formBaslik: { fontSize: 20, fontWeight: '800', color: '#111827', marginBottom: 24 },
+  altKisim:   { flex: 1, borderTopLeftRadius: 32, borderTopRightRadius: 32, paddingHorizontal: 28, paddingTop: 32, paddingBottom: 24 },
+  formBaslik: { fontSize: 20, fontWeight: '800', marginBottom: 24 },
   form:       { gap: 14 },
-  inputWrap:  { flexDirection: 'row', alignItems: 'center', borderWidth: 1.5, borderColor: '#e5e7eb', borderRadius: 14, paddingHorizontal: 14, paddingVertical: 4, backgroundColor: '#fafafa' },
+  inputWrap:  { flexDirection: 'row', alignItems: 'center', borderWidth: 1.5, borderRadius: 14, paddingHorizontal: 14, paddingVertical: 4 },
   inputIkon:  { marginRight: 10 },
-  input:      { flex: 1, fontSize: 15, color: '#111827', paddingVertical: 12 },
+  input:      { flex: 1, fontSize: 15, paddingVertical: 12 },
   btn:        { backgroundColor: '#2563eb', paddingVertical: 16, borderRadius: 14, alignItems: 'center', marginTop: 6 },
   btnText:    { color: '#fff', fontSize: 16, fontWeight: '800' },
   kayitLink:  { alignItems: 'center', marginTop: 24 },
-  kayitText:  { fontSize: 14, color: '#6b7280' },
+  kayitText:  { fontSize: 14 },
 });

@@ -7,16 +7,17 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { profilGetir, profilGuncelle, sifreGuncelle } from '../services/api';
+import { useTheme } from '../context/ThemeContext';
 
-const Alan = ({ label, value, onChangeText, placeholder, keyboardType = 'default', secureTextEntry, autoCapitalize = 'words' }) => (
+const Alan = ({ label, value, onChangeText, placeholder, keyboardType = 'default', secureTextEntry, autoCapitalize = 'words', colors }) => (
   <View style={s.alanWrap}>
-    <Text style={s.alanLabel}>{label}</Text>
+    <Text style={[s.alanLabel, { color: colors?.textSecondary || '#374151' }]}>{label}</Text>
     <TextInput
-      style={s.alanInput}
+      style={[s.alanInput, { backgroundColor: colors?.card || '#fff', borderColor: colors?.inputBorder || '#e5e7eb', color: colors?.text || '#111827' }]}
       value={value}
       onChangeText={onChangeText}
       placeholder={placeholder}
-      placeholderTextColor="#9ca3af"
+      placeholderTextColor={colors?.textMuted || '#9ca3af'}
       keyboardType={keyboardType}
       secureTextEntry={secureTextEntry}
       autoCapitalize={autoCapitalize}
@@ -26,6 +27,7 @@ const Alan = ({ label, value, onChangeText, placeholder, keyboardType = 'default
 );
 
 export default function ProfilDuzenleScreen({ navigation }) {
+  const { colors } = useTheme();
   const [aktifTab, setAktifTab]   = useState('bilgi');
   const [yukleniyor, setYukleniyor] = useState(true);
   const [kaydediyor, setKaydediyor] = useState(false);
@@ -111,12 +113,12 @@ export default function ProfilDuzenleScreen({ navigation }) {
   };
 
   if (yukleniyor) {
-    return <View style={s.merkez}><ActivityIndicator size="large" color="#2563eb" /></View>;
+    return <View style={[s.merkez, { backgroundColor: colors.bg }]}><ActivityIndicator size="large" color="#2563eb" /></View>;
   }
 
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <View style={s.container}>
+      <View style={[s.container, { backgroundColor: colors.bg }]}>
 
         {/* Header */}
         <LinearGradient colors={['#1e3a8a', '#2563eb']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={s.header}>
@@ -128,20 +130,20 @@ export default function ProfilDuzenleScreen({ navigation }) {
         </LinearGradient>
 
         {/* Tab Seçici */}
-        <View style={s.tabRow}>
+        <View style={[s.tabRow, { backgroundColor: colors.card }]}>
           <TouchableOpacity
-            style={[s.tab, aktifTab === 'bilgi' && s.tabAktif]}
+            style={[s.tab, aktifTab === 'bilgi' && [s.tabAktif, { backgroundColor: colors.badge }]]}
             onPress={() => setAktifTab('bilgi')}
           >
-            <Ionicons name="person-outline" size={16} color={aktifTab === 'bilgi' ? '#2563eb' : '#9ca3af'} />
-            <Text style={[s.tabText, aktifTab === 'bilgi' && s.tabTextAktif]}>Bilgileri Güncelle</Text>
+            <Ionicons name="person-outline" size={16} color={aktifTab === 'bilgi' ? '#2563eb' : colors.textMuted} />
+            <Text style={[s.tabText, { color: colors.textMuted }, aktifTab === 'bilgi' && s.tabTextAktif]}>Bilgileri Güncelle</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[s.tab, aktifTab === 'sifre' && s.tabAktif]}
+            style={[s.tab, aktifTab === 'sifre' && [s.tabAktif, { backgroundColor: colors.badge }]]}
             onPress={() => setAktifTab('sifre')}
           >
-            <Ionicons name="lock-closed-outline" size={16} color={aktifTab === 'sifre' ? '#2563eb' : '#9ca3af'} />
-            <Text style={[s.tabText, aktifTab === 'sifre' && s.tabTextAktif]}>Şifre Güncelle</Text>
+            <Ionicons name="lock-closed-outline" size={16} color={aktifTab === 'sifre' ? '#2563eb' : colors.textMuted} />
+            <Text style={[s.tabText, { color: colors.textMuted }, aktifTab === 'sifre' && s.tabTextAktif]}>Şifre Güncelle</Text>
           </TouchableOpacity>
         </View>
 
@@ -150,13 +152,13 @@ export default function ProfilDuzenleScreen({ navigation }) {
 
             {aktifTab === 'bilgi' ? (
               <>
-                <Alan
+                <Alan colors={colors}
                   label="Ad Soyad"
                   value={bilgi.ad_soyad}
                   onChangeText={v => setBilgi(b => ({ ...b, ad_soyad: v }))}
                   placeholder="Adınız Soyadınız"
                 />
-                <Alan
+                <Alan colors={colors}
                   label="E-posta"
                   value={bilgi.eposta}
                   onChangeText={v => setBilgi(b => ({ ...b, eposta: v }))}
@@ -164,7 +166,7 @@ export default function ProfilDuzenleScreen({ navigation }) {
                   keyboardType="email-address"
                   autoCapitalize="none"
                 />
-                <Alan
+                <Alan colors={colors}
                   label="Telefon"
                   value={bilgi.telefon}
                   onChangeText={v => setBilgi(b => ({ ...b, telefon: v }))}
@@ -172,7 +174,7 @@ export default function ProfilDuzenleScreen({ navigation }) {
                   keyboardType="phone-pad"
                   autoCapitalize="none"
                 />
-                <Alan
+                <Alan colors={colors}
                   label="Doğum Tarihi"
                   value={bilgi.dogum_tarihi}
                   onChangeText={v => setBilgi(b => ({ ...b, dogum_tarihi: v }))}
@@ -182,7 +184,7 @@ export default function ProfilDuzenleScreen({ navigation }) {
                 />
                 <View style={{ flexDirection: 'row', gap: 12 }}>
                   <View style={{ flex: 1 }}>
-                    <Alan
+                    <Alan colors={colors}
                       label="İl"
                       value={bilgi.il}
                       onChangeText={v => setBilgi(b => ({ ...b, il: v }))}
@@ -190,7 +192,7 @@ export default function ProfilDuzenleScreen({ navigation }) {
                     />
                   </View>
                   <View style={{ flex: 1 }}>
-                    <Alan
+                    <Alan colors={colors}
                       label="İlçe"
                       value={bilgi.ilce}
                       onChangeText={v => setBilgi(b => ({ ...b, ilce: v }))}
@@ -210,60 +212,60 @@ export default function ProfilDuzenleScreen({ navigation }) {
               <>
                 {/* Eski Şifre */}
                 <View style={s.alanWrap}>
-                  <Text style={s.alanLabel}>Mevcut Şifre</Text>
-                  <View style={s.sifreRow}>
+                  <Text style={[s.alanLabel, { color: colors.textSecondary }]}>Mevcut Şifre</Text>
+                  <View style={[s.sifreRow, { backgroundColor: colors.card, borderColor: colors.inputBorder }]}>
                     <TextInput
-                      style={[s.alanInput, { flex: 1, marginBottom: 0 }]}
+                      style={[s.alanInput, { flex: 1, marginBottom: 0, backgroundColor: 'transparent', borderWidth: 0, color: colors.text }]}
                       value={sifre.eski_sifre}
                       onChangeText={v => setSifre(p => ({ ...p, eski_sifre: v }))}
                       placeholder="Mevcut şifreniz"
-                      placeholderTextColor="#9ca3af"
+                      placeholderTextColor={colors.textMuted}
                       secureTextEntry={!eski_goster}
                       autoCapitalize="none"
                       autoCorrect={false}
                     />
                     <TouchableOpacity style={s.gozBtn} onPress={() => setEskiGoster(!eski_goster)}>
-                      <Ionicons name={eski_goster ? 'eye-off-outline' : 'eye-outline'} size={20} color="#9ca3af" />
+                      <Ionicons name={eski_goster ? 'eye-off-outline' : 'eye-outline'} size={20} color={colors.textMuted} />
                     </TouchableOpacity>
                   </View>
                 </View>
 
                 {/* Yeni Şifre */}
                 <View style={s.alanWrap}>
-                  <Text style={s.alanLabel}>Yeni Şifre</Text>
-                  <View style={s.sifreRow}>
+                  <Text style={[s.alanLabel, { color: colors.textSecondary }]}>Yeni Şifre</Text>
+                  <View style={[s.sifreRow, { backgroundColor: colors.card, borderColor: colors.inputBorder }]}>
                     <TextInput
-                      style={[s.alanInput, { flex: 1, marginBottom: 0 }]}
+                      style={[s.alanInput, { flex: 1, marginBottom: 0, backgroundColor: 'transparent', borderWidth: 0, color: colors.text }]}
                       value={sifre.yeni_sifre}
                       onChangeText={v => setSifre(p => ({ ...p, yeni_sifre: v }))}
                       placeholder="En az 6 karakter"
-                      placeholderTextColor="#9ca3af"
+                      placeholderTextColor={colors.textMuted}
                       secureTextEntry={!yeni_goster}
                       autoCapitalize="none"
                       autoCorrect={false}
                     />
                     <TouchableOpacity style={s.gozBtn} onPress={() => setYeniGoster(!yeni_goster)}>
-                      <Ionicons name={yeni_goster ? 'eye-off-outline' : 'eye-outline'} size={20} color="#9ca3af" />
+                      <Ionicons name={yeni_goster ? 'eye-off-outline' : 'eye-outline'} size={20} color={colors.textMuted} />
                     </TouchableOpacity>
                   </View>
                 </View>
 
                 {/* Yeni Şifre Tekrar */}
                 <View style={s.alanWrap}>
-                  <Text style={s.alanLabel}>Yeni Şifre Tekrar</Text>
-                  <View style={s.sifreRow}>
+                  <Text style={[s.alanLabel, { color: colors.textSecondary }]}>Yeni Şifre Tekrar</Text>
+                  <View style={[s.sifreRow, { backgroundColor: colors.card, borderColor: colors.inputBorder }]}>
                     <TextInput
-                      style={[s.alanInput, { flex: 1, marginBottom: 0 }]}
+                      style={[s.alanInput, { flex: 1, marginBottom: 0, backgroundColor: 'transparent', borderWidth: 0, color: colors.text }]}
                       value={sifre.yeni_sifre_tekrar}
                       onChangeText={v => setSifre(p => ({ ...p, yeni_sifre_tekrar: v }))}
                       placeholder="Yeni şifrenizi tekrar girin"
-                      placeholderTextColor="#9ca3af"
+                      placeholderTextColor={colors.textMuted}
                       secureTextEntry={!tekrar_goster}
                       autoCapitalize="none"
                       autoCorrect={false}
                     />
                     <TouchableOpacity style={s.gozBtn} onPress={() => setTekrarGoster(!tekrar_goster)}>
-                      <Ionicons name={tekrar_goster ? 'eye-off-outline' : 'eye-outline'} size={20} color="#9ca3af" />
+                      <Ionicons name={tekrar_goster ? 'eye-off-outline' : 'eye-outline'} size={20} color={colors.textMuted} />
                     </TouchableOpacity>
                   </View>
                 </View>

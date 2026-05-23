@@ -6,6 +6,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { aiMulkDegerle } from '../services/api';
+import { useTheme } from '../context/ThemeContext';
 
 const TURLER   = ['Daire', 'Villa', 'Müstakil Ev', 'Arsa', 'İşyeri', 'Depo'];
 const TIP_LIST = ['Satılık', 'Kiralık'];
@@ -17,6 +18,7 @@ const fiyatFormat = (f) =>
     : new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 0 }).format(f) + ' ₺';
 
 export default function EmlakDegerlemeScreen({ navigation }) {
+  const { colors } = useTheme();
   const [tip, setTip]             = useState('Satılık');
   const [tur, setTur]             = useState('Daire');
   const [sehir, setSehir]         = useState('');
@@ -64,8 +66,10 @@ export default function EmlakDegerlemeScreen({ navigation }) {
     return { name: 'remove-outline', color: '#9ca3af' };
   };
 
+  const inputStil = { fontSize: 14, color: colors.text, fontWeight: '600' };
+
   return (
-    <ScrollView style={s.container} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+    <ScrollView style={[s.container, { backgroundColor: colors.bg }]} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
       {/* Header */}
       <LinearGradient colors={['#1e3a8a', '#2563eb']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={s.header}>
         <TouchableOpacity style={s.geriBtn} onPress={() => navigation.goBack()}>
@@ -88,15 +92,15 @@ export default function EmlakDegerlemeScreen({ navigation }) {
 
       {/* Tip seçimi */}
       <View style={s.grup}>
-        <Text style={s.grupBaslik}>İŞLEM TİPİ</Text>
+        <Text style={[s.grupBaslik, { color: colors.grupBaslik }]}>İŞLEM TİPİ</Text>
         <View style={s.chipRow}>
           {TIP_LIST.map(t => (
             <TouchableOpacity
               key={t}
-              style={[s.chip, tip === t && s.chipAktif]}
+              style={[s.chip, { backgroundColor: colors.card, borderColor: colors.border }, tip === t && s.chipAktif]}
               onPress={() => { setTip(t); setSonuc(null); }}
             >
-              <Text style={[s.chipText, tip === t && s.chipTextAktif]}>{t}</Text>
+              <Text style={[s.chipText, { color: colors.textSecondary }, tip === t && s.chipTextAktif]}>{t}</Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -104,15 +108,15 @@ export default function EmlakDegerlemeScreen({ navigation }) {
 
       {/* Emlak türü */}
       <View style={s.grup}>
-        <Text style={s.grupBaslik}>EMLAK TÜRÜ</Text>
+        <Text style={[s.grupBaslik, { color: colors.grupBaslik }]}>EMLAK TÜRÜ</Text>
         <View style={s.chipRow}>
           {TURLER.map(t => (
             <TouchableOpacity
               key={t}
-              style={[s.chip, tur === t && s.chipAktif]}
+              style={[s.chip, { backgroundColor: colors.card, borderColor: colors.border }, tur === t && s.chipAktif]}
               onPress={() => { setTur(t); setSonuc(null); }}
             >
-              <Text style={[s.chipText, tur === t && s.chipTextAktif]}>{t}</Text>
+              <Text style={[s.chipText, { color: colors.textSecondary }, tur === t && s.chipTextAktif]}>{t}</Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -120,55 +124,55 @@ export default function EmlakDegerlemeScreen({ navigation }) {
 
       {/* Form alanları */}
       <View style={s.grup}>
-        <Text style={s.grupBaslik}>KONUM VE ÖZELLİKLER</Text>
-        <View style={s.formKutu}>
+        <Text style={[s.grupBaslik, { color: colors.grupBaslik }]}>KONUM VE ÖZELLİKLER</Text>
+        <View style={[s.formKutu, { backgroundColor: colors.card, borderColor: colors.border }]}>
           <View style={s.inputWrap}>
-            <Text style={s.inputLabel}>Şehir *</Text>
+            <Text style={[s.inputLabel, { color: colors.textSecondary }]}>Şehir *</Text>
             <TextInput
-              style={s.input}
+              style={inputStil}
               placeholder="İstanbul, Ankara, İzmir..."
-              placeholderTextColor="#9ca3af"
+              placeholderTextColor={colors.textMuted}
               value={sehir}
               onChangeText={v => { setSehir(v); setSonuc(null); }}
               autoCapitalize="words"
             />
           </View>
-          <View style={[s.inputWrap, s.ayrac]}>
-            <Text style={s.inputLabel}>İlçe</Text>
+          <View style={[s.inputWrap, s.ayrac, { borderTopColor: colors.border }]}>
+            <Text style={[s.inputLabel, { color: colors.textSecondary }]}>İlçe</Text>
             <TextInput
-              style={s.input}
+              style={inputStil}
               placeholder="Kadıköy, Çankaya..."
-              placeholderTextColor="#9ca3af"
+              placeholderTextColor={colors.textMuted}
               value={ilce}
               onChangeText={v => { setIlce(v); setSonuc(null); }}
               autoCapitalize="words"
             />
           </View>
-          <View style={[s.inputWrap, s.ayrac]}>
-            <Text style={s.inputLabel}>Mahalle</Text>
+          <View style={[s.inputWrap, s.ayrac, { borderTopColor: colors.border }]}>
+            <Text style={[s.inputLabel, { color: colors.textSecondary }]}>Mahalle</Text>
             <TextInput
-              style={s.input}
+              style={inputStil}
               placeholder="Moda, Bağcılar..."
-              placeholderTextColor="#9ca3af"
+              placeholderTextColor={colors.textMuted}
               value={mahalle}
               onChangeText={v => { setMahalle(v); setSonuc(null); }}
               autoCapitalize="words"
             />
           </View>
-          <View style={[s.inputWrap, s.ayrac]}>
-            <Text style={s.inputLabel}>Metrekare *</Text>
+          <View style={[s.inputWrap, s.ayrac, { borderTopColor: colors.border }]}>
+            <Text style={[s.inputLabel, { color: colors.textSecondary }]}>Metrekare *</Text>
             <TextInput
-              style={s.input}
+              style={inputStil}
               placeholder="Brüt m²"
-              placeholderTextColor="#9ca3af"
+              placeholderTextColor={colors.textMuted}
               value={metrekare}
               onChangeText={v => { setMetrekare(v); setSonuc(null); }}
               keyboardType="numeric"
             />
           </View>
           {tur !== 'Arsa' && tur !== 'Depo' && (
-            <View style={[s.inputWrap, s.ayrac]}>
-              <Text style={s.inputLabel}>Oda Sayısı</Text>
+            <View style={[s.inputWrap, s.ayrac, { borderTopColor: colors.border }]}>
+              <Text style={[s.inputLabel, { color: colors.textSecondary }]}>Oda Sayısı</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flex: 1 }}>
                 <View style={{ flexDirection: 'row', gap: 6, paddingVertical: 8, paddingRight: 4 }}>
                   {ODA_LIST.map(o => (
@@ -184,12 +188,12 @@ export default function EmlakDegerlemeScreen({ navigation }) {
               </ScrollView>
             </View>
           )}
-          <View style={[s.inputWrap, s.ayrac]}>
-            <Text style={s.inputLabel}>Bina Yaşı</Text>
+          <View style={[s.inputWrap, s.ayrac, { borderTopColor: colors.border }]}>
+            <Text style={[s.inputLabel, { color: colors.textSecondary }]}>Bina Yaşı</Text>
             <TextInput
-              style={s.input}
+              style={inputStil}
               placeholder="Yıl (0 = sıfır bina)"
-              placeholderTextColor="#9ca3af"
+              placeholderTextColor={colors.textMuted}
               value={binaYasi}
               onChangeText={v => { setBinaYasi(v); setSonuc(null); }}
               keyboardType="numeric"
@@ -200,21 +204,21 @@ export default function EmlakDegerlemeScreen({ navigation }) {
 
       {/* Referans nokta */}
       <View style={s.grup}>
-        <Text style={s.grupBaslik}>REFERANS NOKTA (OPSİYONEL)</Text>
-        <View style={s.formKutu}>
+        <Text style={[s.grupBaslik, { color: colors.grupBaslik }]}>REFERANS NOKTA (OPSİYONEL)</Text>
+        <View style={[s.formKutu, { backgroundColor: colors.card, borderColor: colors.border }]}>
           <View style={s.inputWrap}>
-            <Ionicons name="navigate-outline" size={18} color="#9ca3af" style={{ marginRight: 10 }} />
+            <Ionicons name="navigate-outline" size={18} color={colors.textMuted} style={{ marginRight: 10 }} />
             <TextInput
-              style={[s.input, { flex: 1 }]}
+              style={[inputStil, { flex: 1 }]}
               placeholder="İşyeri, okul, hastane... (örn: Levent Metro)"
-              placeholderTextColor="#9ca3af"
+              placeholderTextColor={colors.textMuted}
               value={referansNokta}
               onChangeText={v => { setReferansNokta(v); setSonuc(null); }}
               autoCapitalize="words"
             />
           </View>
         </View>
-        <Text style={s.referansAciklama}>
+        <Text style={[s.referansAciklama, { color: colors.textMuted }]}>
           Girdiğiniz noktaya yakınlık AI tarafından analiz edilip fiyatlamaya yansıtılır.
         </Text>
       </View>
@@ -236,11 +240,11 @@ export default function EmlakDegerlemeScreen({ navigation }) {
 
       {/* Sonuç */}
       {sonuc && (
-        <View style={s.sonucKart}>
+        <View style={[s.sonucKart, { backgroundColor: colors.card, borderColor: colors.border }]}>
           {/* Başlık */}
           <View style={s.sonucBaslikRow}>
             <Ionicons name="stats-chart" size={22} color="#2563eb" />
-            <Text style={s.sonucBaslik}>AI Değerleme Sonucu</Text>
+            <Text style={[s.sonucBaslik, { color: colors.text }]}>AI Değerleme Sonucu</Text>
             {sonuc.fiyatTrendi && (() => {
               const ikon = trendIkon(sonuc.fiyatTrendi);
               return ikon ? (
@@ -267,13 +271,13 @@ export default function EmlakDegerlemeScreen({ navigation }) {
 
           {/* Ortalama ve m² */}
           <View style={s.istatRow}>
-            <View style={s.istatKutu}>
-              <Text style={s.istatEtiket}>Tahmini Ortalama</Text>
-              <Text style={s.istatDeger}>{fiyatFormat(sonuc.tahminiOrtalama)}</Text>
+            <View style={[s.istatKutu, { backgroundColor: colors.input }]}>
+              <Text style={[s.istatEtiket, { color: colors.textMuted }]}>Tahmini Ortalama</Text>
+              <Text style={[s.istatDeger, { color: colors.text }]}>{fiyatFormat(sonuc.tahminiOrtalama)}</Text>
             </View>
-            <View style={[s.istatKutu, s.istatSag]}>
-              <Text style={s.istatEtiket}>m² Fiyatı</Text>
-              <Text style={s.istatDeger}>{fiyatFormat(sonuc.m2Fiyat)}/m²</Text>
+            <View style={[s.istatKutu, s.istatSag, { backgroundColor: colors.input }]}>
+              <Text style={[s.istatEtiket, { color: colors.textMuted }]}>m² Fiyatı</Text>
+              <Text style={[s.istatDeger, { color: colors.text }]}>{fiyatFormat(sonuc.m2Fiyat)}/m²</Text>
             </View>
           </View>
 
@@ -287,9 +291,9 @@ export default function EmlakDegerlemeScreen({ navigation }) {
 
           {/* Özet */}
           {sonuc.ozet && (
-            <View style={s.ozetKutu}>
-              <Text style={s.ozetBaslik}>Bölge Analizi</Text>
-              <Text style={s.ozetMetin}>{sonuc.ozet}</Text>
+            <View style={[s.ozetKutu, { backgroundColor: colors.input }]}>
+              <Text style={[s.ozetBaslik, { color: colors.textMuted }]}>Bölge Analizi</Text>
+              <Text style={[s.ozetMetin, { color: colors.textSecondary }]}>{sonuc.ozet}</Text>
             </View>
           )}
 
@@ -312,7 +316,7 @@ export default function EmlakDegerlemeScreen({ navigation }) {
             </View>
           )}
 
-          <Text style={s.sonucUyari}>
+          <Text style={[s.sonucUyari, { color: colors.textMuted }]}>
             * Tahmin, bölge piyasa verileri ve AI analizine dayanmaktadır. Kesin değer için
             lisanslı bir gayrimenkul değerleme uzmanına başvurunuz.
           </Text>

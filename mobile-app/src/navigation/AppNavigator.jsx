@@ -34,6 +34,8 @@ import EmlakDegerlemeScreen     from '../screens/EmlakDegerlemeScreen';
 import KonusmaScreen            from '../screens/KonusmaScreen';
 import ChatbotScreen            from '../screens/ChatbotScreen';
 import BildirimlerScreen        from '../screens/BildirimlerScreen';
+import GizlilikGuvenlikScreen  from '../screens/GizlilikGuvenlikScreen';
+import YardimDestekScreen      from '../screens/YardimDestekScreen';
 import { navigationRef }      from '../services/navigationRef';
 
 const Tab   = createBottomTabNavigator();
@@ -162,6 +164,8 @@ export default function AppNavigator() {
         <Stack.Screen name="Konusma"          component={KonusmaScreen}          options={{ headerShown: false }} />
         <Stack.Screen name="Chatbot"          component={ChatbotScreen}          options={{ headerShown: false }} />
         <Stack.Screen name="Bildirimler"      component={BildirimlerScreen}      options={{ headerShown: false }} />
+        <Stack.Screen name="GizlilikGuvenlik" component={GizlilikGuvenlikScreen}  options={{ headerShown: false }} />
+        <Stack.Screen name="YardimDestek"     component={YardimDestekScreen}      options={{ headerShown: false }} />
       </Stack.Navigator>
     </NavigationContainer>
   );

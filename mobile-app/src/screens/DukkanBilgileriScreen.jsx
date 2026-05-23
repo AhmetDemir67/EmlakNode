@@ -8,23 +8,25 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { dukkanGetir, dukkanGuncelle } from '../services/api';
+import { useTheme } from '../context/ThemeContext';
 
-const Alan = ({ label, value, onChangeText, editable, placeholder, keyboard }) => (
+const Alan = ({ label, value, onChangeText, editable, placeholder, keyboard, colors }) => (
   <View style={s.alanWrap}>
-    <Text style={s.alanLabel}>{label}</Text>
+    <Text style={[s.alanLabel, { color: colors?.textSecondary || '#374151' }]}>{label}</Text>
     <TextInput
-      style={[s.alanInput, !editable && s.alanReadonly]}
+      style={[s.alanInput, { backgroundColor: colors?.input || '#fafafa', borderColor: colors?.inputBorder || '#e5e7eb', color: colors?.text || '#111827' }, !editable && { backgroundColor: colors?.border || '#f3f4f6', color: colors?.textMuted || '#6b7280' }]}
       value={value}
       onChangeText={onChangeText}
       editable={editable}
       placeholder={placeholder || label}
-      placeholderTextColor="#9ca3af"
+      placeholderTextColor={colors?.textMuted || '#9ca3af'}
       keyboardType={keyboard || 'default'}
     />
   </View>
 );
 
 export default function DukkanBilgileriScreen() {
+  const { colors } = useTheme();
   const [dukkan, setDukkan]         = useState(null);
   const [form, setForm]             = useState({ dukkan_adi: '', sehir: '', ilce: '' });
   const [yukleniyor, setYukleniyor] = useState(true);
@@ -78,7 +80,7 @@ export default function DukkanBilgileriScreen() {
 
   if (yukleniyor) {
     return (
-      <View style={s.merkez}>
+      <View style={[s.merkez, { backgroundColor: colors.bg }]}>
         <ActivityIndicator size="large" color="#2563eb" />
       </View>
     );
@@ -86,14 +88,14 @@ export default function DukkanBilgileriScreen() {
 
   if (!dukkan) {
     return (
-      <View style={s.merkez}>
-        <Text style={s.bosText}>Dükkan bulunamadı.</Text>
+      <View style={[s.merkez, { backgroundColor: colors.bg }]}>
+        <Text style={[s.bosText, { color: colors.textMuted }]}>Dükkan bulunamadı.</Text>
       </View>
     );
   }
 
   return (
-    <ScrollView style={s.container} showsVerticalScrollIndicator={false}>
+    <ScrollView style={[s.container, { backgroundColor: colors.bg }]} showsVerticalScrollIndicator={false}>
 
       {/* Dükkan Kartı */}
       <LinearGradient colors={['#1e3a8a', '#3b82f6', '#60a5fa']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.dukkanKart}>
@@ -107,25 +109,25 @@ export default function DukkanBilgileriScreen() {
       </LinearGradient>
 
       {/* Düzenlenemez Bilgiler */}
-      <View style={s.kart}>
-        <Text style={s.kartBaslik}>LİSANS BİLGİLERİ</Text>
-        <View style={s.bilgiSatir}>
-          <Ionicons name="document-text-outline" size={16} color="#6b7280" />
-          <Text style={s.bilgiLabel}>Vergi No</Text>
-          <Text style={s.bilgiDeger}>{dukkan.vergi_no || '—'}</Text>
+      <View style={[s.kart, { backgroundColor: colors.card }]}>
+        <Text style={[s.kartBaslik, { color: colors.grupBaslik }]}>LİSANS BİLGİLERİ</Text>
+        <View style={[s.bilgiSatir, { borderBottomColor: colors.border }]}>
+          <Ionicons name="document-text-outline" size={16} color={colors.textMuted} />
+          <Text style={[s.bilgiLabel, { color: colors.textSecondary }]}>Vergi No</Text>
+          <Text style={[s.bilgiDeger, { color: colors.text }]}>{dukkan.vergi_no || '—'}</Text>
         </View>
-        <View style={s.bilgiSatir}>
-          <Ionicons name="ribbon-outline" size={16} color="#6b7280" />
-          <Text style={s.bilgiLabel}>Yetki Belge No</Text>
-          <Text style={s.bilgiDeger}>{dukkan.yetki_belge_no || '—'}</Text>
+        <View style={[s.bilgiSatir, { borderBottomColor: colors.border }]}>
+          <Ionicons name="ribbon-outline" size={16} color={colors.textMuted} />
+          <Text style={[s.bilgiLabel, { color: colors.textSecondary }]}>Yetki Belge No</Text>
+          <Text style={[s.bilgiDeger, { color: colors.text }]}>{dukkan.yetki_belge_no || '—'}</Text>
         </View>
-        <Text style={s.bilgiNot}>* Bu bilgiler değiştirilemez.</Text>
+        <Text style={[s.bilgiNot, { color: colors.textMuted }]}>* Bu bilgiler değiştirilemez.</Text>
       </View>
 
       {/* Düzenlenebilir Bilgiler */}
-      <View style={s.kart}>
+      <View style={[s.kart, { backgroundColor: colors.card }]}>
         <View style={s.kartHeader}>
-          <Text style={s.kartBaslik}>OFİS BİLGİLERİ</Text>
+          <Text style={[s.kartBaslik, { color: colors.grupBaslik }]}>OFİS BİLGİLERİ</Text>
           {!duzenleMod && (
             <TouchableOpacity onPress={() => setDuzenleMod(true)} style={s.duzenleBtn}>
               <Ionicons name="pencil-outline" size={16} color="#3b82f6" />
@@ -136,20 +138,20 @@ export default function DukkanBilgileriScreen() {
 
         {duzenleMod ? (
           <>
-            <Alan
+            <Alan colors={colors}
               label="Dükkan / Ofis Adı *"
               value={form.dukkan_adi}
               onChangeText={v => setForm(f => ({ ...f, dukkan_adi: v }))}
               editable
             />
-            <Alan
+            <Alan colors={colors}
               label="Şehir"
               value={form.sehir}
               onChangeText={v => setForm(f => ({ ...f, sehir: v }))}
               editable
               placeholder="İstanbul"
             />
-            <Alan
+            <Alan colors={colors}
               label="İlçe"
               value={form.ilce}
               onChangeText={v => setForm(f => ({ ...f, ilce: v }))}
@@ -158,13 +160,13 @@ export default function DukkanBilgileriScreen() {
             />
             <View style={s.butonRow}>
               <TouchableOpacity
-                style={s.iptalBtn}
+                style={[s.iptalBtn, { borderColor: colors.border }]}
                 onPress={() => {
                   setForm({ dukkan_adi: dukkan.dukkan_adi || '', sehir: dukkan.sehir || '', ilce: dukkan.ilce || '' });
                   setDuzenleMod(false);
                 }}
               >
-                <Text style={s.iptalBtnText}>İptal</Text>
+                <Text style={[s.iptalBtnText, { color: colors.textSecondary }]}>İptal</Text>
               </TouchableOpacity>
               <TouchableOpacity style={s.kaydetBtn} onPress={kaydet} disabled={kaydediyor}>
                 {kaydediyor
@@ -176,20 +178,20 @@ export default function DukkanBilgileriScreen() {
           </>
         ) : (
           <>
-            <View style={s.bilgiSatir}>
-              <Ionicons name="storefront-outline" size={16} color="#6b7280" />
-              <Text style={s.bilgiLabel}>Dükkan Adı</Text>
-              <Text style={s.bilgiDeger}>{dukkan.dukkan_adi}</Text>
+            <View style={[s.bilgiSatir, { borderBottomColor: colors.border }]}>
+              <Ionicons name="storefront-outline" size={16} color={colors.textMuted} />
+              <Text style={[s.bilgiLabel, { color: colors.textSecondary }]}>Dükkan Adı</Text>
+              <Text style={[s.bilgiDeger, { color: colors.text }]}>{dukkan.dukkan_adi}</Text>
             </View>
-            <View style={s.bilgiSatir}>
-              <Ionicons name="map-outline" size={16} color="#6b7280" />
-              <Text style={s.bilgiLabel}>Şehir</Text>
-              <Text style={s.bilgiDeger}>{dukkan.sehir || '—'}</Text>
+            <View style={[s.bilgiSatir, { borderBottomColor: colors.border }]}>
+              <Ionicons name="map-outline" size={16} color={colors.textMuted} />
+              <Text style={[s.bilgiLabel, { color: colors.textSecondary }]}>Şehir</Text>
+              <Text style={[s.bilgiDeger, { color: colors.text }]}>{dukkan.sehir || '—'}</Text>
             </View>
-            <View style={s.bilgiSatir}>
-              <Ionicons name="location-outline" size={16} color="#6b7280" />
-              <Text style={s.bilgiLabel}>İlçe</Text>
-              <Text style={s.bilgiDeger}>{dukkan.ilce || '—'}</Text>
+            <View style={[s.bilgiSatir, { borderBottomColor: colors.border }]}>
+              <Ionicons name="location-outline" size={16} color={colors.textMuted} />
+              <Text style={[s.bilgiLabel, { color: colors.textSecondary }]}>İlçe</Text>
+              <Text style={[s.bilgiDeger, { color: colors.text }]}>{dukkan.ilce || '—'}</Text>
             </View>
           </>
         )}

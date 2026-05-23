@@ -6,7 +6,8 @@ import {
   AlertCircle, RefreshCw, ChevronLeft, ChevronDown,
 } from 'lucide-react';
 import FilterSidebar from '../components/FilterSidebar';
-import { ilanlarGetir } from '../services/api';
+import { ilanlarGetir, kayitliAramaEkle } from '../services/api';
+import toast from 'react-hot-toast';
 
 const GORSEL_FALLBACK = 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&q=80';
 const SAYFA_BASI    = 15;
@@ -29,10 +30,10 @@ const IlanKarti = ({ ilan }) => {
   return (
     <div
       onClick={() => navigate(`/ilan/${ilan.id}`)}
-      className="bg-white border border-gray-100 rounded-2xl overflow-hidden flex hover:shadow-md hover:border-blue-200 transition-all cursor-pointer group"
+      className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl overflow-hidden flex hover:shadow-md hover:border-blue-200 dark:hover:border-blue-700 transition-all cursor-pointer group"
     >
       {/* Görsel */}
-      <div className="relative w-52 sm:w-64 flex-shrink-0 overflow-hidden bg-gray-100">
+      <div className="relative w-52 sm:w-64 flex-shrink-0 overflow-hidden bg-gray-100 dark:bg-gray-700">
         <img
           src={ilan.gorsel || GORSEL_FALLBACK}
           alt={ilan.baslik}
@@ -49,11 +50,11 @@ const IlanKarti = ({ ilan }) => {
         <div>
           {/* Başlık + emlak türü */}
           <div className="flex items-start justify-between gap-3 mb-1.5">
-            <h3 className="font-bold text-gray-900 text-sm leading-snug line-clamp-2 group-hover:text-blue-700 transition-colors">
+            <h3 className="font-bold text-gray-900 dark:text-gray-100 text-sm leading-snug line-clamp-2 group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors">
               {ilan.baslik}
             </h3>
             {ilan.emlak_turu && (
-              <span className="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-semibold flex-shrink-0">
+              <span className="text-[10px] bg-slate-100 dark:bg-gray-700 text-slate-600 dark:text-gray-300 px-2 py-0.5 rounded-full font-semibold flex-shrink-0">
                 {ilan.emlak_turu}
               </span>
             )}
@@ -61,7 +62,7 @@ const IlanKarti = ({ ilan }) => {
 
           {/* Konum */}
           {(ilan.ilce || ilan.sehir) && (
-            <p className="text-xs text-gray-400 flex items-center gap-1 mb-2">
+            <p className="text-xs text-gray-400 dark:text-gray-500 flex items-center gap-1 mb-2">
               <MapPin size={10} className="text-blue-500 flex-shrink-0" />
               {[ilan.mahalle, ilan.ilce, ilan.sehir].filter(Boolean).join(' / ')}
             </p>
@@ -70,22 +71,22 @@ const IlanKarti = ({ ilan }) => {
           {/* Özellik chip'leri */}
           <div className="flex flex-wrap gap-1.5">
             {ilan.oda_sayisi && (
-              <span className="flex items-center gap-1 text-[11px] bg-slate-50 text-slate-600 px-2 py-1 rounded-lg font-medium border border-slate-100">
+              <span className="flex items-center gap-1 text-[11px] bg-slate-50 dark:bg-gray-700 text-slate-600 dark:text-gray-300 px-2 py-1 rounded-lg font-medium border border-slate-100 dark:border-gray-600">
                 <BedDouble size={10} className="text-blue-500" /> {ilan.oda_sayisi}
               </span>
             )}
             {ilan.metrekare && (
-              <span className="flex items-center gap-1 text-[11px] bg-slate-50 text-slate-600 px-2 py-1 rounded-lg font-medium border border-slate-100">
+              <span className="flex items-center gap-1 text-[11px] bg-slate-50 dark:bg-gray-700 text-slate-600 dark:text-gray-300 px-2 py-1 rounded-lg font-medium border border-slate-100 dark:border-gray-600">
                 <Square size={10} className="text-blue-500" /> {ilan.metrekare} m²
               </span>
             )}
             {ilan.kat != null && (
-              <span className="flex items-center gap-1 text-[11px] bg-slate-50 text-slate-600 px-2 py-1 rounded-lg font-medium border border-slate-100">
+              <span className="flex items-center gap-1 text-[11px] bg-slate-50 dark:bg-gray-700 text-slate-600 dark:text-gray-300 px-2 py-1 rounded-lg font-medium border border-slate-100 dark:border-gray-600">
                 <Layers size={10} className="text-blue-500" /> {ilan.kat}. Kat
               </span>
             )}
             {ilan.bina_yasi != null && (
-              <span className="flex items-center gap-1 text-[11px] bg-slate-50 text-slate-600 px-2 py-1 rounded-lg font-medium border border-slate-100">
+              <span className="flex items-center gap-1 text-[11px] bg-slate-50 dark:bg-gray-700 text-slate-600 dark:text-gray-300 px-2 py-1 rounded-lg font-medium border border-slate-100 dark:border-gray-600">
                 <Building2 size={10} className="text-blue-500" />
                 {ilan.bina_yasi === 0 ? 'Sıfır' : `${ilan.bina_yasi} Yıllık`}
               </span>
@@ -98,7 +99,7 @@ const IlanKarti = ({ ilan }) => {
           <div>
             <p className="text-lg font-extrabold text-blue-600 leading-none">{fiyatFormatla(ilan.fiyat)}</p>
             {ilan.dukkan_adi && (
-              <p className="text-[10px] text-gray-400 mt-0.5 flex items-center gap-1">
+              <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5 flex items-center gap-1">
                 <Building2 size={9} /> {ilan.dukkan_adi}
               </p>
             )}
@@ -139,7 +140,7 @@ const Sayfalama = ({ aktif, toplam, onChange }) => {
       <button
         disabled={aktif === 1}
         onClick={() => onChange(aktif - 1)}
-        className="w-9 h-9 flex items-center justify-center rounded-xl border border-gray-200 text-gray-500 hover:border-blue-400 hover:text-blue-600 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+        className="w-9 h-9 flex items-center justify-center rounded-xl border border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:border-blue-400 hover:text-blue-600 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
       >
         <ChevronLeft size={16} />
       </button>
@@ -154,7 +155,7 @@ const Sayfalama = ({ aktif, toplam, onChange }) => {
               className={`w-9 h-9 flex items-center justify-center rounded-xl text-sm font-bold border transition-all ${
                 aktif === p
                   ? 'bg-blue-600 border-blue-600 text-white shadow-md'
-                  : 'border-gray-200 text-gray-600 hover:border-blue-400 hover:text-blue-600'
+                  : 'border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:border-blue-400 hover:text-blue-600'
               }`}
             >
               {p}
@@ -165,7 +166,7 @@ const Sayfalama = ({ aktif, toplam, onChange }) => {
       <button
         disabled={aktif === Math.ceil(toplam / SAYFA_BASI)}
         onClick={() => onChange(aktif + 1)}
-        className="w-9 h-9 flex items-center justify-center rounded-xl border border-gray-200 text-gray-500 hover:border-blue-400 hover:text-blue-600 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+        className="w-9 h-9 flex items-center justify-center rounded-xl border border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:border-blue-400 hover:text-blue-600 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
       >
         <ChevronRight size={16} />
       </button>
@@ -183,6 +184,7 @@ const Listings = () => {
   const [hata, setHata]               = useState(null);
   const [mobilFiltre, setMobilFiltre] = useState(false);
   const [aktifSayfa, setAktifSayfa]   = useState(1);
+  const [aramaKayit, setAramaKayit]   = useState(false);
 
   const [filtreler, setFiltreler] = useState(() => ({
     ...BOSLUK_FILTRE,
@@ -225,6 +227,21 @@ const Listings = () => {
 
   const filtreTemizle = () => { setFiltreler(BOSLUK_FILTRE); setAktifSayfa(1); };
 
+  const aramaKaydet = async () => {
+    if (!localStorage.getItem('token')) { toast.error('Aramayı kaydetmek için giriş yapın.'); return; }
+    const baslik = [filtreler.tip, filtreler.emlak_turu, filtreler.sehir, filtreler.ilce]
+      .filter(Boolean).join(' ') || 'Kayıtlı Arama';
+    setAramaKayit(true);
+    try {
+      await kayitliAramaEkle({ baslik, filtreler });
+      toast.success('Arama kaydedildi!');
+    } catch (err) {
+      toast.error(err.response?.data?.mesaj || 'Kayıt başarısız.');
+    } finally {
+      setAramaKayit(false);
+    }
+  };
+
   const aktifFiltreSayisi = useMemo(
     () => Object.values(filtreler).filter(Boolean).length,
     [filtreler],
@@ -240,29 +257,29 @@ const Listings = () => {
   const etiket = [filtreler.tip, filtreler.emlak_turu].filter(Boolean).join(' ') || 'Tüm İlanlar';
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50 dark:bg-gray-950">
 
       {/* ── Breadcrumb ─────────────────────────────────────────── */}
-      <div className="bg-white border-b border-gray-100">
+      <div className="bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
-          <nav className="flex items-center gap-1.5 text-sm text-slate-500 flex-wrap">
+          <nav className="flex items-center gap-1.5 text-sm text-slate-500 dark:text-gray-400 flex-wrap">
             <Link to="/" className="flex items-center gap-1 hover:text-blue-600 transition-colors font-medium">
               <Home size={13} /> Ana Sayfa
             </Link>
-            <ChevronRight size={13} className="text-slate-300 flex-shrink-0" />
+            <ChevronRight size={13} className="text-slate-300 dark:text-gray-600 flex-shrink-0" />
             {filtreler.tip && (
               <>
-                <span className="text-slate-400">{filtreler.tip}</span>
-                <ChevronRight size={13} className="text-slate-300 flex-shrink-0" />
+                <span className="text-slate-400 dark:text-gray-500">{filtreler.tip}</span>
+                <ChevronRight size={13} className="text-slate-300 dark:text-gray-600 flex-shrink-0" />
               </>
             )}
             {filtreler.sehir && (
               <>
-                <span className="text-slate-400">{filtreler.sehir}</span>
-                <ChevronRight size={13} className="text-slate-300 flex-shrink-0" />
+                <span className="text-slate-400 dark:text-gray-500">{filtreler.sehir}</span>
+                <ChevronRight size={13} className="text-slate-300 dark:text-gray-600 flex-shrink-0" />
               </>
             )}
-            <span className="text-slate-700 font-semibold">{etiket} İlanları</span>
+            <span className="text-slate-700 dark:text-gray-200 font-semibold">{etiket} İlanları</span>
           </nav>
         </div>
       </div>
@@ -300,7 +317,7 @@ const Listings = () => {
           </div>
           <button
             onClick={() => setMobilFiltre(true)}
-            className="lg:hidden flex items-center gap-2 border border-slate-200 rounded-xl px-3 py-2 text-sm font-semibold text-slate-600 hover:border-blue-500 hover:text-blue-600 transition-all relative"
+            className="lg:hidden flex items-center gap-2 border border-slate-200 dark:border-gray-700 rounded-xl px-3 py-2 text-sm font-semibold text-slate-600 dark:text-gray-300 hover:border-blue-500 hover:text-blue-600 transition-all relative"
           >
             <SlidersHorizontal size={15} />
             Filtrele
@@ -322,6 +339,8 @@ const Listings = () => {
               onChange={f => { setFiltreler(f); setAktifSayfa(1); }}
               onTemizle={filtreTemizle}
               aktifSayi={aktifFiltreSayisi}
+              onAramaKaydet={aramaKaydet}
+              aramaKayit={aramaKayit}
             />
           </div>
 
@@ -332,12 +351,12 @@ const Listings = () => {
             {yukleniyor && (
               <div className="space-y-3">
                 {[...Array(5)].map((_, i) => (
-                  <div key={i} className="bg-white border border-gray-100 rounded-2xl overflow-hidden flex animate-pulse h-40">
-                    <div className="w-52 bg-gray-200 flex-shrink-0" />
+                  <div key={i} className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl overflow-hidden flex animate-pulse h-40">
+                    <div className="w-52 bg-gray-200 dark:bg-gray-700 flex-shrink-0" />
                     <div className="flex-1 p-4 space-y-3">
-                      <div className="h-4 bg-gray-100 rounded w-3/4" />
-                      <div className="h-3 bg-gray-100 rounded w-1/2" />
-                      <div className="flex gap-2">{[...Array(3)].map((_, j) => <div key={j} className="h-6 w-16 bg-gray-100 rounded-lg" />)}</div>
+                      <div className="h-4 bg-gray-100 dark:bg-gray-700 rounded w-3/4" />
+                      <div className="h-3 bg-gray-100 dark:bg-gray-700 rounded w-1/2" />
+                      <div className="flex gap-2">{[...Array(3)].map((_, j) => <div key={j} className="h-6 w-16 bg-gray-100 dark:bg-gray-700 rounded-lg" />)}</div>
                     </div>
                   </div>
                 ))}
@@ -347,9 +366,9 @@ const Listings = () => {
             {/* Hata */}
             {!yukleniyor && hata && (
               <div className="flex flex-col items-center justify-center py-16">
-                <div className="bg-red-50 border border-red-200 rounded-2xl p-8 max-w-md text-center">
+                <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl p-8 max-w-md text-center">
                   <AlertCircle size={36} className="text-red-400 mx-auto mb-3" />
-                  <p className="text-red-700 font-semibold mb-4">{hata}</p>
+                  <p className="text-red-700 dark:text-red-400 font-semibold mb-4">{hata}</p>
                   <button onClick={verileriGetir}
                     className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2.5 rounded-xl transition-colors mx-auto">
                     <RefreshCw size={14} /> Tekrar Dene
@@ -361,11 +380,11 @@ const Listings = () => {
             {/* Sonuç yok */}
             {!yukleniyor && !hata && ilanlar.length === 0 && (
               <div className="flex flex-col items-center py-20 gap-4 text-center">
-                <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center">
+                <div className="w-16 h-16 bg-blue-50 dark:bg-blue-900/20 rounded-2xl flex items-center justify-center">
                   <AlertCircle size={28} className="text-blue-400" />
                 </div>
                 <div>
-                  <p className="font-semibold text-slate-600 mb-1">Bu filtrelere uygun ilan bulunamadı.</p>
+                  <p className="font-semibold text-slate-600 dark:text-gray-300 mb-1">Bu filtrelere uygun ilan bulunamadı.</p>
                   {aktifFiltreSayisi > 0 && (
                     <button onClick={filtreTemizle}
                       className="inline-flex items-center gap-1.5 text-sm text-blue-600 hover:underline font-medium mt-2">
@@ -398,11 +417,11 @@ const Listings = () => {
       {mobilFiltre && (
         <div className="fixed inset-0 z-50 lg:hidden">
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setMobilFiltre(false)} />
-          <div className="absolute left-0 top-0 bottom-0 w-80 max-w-[90vw] bg-slate-50 overflow-y-auto shadow-2xl">
-            <div className="flex items-center justify-between p-4 border-b bg-white">
-              <span className="font-bold text-slate-800">Filtreleme</span>
+          <div className="absolute left-0 top-0 bottom-0 w-80 max-w-[90vw] bg-slate-50 dark:bg-gray-950 overflow-y-auto shadow-2xl">
+            <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
+              <span className="font-bold text-slate-800 dark:text-gray-100">Filtreleme</span>
               <button onClick={() => setMobilFiltre(false)}
-                className="p-2 rounded-xl hover:bg-slate-100 text-slate-500 transition-colors">
+                className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-gray-800 text-slate-500 dark:text-gray-400 transition-colors">
                 <X size={18} />
               </button>
             </div>
@@ -412,9 +431,11 @@ const Listings = () => {
                 onChange={f => { setFiltreler(f); setAktifSayfa(1); }}
                 onTemizle={filtreTemizle}
                 aktifSayi={aktifFiltreSayisi}
+                onAramaKaydet={aramaKaydet}
+                aramaKayit={aramaKayit}
               />
             </div>
-            <div className="p-4 border-t bg-white sticky bottom-0">
+            <div className="p-4 border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 sticky bottom-0">
               <button onClick={() => setMobilFiltre(false)}
                 className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition-colors">
                 {ilanlar.length} İlanı Gör

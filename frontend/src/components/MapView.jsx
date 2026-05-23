@@ -171,11 +171,11 @@ const MapView = ({ ilanlar }) => {
   // ── Boş durum ─────────────────────────────────────────────────
   if (!ilanlar || ilanlar.length === 0) {
     return (
-      <div className="rounded-2xl overflow-hidden border border-slate-200 shadow-sm h-[600px] flex items-center justify-center bg-slate-50">
-        <div className="text-center text-slate-400">
-          <MapPin size={42} className="mx-auto mb-3 text-slate-300" />
-          <p className="font-semibold text-slate-500">Gösterilecek ilan bulunamadı.</p>
-          <p className="text-sm mt-1 text-slate-400">Filtreleri temizleyip tekrar deneyin.</p>
+      <div className="rounded-2xl overflow-hidden border border-slate-200 dark:border-gray-700 shadow-sm h-[600px] flex items-center justify-center bg-slate-50 dark:bg-gray-900">
+        <div className="text-center text-slate-400 dark:text-gray-500">
+          <MapPin size={42} className="mx-auto mb-3 text-slate-300 dark:text-gray-600" />
+          <p className="font-semibold text-slate-500 dark:text-gray-400">Gösterilecek ilan bulunamadı.</p>
+          <p className="text-sm mt-1 text-slate-400 dark:text-gray-500">Filtreleri temizleyip tekrar deneyin.</p>
         </div>
       </div>
     );
@@ -185,34 +185,34 @@ const MapView = ({ ilanlar }) => {
   const yuklemeOrani = ilanlar.length > 0 ? Math.round((tamamlanan / ilanlar.length) * 100) : 0;
 
   return (
-    <div className="rounded-2xl overflow-hidden border border-slate-200 shadow-md relative">
+    <div className="rounded-2xl overflow-hidden border border-slate-200 dark:border-gray-700 shadow-md relative">
 
       {/* ── İlan sayısı rozeti ── */}
-      <div className="absolute top-3 left-3 z-[1000] bg-white shadow-md rounded-xl px-3 py-1.5 flex items-center gap-2 text-sm font-semibold text-slate-700 border border-slate-100">
+      <div className="absolute top-3 left-3 z-[1000] bg-white dark:bg-gray-800 shadow-md rounded-xl px-3 py-1.5 flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-gray-200 border border-slate-100 dark:border-gray-700">
         <MapPin size={14} className="text-blue-600" />
         {durum.listesi.filter((i) => i._konum).length} ilan haritada
       </div>
 
       {/* ── Yükleme overlay ── */}
       {yukleniyor && (
-        <div className="absolute inset-0 z-[2000] bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center gap-4">
-          <div className="flex items-center gap-3 text-slate-700 font-semibold">
+        <div className="absolute inset-0 z-[2000] bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm flex flex-col items-center justify-center gap-4">
+          <div className="flex items-center gap-3 text-slate-700 dark:text-gray-200 font-semibold">
             <Loader2 size={22} className="text-blue-600 animate-spin" />
             <span>Adresler haritaya yerleştiriliyor…</span>
           </div>
           <div className="w-64">
-            <div className="flex justify-between text-xs text-slate-500 mb-1.5">
+            <div className="flex justify-between text-xs text-slate-500 dark:text-gray-400 mb-1.5">
               <span>{tamamlanan} / {ilanlar.length} ilan</span>
               <span>{yuklemeOrani}%</span>
             </div>
-            <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
+            <div className="h-2 bg-slate-200 dark:bg-gray-700 rounded-full overflow-hidden">
               <div
                 className="h-full bg-blue-600 rounded-full transition-all duration-300"
                 style={{ width: `${yuklemeOrani}%` }}
               />
             </div>
           </div>
-          <p className="text-xs text-slate-400">OpenStreetMap Nominatim API kullanılıyor</p>
+          <p className="text-xs text-slate-400 dark:text-gray-500">OpenStreetMap Nominatim API kullanılıyor</p>
         </div>
       )}
 
@@ -318,7 +318,7 @@ const MapView = ({ ilanlar }) => {
 
       {/* ── Konum bulunamayan ilanlar uyarısı ── */}
       {durum.hazir && durum.listesi.some((i) => !i._konum) && (
-        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-[1000] bg-white/90 backdrop-blur-sm border border-slate-200 shadow-md rounded-xl px-4 py-2 text-xs text-slate-500 flex items-center gap-2">
+        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-[1000] bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm border border-slate-200 dark:border-gray-700 shadow-md rounded-xl px-4 py-2 text-xs text-slate-500 dark:text-gray-400 flex items-center gap-2">
           <MapPin size={12} className="text-amber-500" />
           {durum.listesi.filter((i) => !i._konum).length} ilanın konumu bulunamadı
         </div>

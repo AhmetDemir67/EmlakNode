@@ -104,4 +104,49 @@ const istatistiklerGetir = async (req, res) => {
   }
 };
 
-module.exports = { dukkanGetir, dukkanGuncelle, danismanlarGetir, istatistiklerGetir };
+// POST /api/dukkanlar/:id/danismanlar
+const danismanEkle = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { dukkan_id, rol } = req.kullanici;
+    if (parseInt(dukkan_id) !== parseInt(id) && rol !== 'admin')
+      return res.status(403).json({ basarili: false, mesaj: 'Yetkisiz erişim.' });
+
+    const { eposta } = req.body;
+    if (!eposta?.trim())
+      return res.status(400).json({ basarili: false, mesaj: 'E-posta zorunludur.' });
+
+    const kul = await sorgu('SELECT id, ad_soyad, eposta, dukkan_id FROM kullanicilar WHERE eposta = $1', [eposta.trim().toLowerCase()]);
+    if (!kul.rows.length)
+      return res.status(404).json({ basarili: false, mesaj: 'Bu e-posta adresiyle kayıtlı kullanıcı bulunamadı.' });
+
+    const k = kul.rows[0];
+    if (k.dukkan_id)
+      return res.status(400).json({ basarili: false, mesaj: 'Bu kullanıcı zaten bir ofise bağlı.' });
+
+    await sorgu('UPDATE kullanicilar SET dukkan_id = $1, rol = $2 WHERE id = $3', [id, 'danisman', k.id]);
+    return res.json({ basarili: true, mesaj: `${k.ad_soyad} ekibinize eklendi.` });
+  } catch (err) {
+    console.error('danismanEkle:', err.message);
+    return res.status(500).json({ basarili: false, mesaj: 'Sunucu hatası.' });
+  }
+};
+
+// DELETE /api/dukkanlar/:id/danismanlar/:kulId
+const danismanCikar = async (req, res) => {
+  try {
+    const { id, kulId } = req.params;
+    const { dukkan_id, rol, id: benimId } = req.kullanici;
+    if (parseInt(dukkan_id) !== parseInt(id) && rol !== 'admin')
+      return res.status(403).json({ basarili: false, mesaj: 'Yetkisiz erişim.' });
+    if (parseInt(kulId) === parseInt(benimId))
+      return res.status(400).json({ basarili: false, mesaj: 'Kendinizi çıkaramazsınız.' });
+
+    await sorgu('UPDATE kullanicilar SET dukkan_id = NULL, rol = $1 WHERE id = $2 AND dukkan_id = $3', ['bireysel', kulId, id]);
+    return res.json({ basarili: true, mesaj: 'Danışman ekipten çıkarıldı.' });
+  } catch (err) {
+    return res.status(500).json({ basarili: false, mesaj: 'Sunucu hatası.' });
+  }
+};
+
+module.exports = { dukkanGetir, dukkanGuncelle, danismanlarGetir, istatistiklerGetir, danismanEkle, danismanCikar };

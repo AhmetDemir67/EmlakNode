@@ -24,28 +24,28 @@ const AramaDropdown = ({ label, value, secenekler, onSec, disabled }) => {
         disabled={disabled}
         onClick={() => setAcik(!acik)}
         className={`w-full flex items-center justify-between pl-10 pr-3.5 py-3 border rounded-xl text-sm text-left transition-all
-          ${disabled ? 'bg-gray-50 text-gray-400 cursor-not-allowed border-gray-100'
-            : acik    ? 'border-blue-500 ring-2 ring-blue-100 text-gray-800'
-                      : 'border-gray-200 hover:border-blue-300 text-gray-700'
+          ${disabled ? 'bg-gray-50 dark:bg-gray-800 text-gray-400 dark:text-gray-600 cursor-not-allowed border-gray-100 dark:border-gray-700'
+            : acik    ? 'border-blue-500 ring-2 ring-blue-100 dark:ring-blue-900 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100'
+                      : 'border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-400 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200'
           }`}
       >
-        <span className={value ? 'text-gray-800' : 'text-gray-400'}>
+        <span className={value ? 'text-gray-800 dark:text-gray-200' : 'text-gray-400 dark:text-gray-500'}>
           {value || label}
         </span>
         <ChevronDown size={14} className={`text-gray-400 flex-shrink-0 transition-transform ${acik ? 'rotate-180' : ''}`} />
       </button>
 
       {acik && (
-        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-xl z-50 overflow-hidden">
-          <div className="p-2 border-b border-gray-100">
-            <div className="flex items-center gap-2 bg-gray-50 rounded-lg px-2.5 py-1.5">
+        <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl z-50 overflow-hidden">
+          <div className="p-2 border-b border-gray-100 dark:border-gray-700">
+            <div className="flex items-center gap-2 bg-gray-50 dark:bg-gray-700 rounded-lg px-2.5 py-1.5">
               <input
                 autoFocus
                 type="text"
                 value={arama}
                 onChange={e => setArama(e.target.value)}
                 placeholder={`${label} ara...`}
-                className="flex-1 text-sm outline-none bg-transparent placeholder-gray-400"
+                className="flex-1 text-sm outline-none bg-transparent text-gray-800 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500"
               />
               {arama && (
                 <button type="button" onClick={() => setArama('')}>
@@ -62,15 +62,15 @@ const AramaDropdown = ({ label, value, secenekler, onSec, disabled }) => {
                 onClick={() => { onSec(s); setAcik(false); setArama(''); }}
                 className={`w-full text-left px-4 py-2.5 text-sm transition-colors
                   ${value === s
-                    ? 'bg-blue-50 text-blue-700 font-semibold'
-                    : 'text-gray-700 hover:bg-gray-50'
+                    ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 font-semibold'
+                    : 'text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700'
                   }`}
               >
                 {s}
               </button>
             ))}
             {filtrelenmis.length === 0 && (
-              <p className="px-4 py-3 text-sm text-gray-400">Sonuç bulunamadı</p>
+              <p className="px-4 py-3 text-sm text-gray-400 dark:text-gray-500">Sonuç bulunamadı</p>
             )}
           </div>
         </div>
@@ -163,15 +163,14 @@ const BireyselForm = () => {
       />
 
       <div>
-        <label className="block text-sm font-semibold text-gray-700 mb-1.5">Şifre Tekrar</label>
+        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1.5">Şifre Tekrar</label>
         <div className="relative">
           <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
           <input
             type={goster.tekrar ? 'text' : 'password'}
             name="sifre_tekrar" value={form.sifre_tekrar} onChange={degisti}
             placeholder="Şifrenizi tekrar girin" autoComplete="new-password"
-            className="w-full pl-10 pr-10 py-3 border border-gray-200 rounded-xl text-sm placeholder-gray-400
-              focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all"
+            className="w-full pl-10 pr-10 py-3 border border-gray-200 dark:border-gray-600 rounded-xl text-sm text-gray-800 dark:text-gray-100 bg-white dark:bg-gray-700 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all"
           />
           <button type="button" onClick={() => setGoster(g => ({ ...g, tekrar: !g.tekrar }))}
             className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
@@ -267,7 +266,7 @@ const KurumsalForm = () => {
 
       {/* ── Ofis Bilgileri ─────────────────────────────────────── */}
       <div>
-        <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">
+        <h3 className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-3">
           Ofis Bilgileri
         </h3>
         <div className="space-y-3">
@@ -279,7 +278,7 @@ const KurumsalForm = () => {
           {/* Şehir + İlçe yan yana */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Şehir</label>
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1.5">Şehir</label>
               <div className="relative">
                 <MapPin size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 z-10 pointer-events-none" />
                 <AramaDropdown
@@ -291,7 +290,7 @@ const KurumsalForm = () => {
               </div>
             </div>
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">İlçe</label>
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1.5">İlçe</label>
               <div className="relative">
                 <MapPin size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 z-10 pointer-events-none" />
                 <AramaDropdown
@@ -315,11 +314,11 @@ const KurumsalForm = () => {
         </div>
       </div>
 
-      <div className="border-t border-gray-100" />
+      <div className="border-t border-gray-100 dark:border-gray-700" />
 
       {/* ── Hesap Bilgileri ────────────────────────────────────── */}
       <div>
-        <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">
+        <h3 className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-3">
           Yetkili Kişi Bilgileri
         </h3>
         <div className="space-y-3">
@@ -340,15 +339,14 @@ const KurumsalForm = () => {
           />
 
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1.5">Şifre Tekrar</label>
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1.5">Şifre Tekrar</label>
             <div className="relative">
               <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
               <input
                 type={goster.tekrar ? 'text' : 'password'}
                 name="sifre_tekrar" value={form.sifre_tekrar} onChange={degisti}
                 placeholder="Şifrenizi tekrar girin" autoComplete="new-password"
-                className="w-full pl-10 pr-10 py-3 border border-gray-200 rounded-xl text-sm placeholder-gray-400
-                  focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all"
+                className="w-full pl-10 pr-10 py-3 border border-gray-200 dark:border-gray-600 rounded-xl text-sm text-gray-800 dark:text-gray-100 bg-white dark:bg-gray-700 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all"
               />
               <button type="button" onClick={() => setGoster(g => ({ ...g, tekrar: !g.tekrar }))}
                 className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
@@ -451,7 +449,7 @@ const Register = () => {
             {aktifTab === 'bireysel' ? <BireyselForm /> : <KurumsalForm />}
 
             {/* Giriş linki */}
-            <div className="mt-6 text-center text-sm text-gray-500">
+            <div className="mt-6 text-center text-sm text-gray-500 dark:text-gray-400">
               Zaten hesabın var mı?{' '}
               <Link to="/login" className="text-blue-600 font-semibold hover:underline">
                 Giriş Yap
@@ -460,7 +458,7 @@ const Register = () => {
 
             {/* Kurumsal tab'da bilgi notu */}
             {aktifTab === 'kurumsal' && (
-              <div className="mt-4 bg-blue-50 border border-blue-100 rounded-xl p-3.5 text-xs text-blue-700 leading-relaxed">
+              <div className="mt-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-xl p-3.5 text-xs text-blue-700 dark:text-blue-300 leading-relaxed">
                 <strong>Kurumsal hesap</strong> açtığınızda sistem otomatik olarak emlak ofisinizi kaydeder
                 ve sizi <strong>patron</strong> rolüyle ofise atar. Danışman eklemek için giriş yaptıktan
                 sonra panelinizi kullanabilirsiniz.

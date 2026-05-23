@@ -1,4 +1,4 @@
-import { SlidersHorizontal, X, MapPin, Banknote, BedDouble, Home, Maximize2 } from 'lucide-react';
+import { SlidersHorizontal, X, MapPin, Banknote, BedDouble, Home, Maximize2, Bookmark } from 'lucide-react';
 
 const ODA_SECENEKLERI = ['Stüdyo', '1+1', '2+1', '3+1', '4+1', '5+1+'];
 const EMLAK_TURLERI   = ['Daire', 'Villa', 'Müstakil Ev', 'Arsa', 'İşyeri', 'Depo'];
@@ -22,7 +22,7 @@ const MinMaxInput = ({ minVal, maxVal, minName, maxName, minPlaceholder, maxPlac
   </div>
 );
 
-const FilterSidebar = ({ filtreler, onChange, onTemizle, aktifSayi }) => {
+const FilterSidebar = ({ filtreler, onChange, onTemizle, aktifSayi, onAramaKaydet, aramaKayit }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -191,10 +191,20 @@ const FilterSidebar = ({ filtreler, onChange, onTemizle, aktifSayi }) => {
       </div>
 
       {aktifSayi > 0 && (
-        <div className="px-5 py-3 bg-blue-50 dark:bg-blue-900/30 border-t border-blue-100 dark:border-blue-800">
+        <div className="px-5 py-3 bg-blue-50 dark:bg-blue-900/30 border-t border-blue-100 dark:border-blue-800 space-y-2">
           <p className="text-xs text-blue-700 dark:text-blue-300 font-semibold text-center">
             {aktifSayi} filtre aktif
           </p>
+          {onAramaKaydet && (
+            <button
+              onClick={onAramaKaydet}
+              disabled={aramaKayit}
+              className="w-full flex items-center justify-center gap-1.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-xs font-bold py-2 rounded-xl transition-colors"
+            >
+              <Bookmark size={12} />
+              {aramaKayit ? 'Kaydediliyor…' : 'Aramayı Kaydet'}
+            </button>
+          )}
         </div>
       )}
     </aside>

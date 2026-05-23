@@ -7,37 +7,39 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { istatistiklerGetir } from '../services/api';
+import { useTheme } from '../context/ThemeContext';
 
-const StatKart = ({ icon, label, sayi, renk, alt }) => (
-  <View style={[s.statKart, { borderLeftColor: renk }]}>
+const StatKart = ({ icon, label, sayi, renk, alt, colors }) => (
+  <View style={[s.statKart, { borderLeftColor: renk, backgroundColor: colors.card }]}>
     <View style={[s.statIkon, { backgroundColor: renk + '18' }]}>
       <Ionicons name={icon} size={22} color={renk} />
     </View>
     <View style={{ flex: 1 }}>
-      <Text style={s.statSayi}>{sayi ?? 0}</Text>
-      <Text style={s.statLabel}>{label}</Text>
-      {alt ? <Text style={s.statAlt}>{alt}</Text> : null}
+      <Text style={[s.statSayi, { color: colors.text }]}>{sayi ?? 0}</Text>
+      <Text style={[s.statLabel, { color: colors.textSecondary }]}>{label}</Text>
+      {alt ? <Text style={[s.statAlt, { color: colors.textMuted }]}>{alt}</Text> : null}
     </View>
   </View>
 );
 
-const CubukGrafik = ({ label, sayi, toplam, renk }) => {
+const CubukGrafik = ({ label, sayi, toplam, renk, colors }) => {
   const oran = toplam > 0 ? (sayi / toplam) : 0;
   return (
     <View style={s.cubukWrap}>
       <View style={s.cubukUst}>
-        <Text style={s.cubukLabel}>{label}</Text>
-        <Text style={s.cubukSayi}>{sayi ?? 0}</Text>
+        <Text style={[s.cubukLabel, { color: colors.textSecondary }]}>{label}</Text>
+        <Text style={[s.cubukSayi, { color: colors.text }]}>{sayi ?? 0}</Text>
       </View>
-      <View style={s.cubukArka}>
+      <View style={[s.cubukArka, { backgroundColor: colors.border }]}>
         <View style={[s.cubukOn, { width: `${Math.round(oran * 100)}%`, backgroundColor: renk }]} />
       </View>
-      <Text style={s.cubukOran}>{Math.round(oran * 100)}%</Text>
+      <Text style={[s.cubukOran, { color: colors.textMuted }]}>{Math.round(oran * 100)}%</Text>
     </View>
   );
 };
 
 export default function IstatistiklerScreen() {
+  const { colors } = useTheme();
   const [ist, setIst]               = useState(null);
   const [yukleniyor, setYukleniyor] = useState(true);
 
@@ -62,23 +64,15 @@ export default function IstatistiklerScreen() {
   );
 
   if (yukleniyor) {
-    return (
-      <View style={s.merkez}>
-        <ActivityIndicator size="large" color="#2563eb" />
-      </View>
-    );
+    return <View style={[s.merkez, { backgroundColor: colors.bg }]}><ActivityIndicator size="large" color="#2563eb" /></View>;
   }
 
   if (!ist) {
-    return (
-      <View style={s.merkez}>
-        <Text style={s.bosText}>Veri bulunamadı.</Text>
-      </View>
-    );
+    return <View style={[s.merkez, { backgroundColor: colors.bg }]}><Text style={[s.bosText, { color: colors.textMuted }]}>Veri bulunamadı.</Text></View>;
   }
 
   return (
-    <ScrollView style={s.container} showsVerticalScrollIndicator={false}>
+    <ScrollView style={[s.container, { backgroundColor: colors.bg }]} showsVerticalScrollIndicator={false}>
 
       {/* Toplam özet */}
       <LinearGradient colors={['#1e3a8a', '#2563eb', '#3b82f6']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={s.toplamKart}>
@@ -97,42 +91,35 @@ export default function IstatistiklerScreen() {
       </LinearGradient>
 
       {/* Durum kartları */}
-      <Text style={s.bolumBaslik}>İLAN DURUMLARI</Text>
+      <Text style={[s.bolumBaslik, { color: colors.grupBaslik }]}>İLAN DURUMLARI</Text>
       <View style={s.kartGrid}>
-        <StatKart icon="checkmark-circle-outline" label="Aktif"   sayi={ist.aktif}   renk="#2563eb" />
-        <StatKart icon="pause-circle-outline"     label="Pasif"   sayi={ist.pasif}   renk="#f97316" />
-        <StatKart icon="flag-outline"             label="Satıldı" sayi={ist.satildi} renk="#8b5cf6" />
-        <StatKart icon="trending-down-outline"    label="Fiyatı Düştü" sayi={ist.fiyat_dustu} renk="#ef4444"
-          alt="Güncellenen ilanlar"
-        />
+        <StatKart icon="checkmark-circle-outline" label="Aktif"   sayi={ist.aktif}        renk="#2563eb" colors={colors} />
+        <StatKart icon="pause-circle-outline"     label="Pasif"   sayi={ist.pasif}        renk="#f97316" colors={colors} />
+        <StatKart icon="flag-outline"             label="Satıldı" sayi={ist.satildi}      renk="#8b5cf6" colors={colors} />
+        <StatKart icon="trending-down-outline"    label="Fiyatı Düştü" sayi={ist.fiyat_dustu} renk="#ef4444" alt="Güncellenen ilanlar" colors={colors} />
       </View>
 
-      {/* Tip dağılımı */}
-      <Text style={s.bolumBaslik}>TİP DAĞILIMI</Text>
-      <View style={s.grafikKart}>
-        <CubukGrafik label="Satılık" sayi={ist.satilik} toplam={ist.toplam} renk="#2563eb" />
-        <CubukGrafik label="Kiralık" sayi={ist.kiralik} toplam={ist.toplam} renk="#3b82f6" />
+      <Text style={[s.bolumBaslik, { color: colors.grupBaslik }]}>TİP DAĞILIMI</Text>
+      <View style={[s.grafikKart, { backgroundColor: colors.card }]}>
+        <CubukGrafik label="Satılık" sayi={ist.satilik} toplam={ist.toplam} renk="#2563eb" colors={colors} />
+        <CubukGrafik label="Kiralık" sayi={ist.kiralik} toplam={ist.toplam} renk="#3b82f6" colors={colors} />
       </View>
 
-      {/* Durum dağılımı */}
-      <Text style={s.bolumBaslik}>DURUM DAĞILIMI</Text>
-      <View style={s.grafikKart}>
-        <CubukGrafik label="Aktif"   sayi={ist.aktif}   toplam={ist.toplam} renk="#2563eb" />
-        <CubukGrafik label="Pasif"   sayi={ist.pasif}   toplam={ist.toplam} renk="#f97316" />
-        <CubukGrafik label="Satıldı" sayi={ist.satildi} toplam={ist.toplam} renk="#8b5cf6" />
+      <Text style={[s.bolumBaslik, { color: colors.grupBaslik }]}>DURUM DAĞILIMI</Text>
+      <View style={[s.grafikKart, { backgroundColor: colors.card }]}>
+        <CubukGrafik label="Aktif"   sayi={ist.aktif}   toplam={ist.toplam} renk="#2563eb" colors={colors} />
+        <CubukGrafik label="Pasif"   sayi={ist.pasif}   toplam={ist.toplam} renk="#f97316" colors={colors} />
+        <CubukGrafik label="Satıldı" sayi={ist.satildi} toplam={ist.toplam} renk="#8b5cf6" colors={colors} />
       </View>
 
-      {/* Fiyat düşüşü bilgisi */}
       {ist.fiyat_dustu > 0 && (
         <>
-          <Text style={s.bolumBaslik}>FİYAT HAREKETLERİ</Text>
-          <View style={s.dususKart}>
+          <Text style={[s.bolumBaslik, { color: colors.grupBaslik }]}>FİYAT HAREKETLERİ</Text>
+          <View style={[s.dususKart, { backgroundColor: colors.card }]}>
             <Ionicons name="trending-down" size={28} color="#ef4444" />
             <View style={{ flex: 1 }}>
-              <Text style={s.dususBaslik}>
-                {ist.fiyat_dustu} ilan fiyatı düşürüldü
-              </Text>
-              <Text style={s.dususAlt}>
+              <Text style={[s.dususBaslik, { color: colors.text }]}>{ist.fiyat_dustu} ilan fiyatı düşürüldü</Text>
+              <Text style={[s.dususAlt, { color: colors.textSecondary }]}>
                 Aktif ilanların %{Math.round((ist.fiyat_dustu / (ist.toplam || 1)) * 100)}'inde fiyat indirimi var
               </Text>
             </View>

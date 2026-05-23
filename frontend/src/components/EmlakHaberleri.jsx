@@ -1,4 +1,4 @@
-﻿import { ArrowRight, Calendar, Tag } from 'lucide-react';
+import { ArrowRight, Calendar, Tag } from 'lucide-react';
 
 const HABERLER = [
   {
@@ -36,14 +36,14 @@ const HABERLER = [
 ];
 
 const KATEGORI_RENK = {
-  Piyasa:  'bg-blue-50 text-blue-600',
-  İstanbul: 'bg-orange-50 text-orange-600',
-  Mevzuat: 'bg-purple-50 text-purple-600',
-  Yatırım: 'bg-blue-50 text-blue-600',
+  Piyasa:   'bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400',
+  İstanbul: 'bg-orange-50 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400',
+  Mevzuat:  'bg-purple-50 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400',
+  Yatırım:  'bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400',
 };
 
 const HaberKarti = ({ haber }) => (
-  <div className="flex bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-shadow cursor-pointer group">
+  <div className="flex bg-white dark:bg-gray-800 rounded-2xl overflow-hidden border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow cursor-pointer group">
     <div className="w-36 sm:w-44 flex-shrink-0 overflow-hidden">
       <img
         src={haber.gorsel}
@@ -55,16 +55,16 @@ const HaberKarti = ({ haber }) => (
 
     <div className="flex flex-col justify-between py-3 px-4 flex-1 min-w-0">
       <div>
-        <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full ${KATEGORI_RENK[haber.kategori] || 'bg-gray-100 text-gray-600'}`}>
+        <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full ${KATEGORI_RENK[haber.kategori] || 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300'}`}>
           <Tag size={9} /> {haber.kategori}
         </span>
-        <h3 className="text-sm font-bold text-gray-900 mt-1.5 mb-1 leading-snug line-clamp-2 group-hover:text-blue-700 transition-colors">
+        <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100 mt-1.5 mb-1 leading-snug line-clamp-2 group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors">
           {haber.baslik}
         </h3>
-        <p className="text-xs text-gray-500 line-clamp-2 leading-relaxed">{haber.ozet}</p>
+        <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2 leading-relaxed">{haber.ozet}</p>
       </div>
 
-      <div className="flex items-center gap-1.5 text-[11px] text-gray-400 mt-2">
+      <div className="flex items-center gap-1.5 text-[11px] text-gray-400 dark:text-gray-500 mt-2">
         <Calendar size={11} />
         {haber.tarih}
       </div>
@@ -73,12 +73,12 @@ const HaberKarti = ({ haber }) => (
 );
 
 const EmlakHaberleri = () => (
-  <section className="py-12 bg-white border-t border-gray-100">
+  <section className="py-12 bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800">
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
       <div className="flex items-center justify-between mb-7">
-        <h2 className="text-2xl font-extrabold text-gray-900">Emlak Haberleri</h2>
-        <span className="text-gray-300 text-sm font-semibold flex items-center gap-1 cursor-default select-none">
+        <h2 className="text-2xl font-extrabold text-gray-900 dark:text-gray-100">Emlak Haberleri</h2>
+        <span className="text-gray-300 dark:text-gray-600 text-sm font-semibold flex items-center gap-1 cursor-default select-none">
           Tüm Haberler <ArrowRight size={14} />
         </span>
       </div>

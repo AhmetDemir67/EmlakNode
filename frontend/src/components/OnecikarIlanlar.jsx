@@ -1,4 +1,4 @@
-﻿import { useState, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -31,9 +31,9 @@ const IlanKarti = ({ ilan }) => {
   return (
     <div
       onClick={() => navigate(`/ilan/${ilan.id}`)}
-      className="flex-shrink-0 w-60 bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden cursor-pointer hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group"
+      className="flex-shrink-0 w-60 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden cursor-pointer hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group"
     >
-      <div className="relative h-40 overflow-hidden bg-gray-100">
+      <div className="relative h-40 overflow-hidden bg-gray-100 dark:bg-gray-700">
         <img
           src={ilan.gorsel || GORSEL_FALLBACK}
           alt={ilan.baslik}
@@ -55,16 +55,16 @@ const IlanKarti = ({ ilan }) => {
       </div>
 
       <div className="p-3 flex flex-col gap-1">
-        <h3 className="font-bold text-gray-900 text-sm leading-tight line-clamp-2">{ilan.baslik}</h3>
+        <h3 className="font-bold text-gray-900 dark:text-gray-100 text-sm leading-tight line-clamp-2">{ilan.baslik}</h3>
         {bilgiler.length > 0 && (
-          <p className="text-[11px] text-gray-500">{bilgiler.join(' · ')}</p>
+          <p className="text-[11px] text-gray-500 dark:text-gray-400">{bilgiler.join(' · ')}</p>
         )}
         {(ilan.sehir || ilan.ilce) && (
-          <p className="text-[11px] text-gray-400">
+          <p className="text-[11px] text-gray-400 dark:text-gray-500">
             📍 {[ilan.ilce, ilan.sehir].filter(Boolean).join(', ')}
           </p>
         )}
-        <p className="text-blue-700 font-extrabold text-sm mt-0.5">{fiyatFormat(ilan.fiyat)}</p>
+        <p className="text-blue-700 dark:text-blue-400 font-extrabold text-sm mt-0.5">{fiyatFormat(ilan.fiyat)}</p>
         <button
           onClick={e => { e.stopPropagation(); navigate(`/ilan/${ilan.id}`); }}
           className="mt-1.5 w-full bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-1.5 rounded-lg transition-colors"
@@ -96,21 +96,21 @@ const OnecikarIlanlar = ({ ilanlar = [] }) => {
   if (ilanlar.length === 0) return null;
 
   return (
-    <section className="bg-gray-50 py-12">
+    <section className="bg-gray-50 dark:bg-gray-950 py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
         <div className="flex items-center justify-between mb-5">
-          <h2 className="text-2xl font-extrabold text-gray-900">Ev Mi Arıyorsun?</h2>
+          <h2 className="text-2xl font-extrabold text-gray-900 dark:text-gray-100">Ev Mi Arıyorsun?</h2>
           <a
             href="/ilanlar"
-            className="text-blue-600 hover:text-blue-700 text-sm font-semibold flex items-center gap-1 transition-colors"
+            className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-sm font-semibold flex items-center gap-1 transition-colors"
           >
             Tüm İlanlar <ArrowRight size={14} />
           </a>
         </div>
 
         {/* Sekmeler */}
-        <div className="flex gap-0 mb-6 border-b border-gray-200 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
+        <div className="flex gap-0 mb-6 border-b border-gray-200 dark:border-gray-700 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
           {TABS.map(tab => (
             <button
               key={tab.id}
@@ -118,7 +118,7 @@ const OnecikarIlanlar = ({ ilanlar = [] }) => {
               className={`flex-shrink-0 px-4 py-2.5 text-sm font-semibold border-b-2 -mb-px transition-colors whitespace-nowrap ${
                 aktifTab === tab.id
                   ? 'text-blue-600 border-blue-600'
-                  : 'text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-300'
+                  : 'text-gray-500 dark:text-gray-400 border-transparent hover:text-gray-700 dark:hover:text-gray-200 hover:border-gray-300 dark:hover:border-gray-500'
               }`}
             >
               {tab.label}
@@ -130,9 +130,9 @@ const OnecikarIlanlar = ({ ilanlar = [] }) => {
         <div className="relative">
           <button
             onClick={() => kaydir(-1)}
-            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-5 z-10 bg-white shadow-md border border-gray-100 rounded-full w-9 h-9 flex items-center justify-center hover:bg-blue-50 hover:border-blue-300 transition-colors"
+            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-5 z-10 bg-white dark:bg-gray-800 shadow-md border border-gray-100 dark:border-gray-700 rounded-full w-9 h-9 flex items-center justify-center hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:border-blue-300 transition-colors"
           >
-            <ChevronLeft size={18} className="text-gray-600" />
+            <ChevronLeft size={18} className="text-gray-600 dark:text-gray-300" />
           </button>
 
           <div
@@ -143,7 +143,7 @@ const OnecikarIlanlar = ({ ilanlar = [] }) => {
             {gosterilen.length > 0
               ? gosterilen.map(ilan => <IlanKarti key={ilan.id} ilan={ilan} />)
               : (
-                <p className="text-gray-400 text-sm py-8 px-2">
+                <p className="text-gray-400 dark:text-gray-500 text-sm py-8 px-2">
                   Bu kategoride ilan bulunamadı.
                 </p>
               )
@@ -152,9 +152,9 @@ const OnecikarIlanlar = ({ ilanlar = [] }) => {
 
           <button
             onClick={() => kaydir(1)}
-            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-5 z-10 bg-white shadow-md border border-gray-100 rounded-full w-9 h-9 flex items-center justify-center hover:bg-blue-50 hover:border-blue-300 transition-colors"
+            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-5 z-10 bg-white dark:bg-gray-800 shadow-md border border-gray-100 dark:border-gray-700 rounded-full w-9 h-9 flex items-center justify-center hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:border-blue-300 transition-colors"
           >
-            <ChevronRight size={18} className="text-gray-600" />
+            <ChevronRight size={18} className="text-gray-600 dark:text-gray-300" />
           </button>
         </div>
 

@@ -8,6 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { mesajlariGetir, mesajGonder } from '../services/api';
+import { useTheme } from '../context/ThemeContext';
 
 const tarihFormat = (t) => {
   if (!t) return '';
@@ -26,6 +27,7 @@ const gunFormat = (t) => {
 };
 
 export default function KonusmaScreen({ route, navigation }) {
+  const { colors } = useTheme();
   const { konusmaId, karsiAd, ilanBaslik } = route.params;
   const [mesajlar, setMesajlar]       = useState([]);
   const [metin, setMetin]             = useState('');
@@ -122,30 +124,33 @@ export default function KonusmaScreen({ route, navigation }) {
 
       {/* Mesajlar */}
       {yukleniyor ? (
-        <View style={s.merkez}><ActivityIndicator size="large" color="#2563eb" /></View>
+        <View style={[s.merkez, { backgroundColor: colors.bg }]}><ActivityIndicator size="large" color="#2563eb" /></View>
       ) : (
         <FlatList
           ref={listRef}
           data={duzItems}
+          style={{ backgroundColor: colors.bg }}
           keyExtractor={i => i.key}
           contentContainerStyle={s.liste}
           onLayout={() => listRef.current?.scrollToEnd({ animated: false })}
           renderItem={({ item }) => {
             if (item.type === 'gun') {
               return (
-                <View style={s.gunSatir}>
-                  <Text style={s.gunText}>{item.label}</Text>
+                <View style={[s.gunSatir, { backgroundColor: colors.border }]}>
+                  <Text style={[s.gunText, { color: colors.textSecondary }]}>{item.label}</Text>
                 </View>
               );
             }
             const benden = parseInt(item.gonderen_id) === parseInt(benimId);
             return (
               <View style={[s.mesajWrap, benden ? s.mesajWrapSag : s.mesajWrapSol]}>
-                <View style={[s.mesajKutu, benden ? s.mesajKutuSag : s.mesajKutuSol]}>
-                  <Text style={[s.mesajMetin, benden ? s.mesajMetinSag : s.mesajMetinSol]}>
+                <View style={[s.mesajKutu,
+                  benden ? s.mesajKutuSag : [s.mesajKutuSol, { backgroundColor: colors.card, borderColor: colors.border }]
+                ]}>
+                  <Text style={[s.mesajMetin, benden ? s.mesajMetinSag : { color: colors.text }]}>
                     {item.metin}
                   </Text>
-                  <Text style={[s.mesajSaat, benden && { color: 'rgba(255,255,255,0.7)' }]}>
+                  <Text style={[s.mesajSaat, { color: colors.textMuted }, benden && { color: 'rgba(255,255,255,0.7)' }]}>
                     {tarihFormat(item.olusturulma)}
                     {benden && (item.okundu
                       ? <Text>  ✓✓</Text>
@@ -160,11 +165,11 @@ export default function KonusmaScreen({ route, navigation }) {
       )}
 
       {/* Yazma alanı */}
-      <View style={s.yazmaAlan}>
+      <View style={[s.yazmaAlan, { backgroundColor: colors.card, borderTopColor: colors.border }]}>
         <TextInput
-          style={s.input}
+          style={[s.input, { backgroundColor: colors.input, color: colors.text }]}
           placeholder="Mesajınızı yazın..."
-          placeholderTextColor="#9ca3af"
+          placeholderTextColor={colors.textMuted}
           value={metin}
           onChangeText={setMetin}
           multiline

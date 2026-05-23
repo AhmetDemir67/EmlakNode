@@ -6,6 +6,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { favorilerGetir, favoriSil } from '../services/api';
+import { useTheme } from '../context/ThemeContext';
 
 const FALLBACK = 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400&q=60';
 
@@ -13,6 +14,7 @@ const fiyatFormat = (f) =>
   new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', maximumFractionDigits: 0 }).format(f);
 
 export default function FavorilerScreen({ navigation }) {
+  const { colors } = useTheme();
   const [favoriler, setFavoriler] = useState([]);
   const [yukleniyor, setYukleniyor] = useState(true);
 
@@ -39,29 +41,29 @@ export default function FavorilerScreen({ navigation }) {
   };
 
   if (yukleniyor) {
-    return <View style={s.merkez}><ActivityIndicator size="large" color="#2563eb" /></View>;
+    return <View style={[s.merkez, { backgroundColor: colors.bg }]}><ActivityIndicator size="large" color="#2563eb" /></View>;
   }
 
   if (favoriler.length === 0) {
     return (
-      <View style={s.merkez}>
-        <Ionicons name="heart-outline" size={56} color="#d1d5db" />
-        <Text style={s.bosBaslik}>Henüz favori ilan yok</Text>
-        <Text style={s.bosAlt}>Beğendiğin ilanlardaki kalp ikonuna basarak buraya ekleyebilirsin.</Text>
+      <View style={[s.merkez, { backgroundColor: colors.bg }]}>
+        <Ionicons name="heart-outline" size={56} color={colors.textMuted} />
+        <Text style={[s.bosBaslik, { color: colors.text }]}>Henüz favori ilan yok</Text>
+        <Text style={[s.bosAlt, { color: colors.textSecondary }]}>Beğendiğin ilanlardaki kalp ikonuna basarak buraya ekleyebilirsin.</Text>
       </View>
     );
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#f5f5f5' }}>
-      <View style={s.topBant}>
+    <View style={{ flex: 1, backgroundColor: colors.bg }}>
+      <View style={[s.topBant, { backgroundColor: colors.card, borderBottomColor: '#fecaca' }]}>
         <Ionicons name="heart" size={14} color="#ef4444" />
         <Text style={s.topBantText}>{favoriler.length} favori ilan</Text>
       </View>
       <FlatList
         data={favoriler}
         keyExtractor={item => String(item.id)}
-        contentContainerStyle={s.liste}
+        contentContainerStyle={[s.liste, { backgroundColor: colors.bg }]}
         showsVerticalScrollIndicator={false}
       renderItem={({ item }) => {
         const gorsel = (Array.isArray(item.fotograflar) && item.fotograflar[0])
@@ -69,7 +71,7 @@ export default function FavorilerScreen({ navigation }) {
         const konum = [item.ilce, item.sehir].filter(Boolean).join(' / ');
         return (
           <TouchableOpacity
-            style={s.kart}
+            style={[s.kart, { backgroundColor: colors.card }]}
             activeOpacity={0.85}
             onPress={() => navigation.navigate('IlanDetay', { id: item.id })}
           >
@@ -77,8 +79,8 @@ export default function FavorilerScreen({ navigation }) {
             <View style={[s.tipBadge, { backgroundColor: item.tip === 'Kiralık' ? '#3b82f6' : '#2563eb' }]}>
               <Text style={s.tipText}>{item.tip}</Text>
             </View>
-            <View style={s.icerik}>
-              <Text style={s.baslik} numberOfLines={2}>{item.baslik}</Text>
+            <View style={[s.icerik, { backgroundColor: colors.card }]}>
+              <Text style={[s.baslik, { color: colors.text }]} numberOfLines={2}>{item.baslik}</Text>
               <Text style={s.fiyat}>{fiyatFormat(item.fiyat)}</Text>
               {konum ? (
                 <View style={s.konumRow}>
