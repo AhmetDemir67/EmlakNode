@@ -297,7 +297,7 @@ const s = StyleSheet.create({
   durum:        { position: 'absolute', top: 10, right: 10, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6, flexDirection: 'row', alignItems: 'center' },
   durumText:    { color: '#fff', fontSize: 10, fontWeight: '700' },
   bilgi:        { padding: 12 },
-  fiyat:        { fontSize: 17, fontWeight: '800', color: '#2563eb' },
+  fiyat:        { fontSize: 17, fontWeight: '800', color: '#f59e0b' },
   baslik:       { fontSize: 14, fontWeight: '600', color: '#111827', marginTop: 2 },
   altRow:       { flexDirection: 'row', alignItems: 'center', gap: 3, marginTop: 4 },
   konum:        { fontSize: 12, color: '#9ca3af' },

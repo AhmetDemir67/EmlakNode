@@ -1,5 +1,5 @@
-﻿import { useState, useRef, useEffect } from 'react';
-import { Search, MapPin, ChevronDown, X, Map, Building2, Hash } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { Search, MapPin, ChevronDown, X, Map, Building2, Hash, Shield, Sparkles } from 'lucide-react';
 
 const TABS = ['Satılık', 'Kiralık', 'Projeler', 'Emlak Ofisleri', 'İlan No'];
 
@@ -17,17 +17,17 @@ const FIYAT_ARALIK  = [
 
 const HERO_IMG = 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=1920&q=85';
 
-// ── Dropdown bileşeni ─────────────────────────────────────────────
+// ── Glassmorphism Dropdown ────────────────────────────────────────
 const Dropdown = ({ label, value, items, acik, setAcik, onSec, dropRef, minWidth = 130 }) => (
   <div className="relative flex-shrink-0" ref={dropRef}>
     <button
       type="button"
       onClick={() => setAcik(!acik)}
       style={{ minWidth }}
-      className={`h-full flex items-center gap-2 px-3 py-2 border rounded-xl text-sm font-medium transition-all whitespace-nowrap ${
+      className={`h-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all whitespace-nowrap border ${
         acik
-          ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30 text-blue-700 ring-2 ring-blue-100'
-          : 'border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-200 hover:border-blue-400 hover:text-blue-700 bg-white dark:bg-gray-700'
+          ? 'bg-white/20 border-white/40 text-white'
+          : 'bg-white/10 border-white/20 text-white/80 hover:bg-white/15 hover:border-white/30 hover:text-white'
       }`}
     >
       <span className="flex-1 text-left truncate">{value || label}</span>
@@ -35,7 +35,7 @@ const Dropdown = ({ label, value, items, acik, setAcik, onSec, dropRef, minWidth
     </button>
 
     {acik && (
-      <div className="absolute top-full left-0 mt-1.5 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl shadow-2xl z-[200] py-1.5 overflow-hidden" style={{ minWidth: Math.max(minWidth, 160) }}>
+      <div className="absolute top-full left-0 mt-1.5 bg-gray-900/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl z-[200] py-1.5 overflow-hidden" style={{ minWidth: Math.max(minWidth, 160) }}>
         {items.map((item, i) => {
           const itemLabel = typeof item === 'string' ? item : item.label;
           const isAktif   = typeof item === 'string' ? value === item : value === item.label;
@@ -45,7 +45,9 @@ const Dropdown = ({ label, value, items, acik, setAcik, onSec, dropRef, minWidth
               type="button"
               onClick={() => { onSec(item); setAcik(false); }}
               className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${
-                isAktif ? 'text-blue-700 bg-blue-50 dark:bg-blue-900/30 font-semibold' : 'text-gray-600 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-800 dark:hover:text-white'
+                isAktif
+                  ? 'text-amber-400 bg-amber-400/10 font-semibold'
+                  : 'text-gray-200 hover:bg-white/5 hover:text-white'
               }`}
             >
               {itemLabel}
@@ -57,21 +59,21 @@ const Dropdown = ({ label, value, items, acik, setAcik, onSec, dropRef, minWidth
   </div>
 );
 
-// ── Metin girişi (ortak stil) ─────────────────────────────────────
+// ── Glassmorphism Metin Girişi ────────────────────────────────────
 const MetinGirisi = ({ icon: Icon, value, onChange, onKeyDown, placeholder, type = 'text' }) => (
-  <div className="flex-1 flex items-center gap-2 border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 rounded-xl px-3 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100 transition-all min-w-0">
-    <Icon size={16} className="text-blue-500 flex-shrink-0" />
+  <div className="flex-1 flex items-center gap-2 border border-white/20 bg-white/10 hover:bg-white/15 hover:border-white/30 rounded-xl px-3 focus-within:border-white/40 focus-within:bg-white/15 transition-all min-w-0">
+    <Icon size={16} className="text-blue-400 flex-shrink-0" />
     <input
       type={type}
       value={value}
       onChange={onChange}
       onKeyDown={onKeyDown}
       placeholder={placeholder}
-      className="flex-1 outline-none text-sm text-gray-700 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 py-3 bg-transparent min-w-0"
+      className="flex-1 outline-none text-sm text-white placeholder-white/40 py-3 bg-transparent min-w-0"
     />
     {value && (
       <button type="button" onClick={() => onChange({ target: { value: '' } })} className="flex-shrink-0">
-        <X size={13} className="text-gray-300 hover:text-gray-500" />
+        <X size={13} className="text-white/30 hover:text-white/60" />
       </button>
     )}
   </div>
@@ -88,17 +90,16 @@ const Hero = ({ onAra, onHaritaAra }) => {
   const [oda,       setOda]       = useState('');
   const [fiyat,     setFiyat]     = useState(FIYAT_ARALIK[0]);
 
-  const [gmAcik,     setGmAcik]     = useState(false);
-  const [projeAcik,  setProjeAcik]  = useState(false);
-  const [odaAcik,    setOdaAcik]    = useState(false);
-  const [fiyatAcik,  setFiyatAcik]  = useState(false);
+  const [gmAcik,    setGmAcik]    = useState(false);
+  const [projeAcik, setProjeAcik] = useState(false);
+  const [odaAcik,   setOdaAcik]   = useState(false);
+  const [fiyatAcik, setFiyatAcik] = useState(false);
 
   const gmRef    = useRef(null);
   const projeRef = useRef(null);
   const odaRef   = useRef(null);
   const fiyatRef = useRef(null);
 
-  // Tüm dropdown'ları dışarı tıklayınca kapat
   useEffect(() => {
     const handler = (e) => {
       if (!gmRef.current?.contains(e.target))    setGmAcik(false);
@@ -126,38 +127,49 @@ const Hero = ({ onAra, onHaritaAra }) => {
   const handleHaritadaAra = () => { onAra?.(buildParams()); onHaritaAra?.(); };
   const enterAra          = (e) => { if (e.key === 'Enter') handleAra(); };
 
-  const solDropdownGorunsun = aktifTab === 'Satılık' || aktifTab === 'Kiralık' || aktifTab === 'Projeler';
-  const filtrelerGorunsun   = aktifTab === 'Satılık' || aktifTab === 'Kiralık' || aktifTab === 'Projeler';
-  const haritaGorunsun      = aktifTab !== 'Emlak Ofisleri' && aktifTab !== 'İlan No';
+  const filtrelerGorunsun = aktifTab === 'Satılık' || aktifTab === 'Kiralık' || aktifTab === 'Projeler';
+  const haritaGorunsun    = aktifTab !== 'Emlak Ofisleri' && aktifTab !== 'İlan No';
 
   return (
-    <section className="relative h-[460px] md:h-[500px] overflow-hidden">
+    <section className="relative min-h-[580px] md:min-h-[640px] overflow-hidden flex flex-col">
 
-      {/* Arka plan fotoğraf */}
+      {/* Arka plan */}
       <img
         src={HERO_IMG}
         alt="Emlak platformu arka plan"
         className="absolute inset-0 w-full h-full object-cover"
         loading="eager"
       />
-      <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/50 to-black/40" />
+      {/* Çok katmanlı karanlık overlay */}
+      <div className="absolute inset-0 bg-gradient-to-b from-black/85 via-black/70 to-black/60" />
+      <div className="absolute inset-0 bg-gradient-to-r from-blue-950/40 via-transparent to-slate-950/40" />
 
       {/* İçerik */}
-      <div className="relative z-10 h-full flex flex-col items-center justify-center px-4 text-center">
+      <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-4 text-center py-12">
 
-        <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-white mb-1.5 leading-tight drop-shadow-lg">
-          Satılık Ev Arıyorsan Çözüm Net:
-          <span className="text-blue-400"> EmlakNode</span>
+        {/* Premium badge */}
+        <div className="inline-flex items-center gap-2 bg-white/8 backdrop-blur-md border border-white/15 rounded-full px-4 py-1.5 mb-5">
+          <Sparkles size={12} className="text-amber-400" />
+          <span className="text-white/70 text-xs font-semibold tracking-widest uppercase">AI Destekli Platform</span>
+        </div>
+
+        {/* Başlık */}
+        <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-white mb-3 leading-tight drop-shadow-2xl">
+          Hayalinizdeki Mülkü<br />
+          <span className="bg-gradient-to-r from-blue-400 via-violet-400 to-amber-400 bg-clip-text text-transparent">
+            EmlakNode
+          </span>
+          <span className="text-white">'da Bulun</span>
         </h1>
-        <p className="text-white/70 text-sm md:text-base mb-6 drop-shadow">
-          Türkiye'nin güvenilir emlak platformu · 500.000+ güncel ilan
+        <p className="text-white/55 text-sm md:text-base mb-8 drop-shadow tracking-wide">
+          Türkiye'nin güvenilir emlak platformu &nbsp;·&nbsp; 500.000+ güncel ilan
         </p>
 
-        {/* Arama Kartı */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-5xl overflow-visible">
+        {/* Arama Kartı — Glassmorphism */}
+        <div className="bg-white/8 backdrop-blur-2xl border border-white/15 rounded-2xl shadow-2xl w-full max-w-5xl overflow-visible">
 
           {/* Tab'lar */}
-          <div className="flex border-b border-gray-100 dark:border-gray-700 overflow-x-auto">
+          <div className="flex border-b border-white/10 overflow-x-auto">
             {TABS.map(tab => (
               <button
                 key={tab}
@@ -165,8 +177,8 @@ const Hero = ({ onAra, onHaritaAra }) => {
                 onClick={() => setAktifTab(tab)}
                 className={`flex-shrink-0 px-5 py-3.5 text-sm font-bold border-b-2 -mb-px transition-all ${
                   aktifTab === tab
-                    ? 'text-blue-600 border-blue-600 bg-blue-50/50 dark:bg-blue-900/20'
-                    : 'text-gray-500 dark:text-gray-400 border-transparent hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-50/50 dark:hover:bg-gray-700/50'
+                    ? 'text-amber-400 border-amber-400 bg-white/8'
+                    : 'text-white/45 border-transparent hover:text-white/75 hover:bg-white/5'
                 }`}
               >
                 {tab}
@@ -174,10 +186,9 @@ const Hero = ({ onAra, onHaritaAra }) => {
             ))}
           </div>
 
-          {/* ── Arama Satırı ── */}
+          {/* Arama Satırı */}
           <div className="flex items-stretch gap-2 px-3 py-3">
 
-            {/* Sol dropdown: Satılık/Kiralık → Gayrimenkul Tipi, Projeler → Proje Tipi */}
             {(aktifTab === 'Satılık' || aktifTab === 'Kiralık') && (
               <Dropdown
                 label="Gayrimenkul Tipi"
@@ -203,7 +214,6 @@ const Hero = ({ onAra, onHaritaAra }) => {
               />
             )}
 
-            {/* Metin girişi — tabın içeriğine göre */}
             {aktifTab === 'Emlak Ofisleri' && (
               <MetinGirisi
                 icon={Building2}
@@ -233,7 +243,6 @@ const Hero = ({ onAra, onHaritaAra }) => {
               />
             )}
 
-            {/* Oda Sayısı + Fiyat — Satılık / Kiralık / Projeler */}
             {filtrelerGorunsun && (
               <>
                 <Dropdown
@@ -263,18 +272,17 @@ const Hero = ({ onAra, onHaritaAra }) => {
             <button
               type="button"
               onClick={handleAra}
-              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white px-6 py-2.5 rounded-xl font-bold text-sm transition-all shadow-md whitespace-nowrap"
+              className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 active:scale-95 text-white px-6 py-2.5 rounded-xl font-bold text-sm transition-all shadow-lg shadow-blue-600/30 whitespace-nowrap"
             >
               <Search size={16} />
               Ara
             </button>
 
-            {/* Haritada Ara — Emlak Ofisleri ve İlan No'da gizle */}
             {haritaGorunsun && (
               <button
                 type="button"
                 onClick={handleHaritadaAra}
-                className="flex items-center gap-2 border-2 border-blue-600 text-blue-600 hover:bg-blue-50 active:scale-95 px-4 py-2.5 rounded-xl font-bold text-sm transition-all whitespace-nowrap"
+                className="flex items-center gap-2 bg-white/10 border border-white/25 text-white hover:bg-white/18 active:scale-95 px-4 py-2.5 rounded-xl font-bold text-sm transition-all whitespace-nowrap"
               >
                 <Map size={15} />
                 Haritada Ara
@@ -282,6 +290,25 @@ const Hero = ({ onAra, onHaritaAra }) => {
             )}
           </div>
         </div>
+
+        {/* İstatistik pills */}
+        <div className="flex items-center gap-3 mt-6 flex-wrap justify-center">
+          {[
+            { icon: '🏠', label: '500K+ İlan' },
+            { icon: '👥', label: '200K+ Kullanıcı' },
+            { icon: '🤝', label: '10K+ Danışman' },
+          ].map(({ icon, label }) => (
+            <div key={label} className="flex items-center gap-2 bg-white/8 backdrop-blur-md border border-white/12 rounded-full px-4 py-1.5">
+              <span className="text-sm">{icon}</span>
+              <span className="text-white/65 text-xs font-semibold">{label}</span>
+            </div>
+          ))}
+          <div className="flex items-center gap-2 bg-white/8 backdrop-blur-md border border-white/12 rounded-full px-4 py-1.5">
+            <Shield size={12} className="text-emerald-400" />
+            <span className="text-white/65 text-xs font-semibold">Güvenli & Doğrulanmış</span>
+          </div>
+        </div>
+
       </div>
     </section>
   );

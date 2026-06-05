@@ -56,7 +56,15 @@ export default function KayitliAramalarScreen({ navigation }) {
   };
 
   const aramaUygula = (filtreler) => {
-    navigation.navigate('IlanAra', { filtreler });
+    const params = {};
+    if (filtreler.tip)        params.tip        = filtreler.tip;
+    if (filtreler.emlak_turu) params.emlak_turu = filtreler.emlak_turu;
+    if (filtreler.sehir)      params.sehir      = filtreler.sehir;
+    if (filtreler.ilce)       params.ilce       = filtreler.ilce;
+    if (filtreler.min_fiyat || filtreler.fiyat_min) params.min_fiyat = filtreler.min_fiyat || filtreler.fiyat_min;
+    if (filtreler.max_fiyat || filtreler.fiyat_max) params.max_fiyat = filtreler.max_fiyat || filtreler.fiyat_max;
+    params.baslik = filtreler.tip || filtreler.sehir || 'Kayıtlı Arama';
+    navigation.navigate('TumIlanlar', params);
   };
 
   if (yukleniyor) {

@@ -31,7 +31,7 @@ const IlanKarti = ({ ilan }) => {
   return (
     <div
       onClick={() => navigate(`/ilan/${ilan.id}`)}
-      className="flex-shrink-0 w-60 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden cursor-pointer hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group"
+      className="flex-shrink-0 w-60 bg-white dark:bg-gray-800/80 dark:backdrop-blur-sm rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700/60 overflow-hidden cursor-pointer hover:shadow-xl dark:hover:shadow-blue-950/30 hover:-translate-y-1 transition-all duration-200 group"
     >
       <div className="relative h-40 overflow-hidden bg-gray-100 dark:bg-gray-700">
         <img
@@ -41,13 +41,13 @@ const IlanKarti = ({ ilan }) => {
           onError={e => { e.currentTarget.src = GORSEL_FALLBACK; }}
         />
         <div className="absolute top-2 left-2 flex gap-1.5">
-          <span className="bg-blue-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-md tracking-wide">
+          <span className="bg-gradient-to-r from-amber-500 to-amber-400 text-white text-[10px] font-bold px-2 py-0.5 rounded-md tracking-wide shadow-sm">
             ÖNE ÇIKAN
           </span>
         </div>
         {ilan.tip && (
           <div className="absolute top-2 right-2">
-            <span className="bg-black/55 text-white text-[10px] font-semibold px-2 py-0.5 rounded-md">
+            <span className="bg-black/50 backdrop-blur-sm text-white text-[10px] font-semibold px-2 py-0.5 rounded-md border border-white/10">
               {ilan.tip}
             </span>
           </div>
@@ -55,7 +55,7 @@ const IlanKarti = ({ ilan }) => {
       </div>
 
       <div className="p-3 flex flex-col gap-1">
-        <h3 className="font-bold text-gray-900 dark:text-gray-100 text-sm leading-tight line-clamp-2">{ilan.baslik}</h3>
+        <h3 className="font-bold text-gray-900 dark:text-gray-100 text-sm leading-tight line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-amber-400 transition-colors">{ilan.baslik}</h3>
         {bilgiler.length > 0 && (
           <p className="text-[11px] text-gray-500 dark:text-gray-400">{bilgiler.join(' · ')}</p>
         )}
@@ -64,10 +64,10 @@ const IlanKarti = ({ ilan }) => {
             📍 {[ilan.ilce, ilan.sehir].filter(Boolean).join(', ')}
           </p>
         )}
-        <p className="text-blue-700 dark:text-blue-400 font-extrabold text-sm mt-0.5">{fiyatFormat(ilan.fiyat)}</p>
+        <p className="text-amber-500 dark:text-amber-400 font-extrabold text-sm mt-0.5">{fiyatFormat(ilan.fiyat)}</p>
         <button
           onClick={e => { e.stopPropagation(); navigate(`/ilan/${ilan.id}`); }}
-          className="mt-1.5 w-full bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-1.5 rounded-lg transition-colors"
+          className="mt-1.5 w-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white text-xs font-bold py-1.5 rounded-lg transition-all shadow-sm"
         >
           İncele
         </button>
@@ -82,8 +82,40 @@ const OnecikarIlanlar = ({ ilanlar = [] }) => {
 
   const filtrele = (tabId) => {
     let liste = [...ilanlar];
-    if (tabId === 'fiyat_dusen_satilik') liste = liste.filter(i => i.tip === 'Satılık');
-    if (tabId === 'fiyat_dusen_kiralik') liste = liste.filter(i => i.tip === 'Kiralık');
+    switch (tabId) {
+      case 'one_cikan':
+        // En çok görüntülenenleri öne al
+        liste = liste.sort((a, b) => (b.goruntuleme_sayisi || 0) - (a.goruntuleme_sayisi || 0));
+        break;
+      case 'yeni':
+        // En yeni ilanlar
+        liste = liste.sort((a, b) => new Date(b.olusturulma_tarihi) - new Date(a.olusturulma_tarihi));
+        break;
+      case 'fiyat_dusen_satilik':
+        liste = liste.filter(i =>
+          i.tip === 'Satılık' &&
+          i.onceki_fiyat != null &&
+          parseFloat(i.onceki_fiyat) > parseFloat(i.fiyat)
+        );
+        break;
+      case 'fiyat_dusen_kiralik':
+        liste = liste.filter(i =>
+          i.tip === 'Kiralık' &&
+          i.onceki_fiyat != null &&
+          parseFloat(i.onceki_fiyat) > parseFloat(i.fiyat)
+        );
+        break;
+      case 'projeler':
+        // Arsa, Villa, Rezidans gibi proje kategorileri
+        liste = liste.filter(i => ['Arsa', 'Villa', 'Rezidans', 'Depo'].includes(i.emlak_turu));
+        if (liste.length === 0) {
+          // Fallback: emlak_turu'na göre değil tip bazlı göster
+          liste = [...ilanlar].sort((a, b) => new Date(b.olusturulma_tarihi) - new Date(a.olusturulma_tarihi));
+        }
+        break;
+      default:
+        break;
+    }
     return liste.slice(0, 20);
   };
 
@@ -100,7 +132,9 @@ const OnecikarIlanlar = ({ ilanlar = [] }) => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
         <div className="flex items-center justify-between mb-5">
-          <h2 className="text-2xl font-extrabold text-gray-900 dark:text-gray-100">Ev Mi Arıyorsun?</h2>
+          <h2 className="text-2xl font-extrabold text-gray-900 dark:text-gray-100">
+            Ev Mi Arıyorsun? <span className="bg-gradient-to-r from-blue-600 to-violet-500 bg-clip-text text-transparent">En İyiler Burada</span>
+          </h2>
           <a
             href="/ilanlar"
             className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-sm font-semibold flex items-center gap-1 transition-colors"
@@ -143,9 +177,11 @@ const OnecikarIlanlar = ({ ilanlar = [] }) => {
             {gosterilen.length > 0
               ? gosterilen.map(ilan => <IlanKarti key={ilan.id} ilan={ilan} />)
               : (
-                <p className="text-gray-400 dark:text-gray-500 text-sm py-8 px-2">
-                  Bu kategoride ilan bulunamadı.
-                </p>
+                <div className="flex flex-col items-center justify-center py-10 px-6 text-center w-full">
+                  <p className="text-3xl mb-2">🔍</p>
+                  <p className="text-gray-500 dark:text-gray-400 text-sm font-semibold">Bu kategoride henüz ilan bulunamadı.</p>
+                  <p className="text-gray-400 dark:text-gray-500 text-xs mt-1">Yakında yeni ilanlar eklenecek.</p>
+                </div>
               )
             }
           </div>

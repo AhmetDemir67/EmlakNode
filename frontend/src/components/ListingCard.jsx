@@ -17,7 +17,10 @@ const ListingCard = ({ ilan }) => {
     : false;
 
   return (
-    <Link to={`/ilan/${ilan.id}`} className="block bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 dark:border-gray-700 group cursor-pointer hover:-translate-y-0.5">
+    <Link
+      to={`/ilan/${ilan.id}`}
+      className="block bg-white dark:bg-gray-800/80 dark:backdrop-blur-sm rounded-2xl overflow-hidden shadow-sm hover:shadow-xl dark:hover:shadow-blue-950/40 transition-all duration-300 border border-gray-100 dark:border-gray-700/60 group cursor-pointer hover:-translate-y-1"
+    >
       {/* Görsel */}
       <div className="relative overflow-hidden">
         <img
@@ -25,10 +28,12 @@ const ListingCard = ({ ilan }) => {
           alt={ilan.baslik}
           className="w-full h-52 object-cover group-hover:scale-105 transition-transform duration-500"
         />
-        {/* Üst solda: tip + yeni badge */}
+        {/* Tip + yeni badge */}
         <div className="absolute top-3 left-3 flex flex-col gap-1.5">
           <span className={`text-xs font-bold px-3 py-1.5 rounded-full shadow-sm ${
-            ilan.tip === 'Satılık' ? 'bg-blue-600 text-white' : 'bg-blue-500 text-white'
+            ilan.tip === 'Satılık'
+              ? 'bg-blue-600 text-white'
+              : 'bg-violet-600 text-white'
           }`}>
             {ilan.tip}
           </span>
@@ -38,12 +43,12 @@ const ListingCard = ({ ilan }) => {
             </span>
           )}
         </div>
-        {/* Favori Butonu */}
+        {/* Favori butonu */}
         <button
           onClick={(e) => { e.stopPropagation(); setBegendim(!begendim); }}
-          className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-md hover:scale-110 transition-transform"
+          className="absolute top-3 right-3 bg-black/30 backdrop-blur-sm p-2 rounded-full shadow-md hover:scale-110 transition-transform border border-white/10"
         >
-          <Heart size={16} className={begendim ? 'fill-red-500 text-red-500' : 'text-gray-400'} />
+          <Heart size={16} className={begendim ? 'fill-red-500 text-red-500' : 'text-white/70'} />
         </button>
         {/* Fiyat düştü bandı */}
         {fiyatDustu && (
@@ -58,12 +63,12 @@ const ListingCard = ({ ilan }) => {
       {/* İçerik */}
       <div className="p-4">
         {/* Fiyat */}
-        <div className="text-2xl font-bold text-blue-600 mb-1">
+        <div className="text-2xl font-black text-amber-500 dark:text-amber-400 mb-1 tracking-tight">
           {fiyatFormatla(ilan.fiyat)}
         </div>
 
         {/* Başlık */}
-        <h3 className="font-semibold text-gray-800 dark:text-gray-100 text-sm leading-snug mb-2 line-clamp-2 group-hover:text-blue-600 transition-colors">
+        <h3 className="font-semibold text-gray-800 dark:text-gray-100 text-sm leading-snug mb-2 line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-amber-400 transition-colors">
           {ilan.baslik}
         </h3>
 
@@ -74,7 +79,7 @@ const ListingCard = ({ ilan }) => {
         </div>
 
         {/* Özellikler */}
-        <div className="flex items-center gap-3 pt-3 border-t border-gray-100 dark:border-gray-700">
+        <div className="flex items-center gap-3 pt-3 border-t border-gray-100 dark:border-gray-700/60">
           {ilan.oda_sayisi && (
             <>
               <div className="flex items-center gap-1 text-gray-600 dark:text-gray-300 text-xs">
@@ -94,16 +99,16 @@ const ListingCard = ({ ilan }) => {
             </>
           )}
           {ilan.emlak_turu && (
-            <span className="text-xs bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-semibold px-2 py-0.5 rounded-full">
+            <span className="text-xs bg-slate-100 dark:bg-slate-700/80 text-slate-600 dark:text-slate-300 font-semibold px-2 py-0.5 rounded-full">
               {ilan.emlak_turu}
             </span>
           )}
         </div>
 
         {/* Ofis Bilgisi */}
-        <div className="mt-3 pt-3 border-t border-gray-50 dark:border-gray-700 flex items-center justify-between">
+        <div className="mt-3 pt-3 border-t border-gray-50 dark:border-gray-700/50 flex items-center justify-between">
           <span className="text-xs text-gray-400 truncate max-w-[60%]">{ilan.ofis}</span>
-          <span className="text-xs text-blue-600 font-bold group-hover:underline">İncele →</span>
+          <span className="text-xs text-blue-600 dark:text-amber-400 font-bold group-hover:underline">İncele →</span>
         </div>
       </div>
     </Link>

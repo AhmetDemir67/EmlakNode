@@ -135,9 +135,9 @@ const Navbar = () => {
     <nav className="sticky top-0 z-50">
 
       {/* ── Duyuru Bandı ───────────────────────────────── */}
-      <div className="bg-blue-700 dark:bg-blue-900 text-white text-center text-xs font-semibold py-2 px-4 tracking-wide">
+      <div className="bg-gradient-to-r from-gray-950 via-blue-950 to-gray-950 text-white text-center text-xs font-semibold py-2 px-4 tracking-wide border-b border-white/5">
         🏠 Doğru Evi Yanlış Yerde Arama · Türkiye'nin En Güncel Emlak Platformu&nbsp;
-        <span className="underline underline-offset-2 cursor-pointer hover:text-blue-100 transition-colors">
+        <span className="text-amber-400 cursor-pointer hover:text-amber-300 transition-colors font-bold">
           EmlakNode
         </span>
         &nbsp;ile Fırsatları Yakala!
@@ -149,11 +149,12 @@ const Navbar = () => {
 
             {/* ── Logo ─────────────────────────────────── */}
             <Link to="/" className="flex items-center gap-2 flex-shrink-0">
-              <div className="bg-blue-600 text-white p-1.5 rounded-lg">
+              <div className="bg-gradient-to-br from-blue-600 to-blue-700 text-white p-1.5 rounded-lg shadow-md shadow-blue-600/30">
                 <Home size={18} />
               </div>
-              <span className="text-xl font-extrabold text-gray-900 dark:text-white tracking-tight">
-                Emlak<span className="text-blue-600">Node</span>
+              <span className="text-xl font-extrabold tracking-tight">
+                <span className="text-gray-900 dark:text-white">Emlak</span>
+                <span className="bg-gradient-to-r from-blue-600 to-violet-600 bg-clip-text text-transparent">Node</span>
               </span>
             </Link>
 
@@ -263,7 +264,7 @@ const Navbar = () => {
                     )}
                   </div>
                   <Link to="/panel"
-                    className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm px-4 py-2 rounded-lg transition-colors shadow-sm">
+                    className="flex items-center gap-1.5 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-bold text-sm px-4 py-2 rounded-lg transition-all shadow-md shadow-blue-600/25">
                     <PlusCircle size={15} /> Ücretsiz İlan Ver
                   </Link>
                 </>
@@ -278,7 +279,7 @@ const Navbar = () => {
                     Kayıt Ol
                   </Link>
                   <Link to="/panel"
-                    className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm px-4 py-2 rounded-lg transition-colors shadow-sm">
+                    className="flex items-center gap-1.5 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-bold text-sm px-4 py-2 rounded-lg transition-all shadow-md shadow-blue-600/25">
                     <PlusCircle size={15} /> Ücretsiz İlan Ver
                   </Link>
                 </>
@@ -393,7 +394,7 @@ const Navbar = () => {
                     Kayıt Ol
                   </Link>
                   <Link to="/panel" onClick={() => setMenuAcik(false)}
-                    className="text-center bg-blue-600 text-white py-2.5 rounded-xl text-sm font-bold">
+                    className="text-center bg-gradient-to-r from-blue-600 to-blue-500 text-white py-2.5 rounded-xl text-sm font-bold">
                     Ücretsiz İlan Ver
                   </Link>
                 </>

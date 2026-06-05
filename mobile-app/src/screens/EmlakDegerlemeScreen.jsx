@@ -273,11 +273,11 @@ export default function EmlakDegerlemeScreen({ navigation }) {
           <View style={s.istatRow}>
             <View style={[s.istatKutu, { backgroundColor: colors.input }]}>
               <Text style={[s.istatEtiket, { color: colors.textMuted }]}>Tahmini Ortalama</Text>
-              <Text style={[s.istatDeger, { color: colors.text }]}>{fiyatFormat(sonuc.tahminiOrtalama)}</Text>
+              <Text style={[s.istatDeger, { color: colors.price }]}>{fiyatFormat(sonuc.tahminiOrtalama)}</Text>
             </View>
             <View style={[s.istatKutu, s.istatSag, { backgroundColor: colors.input }]}>
               <Text style={[s.istatEtiket, { color: colors.textMuted }]}>m² Fiyatı</Text>
-              <Text style={[s.istatDeger, { color: colors.text }]}>{fiyatFormat(sonuc.m2Fiyat)}/m²</Text>
+              <Text style={[s.istatDeger, { color: colors.price }]}>{fiyatFormat(sonuc.m2Fiyat)}/m²</Text>
             </View>
           </View>
 
@@ -371,7 +371,7 @@ const s = StyleSheet.create({
   fiyatRow:       { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', backgroundColor: '#eff6ff', borderRadius: 14, padding: 14, gap: 8 },
   fiyatKutu:      { alignItems: 'center', gap: 4 },
   fiyatEtiket:    { fontSize: 11, color: '#6b7280', fontWeight: '600' },
-  fiyatDeger:     { fontSize: 17, fontWeight: '900', color: '#2563eb' },
+  fiyatDeger:     { fontSize: 17, fontWeight: '900', color: '#f59e0b' },
 
   istatRow:       { flexDirection: 'row', marginTop: 12 },
   istatKutu:      { flex: 1, padding: 12, backgroundColor: '#f8fafc', borderRadius: 12 },

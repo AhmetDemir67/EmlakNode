@@ -15,7 +15,7 @@ const SAYFA_BASI    = 15;
 const BOSLUK_FILTRE = {
   sehir: '', ilce: '', tip: '', emlak_turu: '',
   oda_sayisi: '', min_fiyat: '', max_fiyat: '',
-  min_metrekare: '', max_metrekare: '',
+  min_metrekare: '', max_metrekare: '', dukkan_id: '',
 };
 
 const fiyatFormatla = (f) =>
@@ -185,6 +185,7 @@ const Listings = () => {
   const [mobilFiltre, setMobilFiltre] = useState(false);
   const [aktifSayfa, setAktifSayfa]   = useState(1);
   const [aramaKayit, setAramaKayit]   = useState(false);
+  const [sirala, setSirala]           = useState('yeni');
 
   const [filtreler, setFiltreler] = useState(() => ({
     ...BOSLUK_FILTRE,
@@ -192,6 +193,7 @@ const Listings = () => {
     emlak_turu: searchParams.get('emlak_turu') || '',
     sehir:      searchParams.get('sehir')      || '',
     ilce:       searchParams.get('ilce')       || '',
+    dukkan_id:  searchParams.get('dukkan_id')  || '',
   }));
 
   // URL params değişince filtre güncelle
@@ -201,6 +203,8 @@ const Listings = () => {
       tip:        searchParams.get('tip')        || '',
       emlak_turu: searchParams.get('emlak_turu') || '',
       sehir:      searchParams.get('sehir')      || '',
+      ilce:       searchParams.get('ilce')       || '',
+      dukkan_id:  searchParams.get('dukkan_id')  || '',
     }));
     setAktifSayfa(1);
   }, [searchParams]);
@@ -247,14 +251,24 @@ const Listings = () => {
     [filtreler],
   );
 
-  // Client-side sayfalama
+  // Client-side sıralama + sayfalama
   const sayfaIlanlar = useMemo(() => {
+    const siralandi = [...ilanlar].sort((a, b) => {
+      if (sirala === 'fiyat_asc')  return (a.fiyat || 0) - (b.fiyat || 0);
+      if (sirala === 'fiyat_desc') return (b.fiyat || 0) - (a.fiyat || 0);
+      if (sirala === 'metrekare')  return (b.metrekare || 0) - (a.metrekare || 0);
+      return 0;
+    });
     const baslangic = (aktifSayfa - 1) * SAYFA_BASI;
-    return ilanlar.slice(baslangic, baslangic + SAYFA_BASI);
-  }, [ilanlar, aktifSayfa]);
+    return siralandi.slice(baslangic, baslangic + SAYFA_BASI);
+  }, [ilanlar, aktifSayfa, sirala]);
 
   // Breadcrumb etiketi
-  const etiket = [filtreler.tip, filtreler.emlak_turu].filter(Boolean).join(' ') || 'Tüm İlanlar';
+  const firmaAdi = filtreler.dukkan_id && ilanlar.length > 0 ? (ilanlar[0].dukkan_adi || 'Firma') : null;
+  const konumEtiketi = [filtreler.ilce, filtreler.sehir].filter(Boolean).join(', ');
+  const etiket = firmaAdi
+    ? `${firmaAdi} İlanları`
+    : ([filtreler.tip, filtreler.emlak_turu, konumEtiketi].filter(Boolean).join(' ') || 'Tüm İlanlar');
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-gray-950">
@@ -279,7 +293,13 @@ const Listings = () => {
                 <ChevronRight size={13} className="text-slate-300 dark:text-gray-600 flex-shrink-0" />
               </>
             )}
-            <span className="text-slate-700 dark:text-gray-200 font-semibold">{etiket} İlanları</span>
+            {filtreler.ilce && (
+              <>
+                <span className="text-slate-400 dark:text-gray-500">{filtreler.ilce}</span>
+                <ChevronRight size={13} className="text-slate-300 dark:text-gray-600 flex-shrink-0" />
+              </>
+            )}
+            <span className="text-slate-700 dark:text-gray-200 font-semibold">{etiket}</span>
           </nav>
         </div>
       </div>
@@ -297,9 +317,11 @@ const Listings = () => {
           </div>
           {aktifFiltreSayisi > 0 && (
             <div className="flex items-center gap-2 flex-wrap">
+              {filtreler.dukkan_id && firmaAdi && <span className="bg-amber-500/20 border border-amber-400/40 text-amber-300 text-xs font-semibold px-3 py-1.5 rounded-full flex items-center gap-1"><Building2 size={11} /> {firmaAdi}</span>}
               {filtreler.tip && <span className="bg-white/10 border border-white/20 text-white text-xs font-semibold px-3 py-1.5 rounded-full">{filtreler.tip}</span>}
               {filtreler.emlak_turu && <span className="bg-white/10 border border-white/20 text-white text-xs font-semibold px-3 py-1.5 rounded-full">{filtreler.emlak_turu}</span>}
               {filtreler.sehir && <span className="bg-white/10 border border-white/20 text-white text-xs font-semibold px-3 py-1.5 rounded-full">{filtreler.sehir}</span>}
+              {filtreler.ilce && <span className="bg-white/10 border border-white/20 text-white text-xs font-semibold px-3 py-1.5 rounded-full">{filtreler.ilce}</span>}
               <button onClick={filtreTemizle} className="text-xs text-red-300 hover:text-red-200 font-semibold flex items-center gap-1">
                 <X size={12} /> Temizle
               </button>
@@ -310,23 +332,39 @@ const Listings = () => {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
 
-        {/* ── Başlık + mobil filtre butonu ───────────────────── */}
+        {/* ── Başlık + sıralama + mobil filtre butonu ──────── */}
         <div className="flex items-center justify-between mb-5 gap-3 flex-wrap">
           <div>
             {yukleniyor && <p className="text-sm text-gray-400">Yükleniyor…</p>}
           </div>
-          <button
-            onClick={() => setMobilFiltre(true)}
-            className="lg:hidden flex items-center gap-2 border border-slate-200 dark:border-gray-700 rounded-xl px-3 py-2 text-sm font-semibold text-slate-600 dark:text-gray-300 hover:border-blue-500 hover:text-blue-600 transition-all relative"
-          >
-            <SlidersHorizontal size={15} />
-            Filtrele
-            {aktifFiltreSayisi > 0 && (
-              <span className="absolute -top-1.5 -right-1.5 bg-blue-600 text-white text-xs font-bold w-4 h-4 rounded-full flex items-center justify-center">
-                {aktifFiltreSayisi}
-              </span>
-            )}
-          </button>
+          <div className="flex items-center gap-2">
+            {/* Sıralama dropdown */}
+            <div className="relative">
+              <select
+                value={sirala}
+                onChange={e => { setSirala(e.target.value); setAktifSayfa(1); }}
+                className="appearance-none border border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-xl pl-3 pr-8 py-2 text-sm font-semibold text-slate-600 dark:text-gray-300 hover:border-blue-500 focus:outline-none focus:border-blue-500 cursor-pointer"
+              >
+                <option value="yeni">En Yeni</option>
+                <option value="fiyat_asc">Fiyat Artan</option>
+                <option value="fiyat_desc">Fiyat Azalan</option>
+                <option value="metrekare">En Büyük m²</option>
+              </select>
+              <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+            </div>
+            <button
+              onClick={() => setMobilFiltre(true)}
+              className="lg:hidden flex items-center gap-2 border border-slate-200 dark:border-gray-700 rounded-xl px-3 py-2 text-sm font-semibold text-slate-600 dark:text-gray-300 hover:border-blue-500 hover:text-blue-600 transition-all relative"
+            >
+              <SlidersHorizontal size={15} />
+              Filtrele
+              {aktifFiltreSayisi > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 bg-blue-600 text-white text-xs font-bold w-4 h-4 rounded-full flex items-center justify-center">
+                  {aktifFiltreSayisi}
+                </span>
+              )}
+            </button>
+          </div>
         </div>
 
         {/* ── İki Kolon ──────────────────────────────────────── */}

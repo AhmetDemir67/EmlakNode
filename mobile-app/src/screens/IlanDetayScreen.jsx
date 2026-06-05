@@ -64,7 +64,7 @@ const MiniIlanKart = ({ item, onPress }) => {
         <Text style={s.miniTipText}>{item.tip}</Text>
       </View>
       <View style={s.miniAlt}>
-        <Text style={[s.miniFiyat, { color: colors.text }]}>{fiyatFormat(item.fiyat)}</Text>
+        <Text style={[s.miniFiyat, { color: colors.price }]}>{fiyatFormat(item.fiyat)}</Text>
         <Text style={[s.miniBaslik, { color: colors.textSecondary }]} numberOfLines={1}>{item.baslik}</Text>
         {item.metrekare ? <Text style={[s.miniMeta, { color: colors.textMuted }]}>{item.metrekare} m²</Text> : null}
       </View>
@@ -86,6 +86,7 @@ export default function IlanDetayScreen({ route, navigation }) {
   const [emlakciilanlar, setEmlakciilanlar] = useState([]);
   const [benzerilanlar, setBenzerilanlar]   = useState([]);
   const [adresler, setAdresler]             = useState([]);
+  const [geocodedMesafeler, setGeocodedMesafeler] = useState({});
   const [benimId, setBenimId]               = useState(null);
   const [ulasim, setUlasim]                 = useState(null);
   const [ulasimYukleniyor, setUlasimYukleniyor] = useState(false);
@@ -124,6 +125,38 @@ export default function IlanDetayScreen({ route, navigation }) {
       kayitliAdreslerGetir().then(r => setAdresler(r.data.adresler || [])).catch(() => {});
     });
   }, [id]);
+
+  useEffect(() => {
+    if (!ilan || adresler.length === 0) return;
+    const geocode = async (sorgu) => {
+      try {
+        const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(sorgu + ', Türkiye')}&format=json&limit=1`;
+        const r = await fetch(url, { headers: { 'Accept-Language': 'tr' } });
+        const d = await r.json();
+        if (d.length > 0) return { lat: parseFloat(d[0].lat), lng: parseFloat(d[0].lon) };
+      } catch {}
+      return null;
+    };
+    const hesapla = async () => {
+      const ilanKoord = (ilan.enlem && ilan.boylam)
+        ? { lat: parseFloat(ilan.enlem), lng: parseFloat(ilan.boylam) }
+        : await geocode([ilan.mahalle, ilan.ilce, ilan.sehir].filter(Boolean).join(' '));
+      if (!ilanKoord) return;
+      const yeni = {};
+      for (const adres of adresler) {
+        let koord = (adres.enlem && adres.boylam)
+          ? { lat: parseFloat(adres.enlem), lng: parseFloat(adres.boylam) }
+          : await geocode([adres.ilce, adres.sehir].filter(Boolean).join(' ') || adres.baslik);
+        if (koord) {
+          const km = parseFloat(haversine(ilanKoord.lat, ilanKoord.lng, koord.lat, koord.lng));
+          yeni[adres.id] = km < 1 ? `${Math.round(km * 1000)} m` : `${km.toFixed(1)} km`;
+        }
+        await new Promise(res => setTimeout(res, 1100));
+      }
+      setGeocodedMesafeler(yeni);
+    };
+    hesapla();
+  }, [ilan, adresler]);
 
   const ulasimGetir = async () => {
     if (!ilan?.sehir) return;
@@ -321,7 +354,7 @@ export default function IlanDetayScreen({ route, navigation }) {
               </View>
             ) : null}
           </View>
-          <Text style={[s.fiyat, { color: colors.text }]}>{fiyatFormat(ilan.fiyat)}</Text>
+          <Text style={[s.fiyat, { color: colors.price }]}>{fiyatFormat(ilan.fiyat)}</Text>
           <View style={s.chipRow}>
             {ilan.oda_sayisi ? <Text style={[s.chip, { color: colors.textSecondary }]}>{ilan.oda_sayisi}</Text> : null}
             {ilan.oda_sayisi && ilan.kat ? <Text style={[s.chipAyrac, { color: colors.border }]}>|</Text> : null}
@@ -372,6 +405,42 @@ export default function IlanDetayScreen({ route, navigation }) {
           </View>
         ) : null}
 
+        {/* BÖLGE ARAMA LİNKLERİ */}
+        {(ilan.sehir || ilan.ilce) ? (
+          <View style={[s.bolum, { backgroundColor: colors.card, borderBottomColor: colors.bg }]}>
+            <Text style={[s.bolumBaslik, { color: colors.grupBaslik }]}>BU BÖLGEDE ARA</Text>
+            <View style={s.bolgeRow}>
+              {ilan.ilce && ilan.tip && (
+                <TouchableOpacity
+                  style={[s.bolgeBtn, { backgroundColor: colors.input, borderColor: colors.border }]}
+                  onPress={() => navigation.navigate('TumIlanlar', { ilce: ilan.ilce, tip: ilan.tip, baslik: `${ilan.ilce} ${ilan.tip}` })}
+                >
+                  <Ionicons name="search-outline" size={13} color="#2563eb" />
+                  <Text style={s.bolgeBtnText}>{ilan.ilce} {ilan.tip}</Text>
+                </TouchableOpacity>
+              )}
+              {ilan.sehir && ilan.tip && (
+                <TouchableOpacity
+                  style={[s.bolgeBtn, { backgroundColor: colors.input, borderColor: colors.border }]}
+                  onPress={() => navigation.navigate('TumIlanlar', { sehir: ilan.sehir, tip: ilan.tip, baslik: `${ilan.sehir} ${ilan.tip}` })}
+                >
+                  <Ionicons name="search-outline" size={13} color="#2563eb" />
+                  <Text style={s.bolgeBtnText}>{ilan.sehir} {ilan.tip}</Text>
+                </TouchableOpacity>
+              )}
+              {ilan.ilce && ilan.emlak_turu && (
+                <TouchableOpacity
+                  style={[s.bolgeBtn, { backgroundColor: colors.input, borderColor: colors.border }]}
+                  onPress={() => navigation.navigate('TumIlanlar', { ilce: ilan.ilce, emlak_turu: ilan.emlak_turu, baslik: `${ilan.ilce} ${ilan.emlak_turu}` })}
+                >
+                  <Ionicons name="home-outline" size={13} color="#7c3aed" />
+                  <Text style={s.bolgeBtnText}>{ilan.ilce} {ilan.emlak_turu}</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          </View>
+        ) : null}
+
         {/* ADRESE UZAKLIĞI */}
         <View style={[s.bolum, { backgroundColor: colors.card, borderBottomColor: colors.bg }]}>
           <Text style={[s.bolumBaslik, { color: colors.grupBaslik }]}>ADRESE UZAKLIĞI</Text>
@@ -386,9 +455,7 @@ export default function IlanDetayScreen({ route, navigation }) {
           ) : (
             adresler.map(adres => {
               const koordinatVar = ilan.enlem && ilan.boylam && adres.enlem && adres.boylam;
-              const mesafe = koordinatVar
-                ? `${haversine(parseFloat(ilan.enlem), parseFloat(ilan.boylam), parseFloat(adres.enlem), parseFloat(adres.boylam))} km`
-                : null;
+              const mesafe = geocodedMesafeler[adres.id] || null;
 
               const ilanAdresMetin = [ilan.mahalle, ilan.ilce, ilan.sehir].filter(Boolean).join(' ');
               const adresMetin     = [adres.ilce, adres.sehir].filter(Boolean).join(' ') || adres.baslik;
@@ -705,6 +772,10 @@ const s = StyleSheet.create({
   devamiBtn:  { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4, marginTop: 14 },
   devamiText: { fontSize: 14, fontWeight: '700', color: '#2563eb' },
   aciklamaText:{ fontSize: 14, color: '#374151', lineHeight: 24 },
+
+  bolgeRow:    { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 4 },
+  bolgeBtn:    { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 10, borderWidth: 1 },
+  bolgeBtnText:{ fontSize: 13, fontWeight: '600', color: '#2563eb' },
 
   // Adrese Uzaklığı
   adresBos:     { gap: 10 },

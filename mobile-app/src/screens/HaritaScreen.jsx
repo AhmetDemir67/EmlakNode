@@ -93,7 +93,7 @@ const haritaHTML = (ilanlar, merkez, zoom) => {
   }
   .fiyat-marker.kiralik { background:#3b82f6; }
   .popup-baslik { font-weight:700; font-size:13px; margin-bottom:4px; color:#111; }
-  .popup-fiyat  { font-weight:900; font-size:15px; color:#2563eb; margin-bottom:3px; }
+  .popup-fiyat  { font-weight:900; font-size:15px; color:#f59e0b; margin-bottom:3px; }
   .popup-konum  { font-size:11px; color:#6b7280; margin-bottom:8px; }
   .popup-btn    { background:#2563eb; color:#fff; border:none; border-radius:8px;
                   padding:6px 14px; font-weight:700; font-size:13px; cursor:pointer; width:100%; }

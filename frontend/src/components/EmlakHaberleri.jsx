@@ -43,7 +43,7 @@ const KATEGORI_RENK = {
 };
 
 const HaberKarti = ({ haber }) => (
-  <div className="flex bg-white dark:bg-gray-800 rounded-2xl overflow-hidden border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow cursor-pointer group">
+  <div className="flex bg-white dark:bg-gray-800/80 rounded-2xl overflow-hidden border border-gray-100 dark:border-gray-700/60 shadow-sm hover:shadow-xl dark:hover:shadow-blue-950/20 hover:-translate-y-0.5 transition-all duration-200 cursor-pointer group">
     <div className="w-36 sm:w-44 flex-shrink-0 overflow-hidden">
       <img
         src={haber.gorsel}
@@ -58,7 +58,7 @@ const HaberKarti = ({ haber }) => (
         <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full ${KATEGORI_RENK[haber.kategori] || 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300'}`}>
           <Tag size={9} /> {haber.kategori}
         </span>
-        <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100 mt-1.5 mb-1 leading-snug line-clamp-2 group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors">
+        <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100 mt-1.5 mb-1 leading-snug line-clamp-2 group-hover:text-blue-700 dark:group-hover:text-amber-400 transition-colors">
           {haber.baslik}
         </h3>
         <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2 leading-relaxed">{haber.ozet}</p>
@@ -77,7 +77,9 @@ const EmlakHaberleri = () => (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
       <div className="flex items-center justify-between mb-7">
-        <h2 className="text-2xl font-extrabold text-gray-900 dark:text-gray-100">Emlak Haberleri</h2>
+        <h2 className="text-2xl font-extrabold text-gray-900 dark:text-gray-100">
+          Emlak <span className="bg-gradient-to-r from-blue-600 to-violet-500 bg-clip-text text-transparent">Haberleri</span>
+        </h2>
         <span className="text-gray-300 dark:text-gray-600 text-sm font-semibold flex items-center gap-1 cursor-default select-none">
           Tüm Haberler <ArrowRight size={14} />
         </span>

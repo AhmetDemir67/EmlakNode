@@ -11,7 +11,7 @@ import {
   Shield, Flag, ExternalLink, Bath, Car, Trees, Sofa, Hash, Send,
   Train, Bus, Navigation, Footprints, Sparkles, TrendingUp, RotateCcw,
 } from 'lucide-react';
-import { ilanDetayGetir, ilanlarGetir, favoriEkle, favoriSil, favoriKontrol, mesajGonder, aiUlasimAnalizi } from '../services/api';
+import { ilanDetayGetir, ilanlarGetir, favoriEkle, favoriSil, favoriKontrol, mesajGonder, aiUlasimAnalizi, kayitliAdreslerGetir } from '../services/api';
 
 // ── Fiyat formatlayıcı ──────────────────────────────────────────
 const fiyatFormatla = (fiyat) =>
@@ -176,6 +176,103 @@ const MiniIlanKarti = ({ ilan }) => {
   );
 };
 
+// ── Tam Ekran Fotoğraf Galerisi (Lightbox) ─────────────────────
+const FotografLightbox = ({ galeri, aktifIndex, onDegistir, onKapat }) => {
+  const thumbRef = useRef(null);
+
+  useEffect(() => {
+    const handler = (e) => {
+      if (e.key === 'ArrowLeft')  onDegistir((aktifIndex - 1 + galeri.length) % galeri.length);
+      if (e.key === 'ArrowRight') onDegistir((aktifIndex + 1) % galeri.length);
+      if (e.key === 'Escape')     onKapat();
+    };
+    document.addEventListener('keydown', handler);
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', handler);
+      document.body.style.overflow = '';
+    };
+  }, [aktifIndex, galeri.length, onDegistir, onKapat]);
+
+  useEffect(() => {
+    if (thumbRef.current) {
+      const el = thumbRef.current.children[aktifIndex];
+      if (el) el.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' });
+    }
+  }, [aktifIndex]);
+
+  return (
+    <div className="fixed inset-0 z-[9999] bg-black flex flex-col select-none" onClick={onKapat}>
+      {/* Header */}
+      <div
+        className="flex-shrink-0 absolute top-0 left-0 right-0 z-10 flex items-center justify-between px-4 py-3 bg-gradient-to-b from-black/80 to-transparent"
+        onClick={e => e.stopPropagation()}
+      >
+        <span className="text-white font-bold text-sm">
+          {aktifIndex + 1} <span className="text-white/50 font-normal">/ {galeri.length}</span>
+        </span>
+        <div className="flex items-center gap-3">
+          <span className="hidden sm:flex items-center gap-1 text-white/40 text-xs">
+            <span className="bg-white/10 px-1.5 py-0.5 rounded text-[10px]">←</span>
+            <span className="bg-white/10 px-1.5 py-0.5 rounded text-[10px]">→</span>
+            <span className="bg-white/10 px-1.5 py-0.5 rounded text-[10px]">Esc</span>
+          </span>
+          <button onClick={onKapat}
+            className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/25 flex items-center justify-center transition-colors">
+            <X size={20} className="text-white" />
+          </button>
+        </div>
+      </div>
+
+      {/* Ana görsel */}
+      <div
+        className="flex-1 flex items-center justify-center min-h-0 px-16 py-16 relative"
+        onClick={e => e.stopPropagation()}
+      >
+        <button onClick={() => onDegistir((aktifIndex - 1 + galeri.length) % galeri.length)}
+          className="absolute left-3 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white/10 hover:bg-white/25 active:scale-95 flex items-center justify-center transition-all backdrop-blur-sm z-10">
+          <ChevronLeft size={26} className="text-white" />
+        </button>
+
+        <img
+          key={aktifIndex}
+          src={galeri[aktifIndex]}
+          alt=""
+          className="max-h-full max-w-full object-contain rounded-xl shadow-2xl"
+          onError={e => { e.currentTarget.src = GORSEL_FALLBACK; }}
+        />
+
+        <button onClick={() => onDegistir((aktifIndex + 1) % galeri.length)}
+          className="absolute right-3 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white/10 hover:bg-white/25 active:scale-95 flex items-center justify-center transition-all backdrop-blur-sm z-10">
+          <ChevronRight size={26} className="text-white" />
+        </button>
+      </div>
+
+      {/* Thumbnail şeridi */}
+      {galeri.length > 1 && (
+        <div
+          className="flex-shrink-0 pb-5 pt-6 px-4 bg-gradient-to-t from-black/80 to-transparent"
+          onClick={e => e.stopPropagation()}
+        >
+          <div ref={thumbRef} className="flex gap-2 overflow-x-auto justify-center" style={{ scrollbarWidth: 'none' }}>
+            {galeri.map((url, i) => (
+              <button key={i} onClick={() => onDegistir(i)}
+                className={`flex-shrink-0 rounded-lg overflow-hidden border-2 transition-all duration-200 ${
+                  i === aktifIndex
+                    ? 'w-20 h-14 border-white scale-105 shadow-lg'
+                    : 'w-16 h-12 border-transparent opacity-40 hover:opacity-75'
+                }`}>
+                <img src={url} alt="" className="w-full h-full object-cover"
+                  onError={e => { e.currentTarget.src = GORSEL_FALLBACK; }} />
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 // ════════════════════════════════════════════════════════════════
 // ANA BİLEŞEN
 // ════════════════════════════════════════════════════════════════
@@ -194,6 +291,7 @@ const ListingDetail = () => {
   const [mesajGond, setMesajGond]     = useState(false);
   const [mesajGondOk, setMesajGondOk] = useState(false);
   const [haritaAcik, setHaritaAcik]   = useState(false);
+  const [lightboxAcik, setLightboxAcik] = useState(false);
   const [aktifFoto, setAktifFoto]     = useState(0);
   const [firmaIlanlar, setFirmaIlanlar]   = useState([]);
   const [benzerIlanlar, setBenzerIlanlar] = useState([]);
@@ -202,6 +300,8 @@ const ListingDetail = () => {
   const [bildirGond, setBildirGond]       = useState(false);
   const [ulasim, setUlasim]               = useState(null);
   const [ulasimYukleniyor, setUlasimYuk]  = useState(false);
+  const [kayitliAdresler, setKayitliAdresler] = useState([]);
+  const [adresMesafeleri, setAdresMesafeleri] = useState({});
   const firmaRef = useRef(null);
 
   const girisYapilmis = !!localStorage.getItem('token');
@@ -261,6 +361,64 @@ const ListingDetail = () => {
     detayGetir();
   }, [id]);
 
+  // Kayıtlı adresleri çek
+  useEffect(() => {
+    if (!localStorage.getItem('token')) return;
+    kayitliAdreslerGetir()
+      .then(r => setKayitliAdresler(r.data.adresler || []))
+      .catch(() => {});
+  }, []);
+
+  // Tüm adresler için mesafe hesapla
+  useEffect(() => {
+    if (!ilan || kayitliAdresler.length === 0) return;
+
+    const geocode = async (sorgu) => {
+      if (!sorgu) return null;
+      try {
+        const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(sorgu + ', Türkiye')}&format=json&limit=1`;
+        const r = await fetch(url, { headers: { 'Accept-Language': 'tr' } });
+        const data = await r.json();
+        if (data.length > 0) return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
+      } catch {}
+      return null;
+    };
+
+    const haversine = (lat1, lon1, lat2, lon2) => {
+      const toRad = (d) => d * Math.PI / 180;
+      const R = 6371;
+      const dLat = toRad(lat2 - lat1);
+      const dLon = toRad(lon2 - lon1);
+      const a = Math.sin(dLat / 2) ** 2 +
+        Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
+      return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    };
+
+    const hesaplaHepsi = async () => {
+      const ilanKoord = (ilan.enlem && ilan.boylam)
+        ? { lat: parseFloat(ilan.enlem), lng: parseFloat(ilan.boylam) }
+        : await geocode([ilan.mahalle, ilan.ilce, ilan.sehir].filter(Boolean).join(', '));
+      if (!ilanKoord) return;
+
+      const yeniMesafeler = {};
+      for (const adres of kayitliAdresler) {
+        const sorgu = [adres.ilce, adres.sehir].filter(Boolean).join(', ')
+          || [adres.adres, adres.ilce, adres.sehir].filter(Boolean).join(', ')
+          || adres.baslik;
+        const adresKoord = await geocode(sorgu);
+        if (adresKoord) {
+          const km = haversine(adresKoord.lat, adresKoord.lng, ilanKoord.lat, ilanKoord.lng);
+          yeniMesafeler[adres.id] = km < 1 ? `${Math.round(km * 1000)} m` : `${km.toFixed(1)} km`;
+        }
+        // Nominatim rate limit
+        await new Promise(res => setTimeout(res, 1100));
+      }
+      setAdresMesafeleri(yeniMesafeler);
+    };
+
+    hesaplaHepsi();
+  }, [ilan, kayitliAdresler]);
+
   if (yukleniyor) return <div className="min-h-screen bg-slate-50 dark:bg-gray-950"><SkeletonDetail /></div>;
 
   if (hata) return (
@@ -310,12 +468,12 @@ const ListingDetail = () => {
 
   // Mahalle arama linkleri
   const mahalleLinkleri = [
-    ilan.sehir && ilan.mahalle && `${ilan.mahalle} Mahallesi Satılık Daire İlanları`,
-    ilan.sehir && ilan.ilce    && `${ilan.ilce} Satılık Daire İlanları`,
-    ilan.sehir                 && `${ilan.sehir} Satılık Konut İlanları`,
-    ilan.sehir && ilan.ilce    && `${ilan.ilce} Kiralık Daire İlanları`,
-    ilan.sehir                 && `${ilan.sehir} Satılık Arsa İlanları`,
-    ilan.sehir && ilan.ilce    && `${ilan.ilce} Satılık İşyeri İlanları`,
+    ilan.sehir && ilan.ilce && { label: `${ilan.ilce} Satılık Daire`,   params: { sehir: ilan.sehir, ilce: ilan.ilce,  tip: 'Satılık',  emlak_turu: 'Daire'   } },
+    ilan.sehir && ilan.ilce && { label: `${ilan.ilce} Kiralık Daire`,   params: { sehir: ilan.sehir, ilce: ilan.ilce,  tip: 'Kiralık',  emlak_turu: 'Daire'   } },
+    ilan.sehir              && { label: `${ilan.sehir} Satılık Konut`,  params: { sehir: ilan.sehir,                   tip: 'Satılık',  emlak_turu: 'Daire'   } },
+    ilan.sehir              && { label: `${ilan.sehir} Kiralık Konut`,  params: { sehir: ilan.sehir,                   tip: 'Kiralık',  emlak_turu: 'Daire'   } },
+    ilan.sehir              && { label: `${ilan.sehir} Satılık Arsa`,   params: { sehir: ilan.sehir,                   tip: 'Satılık',  emlak_turu: 'Arsa'    } },
+    ilan.sehir && ilan.ilce && { label: `${ilan.ilce} Satılık İşyeri`,  params: { sehir: ilan.sehir, ilce: ilan.ilce,  tip: 'Satılık',  emlak_turu: 'İşyeri'  } },
   ].filter(Boolean);
 
   return (
@@ -400,73 +558,96 @@ const ListingDetail = () => {
           <div className="lg:col-span-8 space-y-5">
 
             {/* Görsel Galerisi */}
-            <div className="relative rounded-2xl overflow-hidden bg-slate-200 shadow-sm">
-              <img
-                src={galeri[aktifFoto] || GORSEL_FALLBACK}
-                alt={ilan.baslik}
-                className="w-full h-72 sm:h-[420px] object-cover transition-opacity duration-200"
-                onError={e => { e.currentTarget.src = GORSEL_FALLBACK; }}
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none" />
-
-              {/* Önceki / Sonraki oklar */}
-              {galeri.length > 1 && (
-                <>
-                  <button
-                    onClick={() => setAktifFoto(i => (i - 1 + galeri.length) % galeri.length)}
-                    className="absolute left-3 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full w-9 h-9 flex items-center justify-center transition-colors z-10"
-                  >
-                    <ChevronLeft size={18} />
-                  </button>
-                  <button
-                    onClick={() => setAktifFoto(i => (i + 1) % galeri.length)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full w-9 h-9 flex items-center justify-center transition-colors z-10"
-                  >
-                    <ChevronRight size={18} />
-                  </button>
-                  <div className="absolute top-3 right-3 bg-black/55 text-white text-xs font-bold px-2.5 py-1 rounded-full">
-                    {aktifFoto + 1} / {galeri.length}
+            <div className="space-y-2">
+              {galeri.length === 1 ? (
+                /* ── Tek fotoğraf ── */
+                <div
+                  className="relative rounded-2xl overflow-hidden bg-slate-200 shadow-sm cursor-zoom-in group"
+                  onClick={() => { setAktifFoto(0); setLightboxAcik(true); }}
+                >
+                  <img
+                    src={galeri[0]}
+                    alt={ilan.baslik}
+                    className="w-full h-72 sm:h-[480px] object-cover group-hover:brightness-95 transition-all duration-200"
+                    onError={e => { e.currentTarget.src = GORSEL_FALLBACK; }}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
+                  <div className="absolute bottom-3 left-3 flex gap-2 flex-wrap">
+                    {ilan.oda_sayisi && <span className="bg-white/90 backdrop-blur-sm text-slate-700 text-xs font-semibold px-3 py-1.5 rounded-full flex items-center gap-1.5"><BedDouble size={11} className="text-blue-600" />{ilan.oda_sayisi}</span>}
+                    {ilan.metrekare  && <span className="bg-white/90 backdrop-blur-sm text-slate-700 text-xs font-semibold px-3 py-1.5 rounded-full flex items-center gap-1.5"><Square size={11} className="text-blue-600" />{ilan.metrekare} m²</span>}
+                    {ilan.kat != null && <span className="bg-white/90 backdrop-blur-sm text-slate-700 text-xs font-semibold px-3 py-1.5 rounded-full flex items-center gap-1.5"><Layers size={11} className="text-blue-600" />{ilan.kat}. Kat</span>}
                   </div>
-                </>
-              )}
+                  <div className="absolute top-3 right-3 bg-black/55 backdrop-blur-sm text-white text-xs font-bold px-2.5 py-1.5 rounded-lg flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Maximize2 size={12} /> Tam Ekran
+                  </div>
+                </div>
 
-              {/* Alt bölüm: thumbnail şeridi + bilgi chips */}
-              <div className="absolute bottom-0 left-0 right-0 p-4 flex flex-col gap-2">
-                {galeri.length > 1 && (
-                  <div className="flex gap-1.5 overflow-x-auto pb-0.5" style={{ scrollbarWidth: 'none' }}>
-                    {galeri.map((url, i) => (
-                      <button key={i} type="button" onClick={() => setAktifFoto(i)}
-                        className={`flex-shrink-0 w-12 h-9 rounded-lg overflow-hidden border-2 transition-all ${i === aktifFoto ? 'border-white shadow-lg' : 'border-transparent opacity-60 hover:opacity-90'}`}>
-                        <img src={url} alt="" className="w-full h-full object-cover" onError={e => { e.currentTarget.src = GORSEL_FALLBACK; }} />
-                      </button>
+              ) : galeri.length === 2 ? (
+                /* ── 2 fotoğraf ── */
+                <div className="grid grid-cols-2 gap-2 h-[300px] sm:h-[460px] rounded-2xl overflow-hidden shadow-sm">
+                  {galeri.slice(0, 2).map((url, i) => (
+                    <div key={i} className="relative overflow-hidden bg-slate-200 cursor-zoom-in group"
+                      onClick={() => { setAktifFoto(i); setLightboxAcik(true); }}>
+                      <img src={url} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        onError={e => { e.currentTarget.src = GORSEL_FALLBACK; }} />
+                      {i === 0 && <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent pointer-events-none" />}
+                    </div>
+                  ))}
+                </div>
+
+              ) : (
+                /* ── 3+ fotoğraf: sol büyük + sağda 2 küçük ── */
+                <div className="grid grid-cols-3 gap-2 h-[300px] sm:h-[460px] rounded-2xl overflow-hidden shadow-sm">
+                  {/* Ana foto (2/3 genişlik) */}
+                  <div className="col-span-2 relative overflow-hidden bg-slate-200 cursor-zoom-in group"
+                    onClick={() => { setAktifFoto(0); setLightboxAcik(true); }}>
+                    <img src={galeri[0]} alt={ilan.baslik}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      onError={e => { e.currentTarget.src = GORSEL_FALLBACK; }} />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent pointer-events-none" />
+                    <div className="absolute bottom-3 left-3 flex gap-2 flex-wrap">
+                      {ilan.oda_sayisi && <span className="bg-white/90 backdrop-blur-sm text-slate-700 text-xs font-semibold px-3 py-1.5 rounded-full flex items-center gap-1.5"><BedDouble size={11} className="text-blue-600" />{ilan.oda_sayisi}</span>}
+                      {ilan.metrekare  && <span className="bg-white/90 backdrop-blur-sm text-slate-700 text-xs font-semibold px-3 py-1.5 rounded-full flex items-center gap-1.5"><Square size={11} className="text-blue-600" />{ilan.metrekare} m²</span>}
+                      {ilan.kat != null && <span className="bg-white/90 backdrop-blur-sm text-slate-700 text-xs font-semibold px-3 py-1.5 rounded-full flex items-center gap-1.5"><Layers size={11} className="text-blue-600" />{ilan.kat}. Kat</span>}
+                    </div>
+                  </div>
+                  {/* Sağdaki 2 küçük fotoğraf */}
+                  <div className="flex flex-col gap-2">
+                    {galeri.slice(1, 3).map((url, i) => (
+                      <div key={i} className="relative flex-1 overflow-hidden bg-slate-200 cursor-zoom-in group"
+                        onClick={() => { setAktifFoto(i + 1); setLightboxAcik(true); }}>
+                        <img src={url} alt=""
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          onError={e => { e.currentTarget.src = GORSEL_FALLBACK; }} />
+                        {/* "+N daha" overlay */}
+                        {i === 1 && galeri.length > 3 && (
+                          <div className="absolute inset-0 bg-black/60 backdrop-blur-[1px] flex flex-col items-center justify-center">
+                            <span className="text-white text-2xl font-extrabold">+{galeri.length - 3}</span>
+                            <span className="text-white/80 text-xs mt-0.5">fotoğraf</span>
+                          </div>
+                        )}
+                      </div>
                     ))}
                   </div>
-                )}
-                <div className="flex items-end justify-between">
-                  <div className="flex gap-2 flex-wrap">
-                    {ilan.oda_sayisi && (
-                      <span className="bg-white/90 backdrop-blur-sm text-slate-700 text-xs font-semibold px-3 py-1.5 rounded-full flex items-center gap-1.5">
-                        <BedDouble size={11} className="text-blue-600" /> {ilan.oda_sayisi}
-                      </span>
-                    )}
-                    {ilan.metrekare && (
-                      <span className="bg-white/90 backdrop-blur-sm text-slate-700 text-xs font-semibold px-3 py-1.5 rounded-full flex items-center gap-1.5">
-                        <Square size={11} className="text-blue-600" /> {ilan.metrekare} m²
-                      </span>
-                    )}
-                    {ilan.kat != null && (
-                      <span className="bg-white/90 backdrop-blur-sm text-slate-700 text-xs font-semibold px-3 py-1.5 rounded-full flex items-center gap-1.5">
-                        <Layers size={11} className="text-blue-600" /> {ilan.kat}. Kat
-                      </span>
-                    )}
-                  </div>
-                  <button
-                    onClick={() => setHaritaAcik(true)}
-                    className="bg-white/90 backdrop-blur-sm hover:bg-white text-slate-700 hover:text-blue-700 text-xs font-semibold px-3 py-1.5 rounded-full flex items-center gap-1.5 transition-colors"
-                  >
-                    <Map size={11} className="text-blue-600" /> Haritada Gör
-                  </button>
                 </div>
+              )}
+
+              {/* Alt aksiyon barı */}
+              <div className="flex items-center justify-between">
+                <button
+                  onClick={() => setHaritaAcik(true)}
+                  className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 dark:text-gray-300 border border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-blue-300 hover:text-blue-600 dark:hover:text-blue-400 px-3 py-2 rounded-xl transition-all"
+                >
+                  <Map size={13} className="text-blue-500" /> Haritada Gör
+                </button>
+                {galeri.length > 1 && (
+                  <button
+                    onClick={() => { setAktifFoto(0); setLightboxAcik(true); }}
+                    className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 dark:text-gray-300 border border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-blue-300 hover:text-blue-600 dark:hover:text-blue-400 px-3 py-2 rounded-xl transition-all"
+                  >
+                    <Maximize2 size={13} className="text-blue-500" /> Tüm Fotoğraflar ({galeri.length})
+                  </button>
+                )}
               </div>
             </div>
 
@@ -551,6 +732,31 @@ const ListingDetail = () => {
             )}
             {/* Nasıl Gidilir? */}
             <div className="bg-white dark:bg-gray-800 rounded-2xl border border-slate-100 dark:border-gray-700 shadow-sm p-6">
+              {kayitliAdresler.length > 0 && (
+                <div className="space-y-2 mb-4">
+                  {kayitliAdresler.map(adres => {
+                    const mesafe = adresMesafeleri[adres.id];
+                    return (
+                      <div key={adres.id} className="flex items-center justify-between gap-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl px-4 py-2.5">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <Home size={14} className="text-amber-500 dark:text-amber-400 flex-shrink-0" />
+                          <span className="text-xs font-semibold text-amber-700 dark:text-amber-300 truncate">{adres.baslik}</span>
+                          {adres.ilce || adres.sehir
+                            ? <span className="text-xs text-amber-500 dark:text-amber-400 truncate hidden sm:inline">
+                                {[adres.ilce, adres.sehir].filter(Boolean).join(', ')}
+                              </span>
+                            : null}
+                        </div>
+                        {mesafe
+                          ? <span className="text-sm font-black text-amber-700 dark:text-amber-300 flex-shrink-0">~ {mesafe}</span>
+                          : <span className="text-xs text-amber-400 dark:text-amber-500 flex-shrink-0 animate-pulse">Hesaplanıyor…</span>
+                        }
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-base font-bold text-slate-900 dark:text-gray-100 flex items-center gap-2">
                   <div className="w-1 h-5 bg-blue-600 rounded-full" /> Nasıl Gidilir?
@@ -678,6 +884,17 @@ const ListingDetail = () => {
                       <Phone size={15} /> Telefona Bak
                     </button>
                   )}
+                  {telefonGoster && (ilan.sahip_telefon || ilan.kullanici_telefon) && (
+                    <a
+                      href={`https://wa.me/${(ilan.sahip_telefon || ilan.kullanici_telefon).replace(/\D/g, '').replace(/^0/, '90')}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-xl transition-all text-sm"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.559 4.122 1.533 5.856L.054 23.94l6.235-1.449A11.934 11.934 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.6a9.571 9.571 0 01-4.878-1.336l-.35-.208-3.619.84.891-3.54-.228-.363A9.578 9.578 0 012.4 12C2.4 6.698 6.698 2.4 12 2.4S21.6 6.698 21.6 12 17.302 21.6 12 21.6z"/></svg>
+                      WhatsApp
+                    </a>
+                  )}
                   <button onClick={() => {
                       if (!girisYapilmis) { navigate('/login'); return; }
                       setMesajMod(true);
@@ -789,7 +1006,7 @@ const ListingDetail = () => {
                 </p>
               </div>
               <button
-                onClick={() => navigate(`/?sehir=${encodeURIComponent(ilan.sehir || '')}&tip=${encodeURIComponent(ilan.tip || '')}`)}
+                onClick={() => navigate(`/ilanlar?sehir=${encodeURIComponent(ilan.sehir || '')}&tip=${encodeURIComponent(ilan.tip || '')}`)}
                 className="text-sm text-blue-600 hover:text-blue-700 font-semibold flex items-center gap-1 whitespace-nowrap"
               >
                 Tümünü Gör <ChevronRight size={14} />
@@ -866,15 +1083,18 @@ const ListingDetail = () => {
               {ilan.ilce || ilan.sehir} Bölgesinde Ara
             </h2>
             <div className="flex flex-wrap gap-2">
-              {mahalleLinkleri.map((link, i) => (
-                <button
-                  key={i}
-                  onClick={() => navigate(`/?sehir=${encodeURIComponent(ilan.sehir || '')}&tip=${encodeURIComponent(tip)}`)}
-                  className="text-xs text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 border border-blue-100 dark:border-blue-800 px-3 py-1.5 rounded-full transition-colors font-medium"
-                >
-                  {link}
-                </button>
-              ))}
+              {mahalleLinkleri.map((link, i) => {
+                const qs = new URLSearchParams(Object.fromEntries(Object.entries(link.params).filter(([,v]) => v)));
+                return (
+                  <button
+                    key={i}
+                    onClick={() => navigate(`/ilanlar?${qs.toString()}`)}
+                    className="text-xs text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 border border-blue-100 dark:border-blue-800 px-3 py-1.5 rounded-full transition-colors font-medium"
+                  >
+                    {link.label}
+                  </button>
+                );
+              })}
             </div>
           </div>
         )}
@@ -975,6 +1195,16 @@ const ListingDetail = () => {
             )}
           </div>
         </div>
+      )}
+
+      {/* ══ FOTOĞRAF LİGHTBOX ════════════════════════════════════ */}
+      {lightboxAcik && (
+        <FotografLightbox
+          galeri={galeri}
+          aktifIndex={aktifFoto}
+          onDegistir={setAktifFoto}
+          onKapat={() => setLightboxAcik(false)}
+        />
       )}
 
       {/* ══ TAM EKRAN HARİTA MODALI ════════════════════════════════ */}

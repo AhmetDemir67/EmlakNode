@@ -36,7 +36,7 @@ const IlanKarti = ({ ilan, onPress, colors }) => (
       <Text style={s.tipText}>{ilan.tip || 'Satılık'}</Text>
     </View>
     <View style={s.ilanBilgi}>
-      <Text style={[s.ilanFiyat, { color: '#2563eb' }]}>{fiyatFormat(ilan.fiyat)}</Text>
+      <Text style={[s.ilanFiyat, { color: '#f59e0b' }]}>{fiyatFormat(ilan.fiyat)}</Text>
       {ilan.onceki_fiyat ? (
         <View style={s.dususBadge}>
           <Ionicons name="trending-down" size={10} color="#2563eb" />
@@ -123,7 +123,7 @@ export default function KesifScreen({ navigation }) {
       >
         <View style={s.gradientHeaderTop}>
           <View>
-            <Text style={s.gradientLogo}>Emlak<Text style={{ color: '#bfdbfe' }}>Node</Text></Text>
+            <Text style={s.gradientLogo}>Emlak<Text style={{ color: '#fbbf24' }}>Node</Text></Text>
             <Text style={s.gradientAlt}>Hayalindeki evi bul</Text>
           </View>
           <View style={{ flexDirection: 'row', gap: 10 }}>
@@ -183,7 +183,7 @@ export default function KesifScreen({ navigation }) {
                   <Image source={{ uri: item.gorsel || GORSEL_FALLBACK }} style={s.aramaSonucGorsel} resizeMode="cover" />
                   <View style={s.aramaSonucBilgi}>
                     <Text style={[s.aramaSonucBaslik, { color: colors.text }]} numberOfLines={2}>{item.baslik}</Text>
-                    <Text style={[s.aramaSonucFiyat, { color: '#2563eb' }]}>{fiyatFormat(item.fiyat)}</Text>
+                    <Text style={[s.aramaSonucFiyat, { color: '#f59e0b' }]}>{fiyatFormat(item.fiyat)}</Text>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 }}>
                       <Ionicons name="location-outline" size={11} color={colors.textMuted} />
                       <Text style={[s.aramaSonucKonum, { color: colors.textMuted }]} numberOfLines={1}>
@@ -288,9 +288,9 @@ export default function KesifScreen({ navigation }) {
           <TouchableOpacity
             key={t.key}
             onPress={() => setAktifTab(t.key)}
-            style={[s.tabBtn, aktifTab === t.key && { backgroundColor: tema === 'dark' ? '#1e3a5f' : '#eff6ff' }]}
+            style={[s.tabBtn, aktifTab === t.key && { backgroundColor: tema === 'dark' ? '#1c1a0e' : '#eff6ff' }]}
           >
-            <Text style={[s.tabText, { color: colors.textSecondary }, aktifTab === t.key && { color: '#2563eb' }]}>
+            <Text style={[s.tabText, { color: colors.textSecondary }, aktifTab === t.key && { color: tema === 'dark' ? '#f59e0b' : '#2563eb' }]}>
               {t.key === 'satilik' ? 'Fiyatı Düşen Satılıklar' : 'Fiyatı Düşen Kiralıklar'}
             </Text>
           </TouchableOpacity>

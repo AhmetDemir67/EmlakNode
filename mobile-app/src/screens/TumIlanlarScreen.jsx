@@ -23,8 +23,15 @@ const SIRALA_SECENEKLER = [
   { key: 'metrekare',  label: 'En Büyük m²' },
 ];
 
-const TIPLER    = ['Tümü', 'Satılık', 'Kiralık'];
-const TURLER    = ['Tümü', 'Daire', 'Villa', 'Arsa', 'İşyeri', 'Müstakil Ev'];
+const TIPLER      = ['Tümü', 'Satılık', 'Kiralık'];
+const TURLER      = ['Tümü', 'Daire', 'Villa', 'Arsa', 'İşyeri', 'Müstakil Ev'];
+const ODA_SEC     = ['Stüdyo', '1+1', '2+1', '3+1', '4+1', '5+1+'];
+const FIYAT_HIZLI = [
+  { label: '< 1M',  min: '',         max: '1000000'  },
+  { label: '1–3M',  min: '1000000',  max: '3000000'  },
+  { label: '3–5M',  min: '3000000',  max: '5000000'  },
+  { label: '5M+',   min: '5000000',  max: ''         },
+];
 
 const IlanKarti = ({ item, onPress }) => {
   const { colors } = useTheme();
@@ -48,7 +55,7 @@ const IlanKarti = ({ item, onPress }) => {
         <View style={s.bilgiUst}>
           <View style={{ flex: 1 }}>
             <Text style={[s.baslik, { color: colors.text }]} numberOfLines={2}>{item.baslik}</Text>
-            <Text style={[s.fiyat, { color: colors.text }]}>{fiyatFormat(item.fiyat)}</Text>
+            <Text style={[s.fiyat, { color: colors.price }]}>{fiyatFormat(item.fiyat)}</Text>
             {item.onceki_fiyat ? (
               <View style={s.dususBadge}>
                 <Ionicons name="trending-down" size={12} color="#2563eb" />
@@ -90,11 +97,15 @@ const IlanKarti = ({ item, onPress }) => {
 
 export default function TumIlanlarScreen({ route, navigation }) {
   const { colors } = useTheme();
-  const baslangicTip       = route.params?.tip        || 'Tümü';
-  const baslangicTur       = route.params?.emlak_turu || 'Tümü';
+  const baslangicTip        = route.params?.tip        || 'Tümü';
+  const baslangicTur        = route.params?.emlak_turu || 'Tümü';
   const baslangicFiyatDustu = route.params?.fiyat_dustu || false;
-  const baslangicQ         = route.params?.arama       || '';
-  const sayfaBasligi       = route.params?.baslik     || 'Tüm İlanlar';
+  const baslangicQ          = route.params?.arama       || '';
+  const baslangicSehir      = route.params?.sehir       || '';
+  const baslangicIlce       = route.params?.ilce        || '';
+  const baslangicDukkanId   = route.params?.dukkan_id   || '';
+  const sayfaBasligi        = route.params?.baslik
+    || (baslangicDukkanId ? 'Firma İlanları' : [baslangicIlce, baslangicSehir].filter(Boolean).join(', ') || 'Tüm İlanlar');
 
   const [ilanlar, setIlanlar]             = useState([]);
   const [yukleniyor, setYukleniyor]       = useState(true);
@@ -102,13 +113,19 @@ export default function TumIlanlarScreen({ route, navigation }) {
   const [filtreTip, setFiltreTip]         = useState(baslangicTip);
   const [filtreTur, setFiltreTur]         = useState(baslangicTur);
   const [filtreFiyatDustu]               = useState(baslangicFiyatDustu);
-  // Yazma sırasında güncellenen geçici değerler (API çağrısı tetiklemez)
+  // Modal içi geçici değerler
   const [minFiyat, setMinFiyat]           = useState('');
   const [maxFiyat, setMaxFiyat]           = useState('');
   const [minMetrekare, setMinMetrekare]   = useState('');
   const [maxMetrekare, setMaxMetrekare]   = useState('');
-  // Uygula butonuna basınca güncellenen değerler (bunlar API çağrısını tetikler)
-  const [uygulanmis, setUygulanmis]       = useState({ minFiyat: '', maxFiyat: '', minMetrekare: '', maxMetrekare: '' });
+  const [tmpSehir, setTmpSehir]           = useState('');
+  const [tmpIlce, setTmpIlce]             = useState('');
+  const [tmpOda, setTmpOda]               = useState('');
+  // Uygula'ya basınca API çağrısını tetikleyen değerler
+  const [uygulanmis, setUygulanmis]       = useState({
+    minFiyat: '', maxFiyat: '', minMetrekare: '', maxMetrekare: '',
+    sehir: baslangicSehir, ilce: baslangicIlce, oda: '',
+  });
   const [siralaMod, setSiralaMod]         = useState(false);
   const [filtreMod, setFiltreMod]         = useState(false);
   const [kaydetMod, setKaydetMod]         = useState(false);
@@ -122,6 +139,13 @@ export default function TumIlanlarScreen({ route, navigation }) {
       if (filtreTur !== 'Tümü')        params.emlak_turu    = filtreTur;
       if (filtreFiyatDustu)            params.fiyat_dustu   = true;
       if (baslangicQ)                  params.arama         = baslangicQ;
+      if (baslangicDukkanId)           params.dukkan_id     = baslangicDukkanId;
+      if (uygulanmis.sehir)            params.sehir         = uygulanmis.sehir;
+      if (uygulanmis.ilce)             params.ilce          = uygulanmis.ilce;
+      if (uygulanmis.oda) {
+        const odaMap = { 'Stüdyo': '1+0', '5+1+': '5+1' };
+        params.oda_sayisi = odaMap[uygulanmis.oda] || uygulanmis.oda;
+      }
       if (uygulanmis.minFiyat)         params.min_fiyat     = uygulanmis.minFiyat;
       if (uygulanmis.maxFiyat)         params.max_fiyat     = uygulanmis.maxFiyat;
       if (uygulanmis.minMetrekare)     params.min_metrekare = uygulanmis.minMetrekare;
@@ -139,12 +163,21 @@ export default function TumIlanlarScreen({ route, navigation }) {
     } finally {
       setYukleniyor(false);
     }
-  }, [filtreTip, filtreTur, filtreFiyatDustu, baslangicQ, sirala, uygulanmis]);
+  }, [filtreTip, filtreTur, filtreFiyatDustu, baslangicQ, baslangicDukkanId, sirala, uygulanmis]);
 
   useFocusEffect(useCallback(() => { getir(); }, [getir]));
 
   const aktifSirala = SIRALA_SECENEKLER.find(s => s.key === sirala)?.label || 'Sırala';
-  const filtreAktif = filtreTip !== 'Tümü' || filtreTur !== 'Tümü' || !!uygulanmis.minFiyat || !!uygulanmis.maxFiyat || !!uygulanmis.minMetrekare || !!uygulanmis.maxMetrekare;
+  const filtreAktif = filtreTip !== 'Tümü' || filtreTur !== 'Tümü' ||
+    !!uygulanmis.oda || !!uygulanmis.sehir || !!uygulanmis.ilce ||
+    !!uygulanmis.minFiyat || !!uygulanmis.maxFiyat ||
+    !!uygulanmis.minMetrekare || !!uygulanmis.maxMetrekare;
+  const filtreSayisi = [
+    filtreTip !== 'Tümü', filtreTur !== 'Tümü',
+    !!uygulanmis.oda, !!uygulanmis.sehir || !!uygulanmis.ilce,
+    !!uygulanmis.minFiyat || !!uygulanmis.maxFiyat,
+    !!uygulanmis.minMetrekare || !!uygulanmis.maxMetrekare,
+  ].filter(Boolean).length;
 
   const aramaKaydet = async () => {
     const token = await AsyncStorage.getItem('token');
@@ -160,6 +193,9 @@ export default function TumIlanlarScreen({ route, navigation }) {
     const filtreler = {};
     if (filtreTip !== 'Tümü') filtreler.tip = filtreTip;
     if (filtreTur !== 'Tümü') filtreler.emlak_turu = filtreTur;
+    if (uygulanmis.sehir)     filtreler.sehir = uygulanmis.sehir;
+    if (uygulanmis.ilce)      filtreler.ilce  = uygulanmis.ilce;
+    if (uygulanmis.oda)       filtreler.oda_sayisi = uygulanmis.oda;
     if (baslangicQ) filtreler.arama = baslangicQ;
     try {
       await kayitliAramaEkle({ baslik: aramaAdi.trim(), filtreler });
@@ -192,11 +228,22 @@ export default function TumIlanlarScreen({ route, navigation }) {
       <View style={[s.araçlar, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
         <TouchableOpacity
           style={[s.aracBtn, { backgroundColor: colors.input, borderColor: colors.border }, filtreAktif && s.aracBtnAktif]}
-          onPress={() => setFiltreMod(true)}
+          onPress={() => {
+            setTmpSehir(uygulanmis.sehir);
+            setTmpIlce(uygulanmis.ilce);
+            setTmpOda(uygulanmis.oda);
+            setMinFiyat(uygulanmis.minFiyat);
+            setMaxFiyat(uygulanmis.maxFiyat);
+            setMinMetrekare(uygulanmis.minMetrekare);
+            setMaxMetrekare(uygulanmis.maxMetrekare);
+            setFiltreMod(true);
+          }}
         >
           <Ionicons name="options-outline" size={15} color={filtreAktif ? '#2563eb' : colors.textSecondary} />
           <Text style={[s.aracText, { color: colors.textSecondary }, filtreAktif && s.aracTextAktif]}>Filtrele</Text>
-          {filtreAktif ? <View style={s.filtreDot} /> : null}
+          {filtreSayisi > 0
+            ? <View style={s.filtreSayi}><Text style={s.filtreSayiText}>{filtreSayisi}</Text></View>
+            : null}
         </TouchableOpacity>
 
         <TouchableOpacity style={[s.aracBtn, { backgroundColor: colors.input, borderColor: colors.border }]} onPress={() => setSiralaMod(true)}>
@@ -289,7 +336,8 @@ export default function TumIlanlarScreen({ route, navigation }) {
       {/* Filtre Modalı */}
       <Modal visible={filtreMod} transparent animationType="slide" onRequestClose={() => setFiltreMod(false)}>
         <TouchableOpacity style={s.modalArka} activeOpacity={1} onPress={() => setFiltreMod(false)} />
-        <View style={[s.modalKutu, { paddingBottom: 32, backgroundColor: colors.card }]}>
+        <View style={[s.filtreModalKutu, { backgroundColor: colors.card }]}>
+          {/* Başlık */}
           <View style={s.modalBaslik}>
             <Text style={[s.modalBaslikText, { color: colors.text }]}>Filtrele</Text>
             <TouchableOpacity onPress={() => setFiltreMod(false)}>
@@ -297,78 +345,134 @@ export default function TumIlanlarScreen({ route, navigation }) {
             </TouchableOpacity>
           </View>
 
-          <Text style={[s.filtreGrupBaslik, { color: colors.textSecondary }]}>İlan Tipi</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingHorizontal: 2 }}>
-            {TIPLER.map(t => (
-              <TouchableOpacity
-                key={t}
-                onPress={() => setFiltreTip(t)}
-                style={[s.filtreChip, { backgroundColor: colors.input, borderColor: colors.border }, filtreTip === t && s.filtreChipAktif]}
-              >
-                <Text style={[s.filtreChipText, { color: colors.textSecondary }, filtreTip === t && s.filtreChipTextAktif]}>{t}</Text>
-              </TouchableOpacity>
-            ))}
+          <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: 16 }}>
+
+            {/* Konum */}
+            <Text style={[s.filtreGrupBaslik, { color: colors.textSecondary }]}>Konum</Text>
+            <View style={s.aralikRow}>
+              <TextInput
+                style={[s.aralikInput, { backgroundColor: colors.input, borderColor: colors.inputBorder, color: colors.text }]}
+                placeholder="Şehir"
+                placeholderTextColor={colors.textMuted}
+                value={tmpSehir}
+                onChangeText={setTmpSehir}
+              />
+              <TextInput
+                style={[s.aralikInput, { backgroundColor: colors.input, borderColor: colors.inputBorder, color: colors.text }]}
+                placeholder="İlçe"
+                placeholderTextColor={colors.textMuted}
+                value={tmpIlce}
+                onChangeText={setTmpIlce}
+              />
+            </View>
+
+            {/* İlan Tipi */}
+            <Text style={[s.filtreGrupBaslik, { marginTop: 18, color: colors.textSecondary }]}>İlan Tipi</Text>
+            <View style={s.chipGrid}>
+              {TIPLER.map(t => (
+                <TouchableOpacity
+                  key={t}
+                  onPress={() => setFiltreTip(t)}
+                  style={[s.filtreChip, { backgroundColor: colors.input, borderColor: colors.border }, filtreTip === t && s.filtreChipAktif]}
+                >
+                  <Text style={[s.filtreChipText, { color: colors.textSecondary }, filtreTip === t && s.filtreChipTextAktif]}>{t}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            {/* Emlak Türü */}
+            <Text style={[s.filtreGrupBaslik, { marginTop: 18, color: colors.textSecondary }]}>Emlak Türü</Text>
+            <View style={s.chipGrid}>
+              {TURLER.map(t => (
+                <TouchableOpacity
+                  key={t}
+                  onPress={() => setFiltreTur(t)}
+                  style={[s.filtreChip, { backgroundColor: colors.input, borderColor: colors.border }, filtreTur === t && s.filtreChipAktif]}
+                >
+                  <Text style={[s.filtreChipText, { color: colors.textSecondary }, filtreTur === t && s.filtreChipTextAktif]}>{t}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            {/* Oda Sayısı */}
+            <Text style={[s.filtreGrupBaslik, { marginTop: 18, color: colors.textSecondary }]}>Oda Sayısı</Text>
+            <View style={s.chipGrid}>
+              {ODA_SEC.map(o => (
+                <TouchableOpacity
+                  key={o}
+                  onPress={() => setTmpOda(prev => prev === o ? '' : o)}
+                  style={[s.filtreChip, { backgroundColor: colors.input, borderColor: colors.border }, tmpOda === o && s.filtreChipAktif]}
+                >
+                  <Text style={[s.filtreChipText, { color: colors.textSecondary }, tmpOda === o && s.filtreChipTextAktif]}>{o}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            {/* Fiyat Aralığı */}
+            <Text style={[s.filtreGrupBaslik, { marginTop: 18, color: colors.textSecondary }]}>Fiyat Aralığı (TL)</Text>
+            <View style={s.aralikRow}>
+              <TextInput
+                style={[s.aralikInput, { backgroundColor: colors.input, borderColor: colors.inputBorder, color: colors.text }]}
+                placeholder="Min ₺"
+                placeholderTextColor={colors.textMuted}
+                keyboardType="numeric"
+                value={minFiyat}
+                onChangeText={setMinFiyat}
+              />
+              <Text style={[s.aralikAyrac, { color: colors.textMuted }]}>—</Text>
+              <TextInput
+                style={[s.aralikInput, { backgroundColor: colors.input, borderColor: colors.inputBorder, color: colors.text }]}
+                placeholder="Max ₺"
+                placeholderTextColor={colors.textMuted}
+                keyboardType="numeric"
+                value={maxFiyat}
+                onChangeText={setMaxFiyat}
+              />
+            </View>
+            {/* Hızlı fiyat seçenekleri */}
+            <View style={[s.chipGrid, { marginTop: 8 }]}>
+              {FIYAT_HIZLI.map(({ label, min, max }) => {
+                const aktif = minFiyat === min && maxFiyat === max;
+                return (
+                  <TouchableOpacity
+                    key={label}
+                    onPress={() => { setMinFiyat(aktif ? '' : min); setMaxFiyat(aktif ? '' : max); }}
+                    style={[s.filtreChip, { backgroundColor: colors.input, borderColor: colors.border }, aktif && s.filtreChipAktif]}
+                  >
+                    <Text style={[s.filtreChipText, { color: colors.textSecondary }, aktif && s.filtreChipTextAktif]}>{label}</Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+
+            {/* Metrekare */}
+            <Text style={[s.filtreGrupBaslik, { marginTop: 18, color: colors.textSecondary }]}>Metrekare (m²)</Text>
+            <View style={s.aralikRow}>
+              <TextInput
+                style={[s.aralikInput, { backgroundColor: colors.input, borderColor: colors.inputBorder, color: colors.text }]}
+                placeholder="Min m²"
+                placeholderTextColor={colors.textMuted}
+                keyboardType="numeric"
+                value={minMetrekare}
+                onChangeText={setMinMetrekare}
+              />
+              <Text style={[s.aralikAyrac, { color: colors.textMuted }]}>—</Text>
+              <TextInput
+                style={[s.aralikInput, { backgroundColor: colors.input, borderColor: colors.inputBorder, color: colors.text }]}
+                placeholder="Max m²"
+                placeholderTextColor={colors.textMuted}
+                keyboardType="numeric"
+                value={maxMetrekare}
+                onChangeText={setMaxMetrekare}
+              />
+            </View>
+
           </ScrollView>
-
-          <Text style={[s.filtreGrupBaslik, { marginTop: 16, color: colors.textSecondary }]}>Emlak Türü</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingHorizontal: 2 }}>
-            {TURLER.map(t => (
-              <TouchableOpacity
-                key={t}
-                onPress={() => setFiltreTur(t)}
-                style={[s.filtreChip, { backgroundColor: colors.input, borderColor: colors.border }, filtreTur === t && s.filtreChipAktif]}
-              >
-                <Text style={[s.filtreChipText, { color: colors.textSecondary }, filtreTur === t && s.filtreChipTextAktif]}>{t}</Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-
-          <Text style={[s.filtreGrupBaslik, { marginTop: 16, color: colors.textSecondary }]}>Fiyat Aralığı (TL)</Text>
-          <View style={s.aralikRow}>
-            <TextInput
-              style={[s.aralikInput, { backgroundColor: colors.input, borderColor: colors.inputBorder, color: colors.text }]}
-              placeholder="Min fiyat"
-              placeholderTextColor={colors.textMuted}
-              keyboardType="numeric"
-              value={minFiyat}
-              onChangeText={setMinFiyat}
-            />
-            <Text style={[s.aralikAyrac, { color: colors.textMuted }]}>—</Text>
-            <TextInput
-              style={[s.aralikInput, { backgroundColor: colors.input, borderColor: colors.inputBorder, color: colors.text }]}
-              placeholder="Max fiyat"
-              placeholderTextColor={colors.textMuted}
-              keyboardType="numeric"
-              value={maxFiyat}
-              onChangeText={setMaxFiyat}
-            />
-          </View>
-
-          <Text style={[s.filtreGrupBaslik, { marginTop: 16, color: colors.textSecondary }]}>Metrekare Aralığı (m²)</Text>
-          <View style={s.aralikRow}>
-            <TextInput
-              style={[s.aralikInput, { backgroundColor: colors.input, borderColor: colors.inputBorder, color: colors.text }]}
-              placeholder="Min m²"
-              placeholderTextColor={colors.textMuted}
-              keyboardType="numeric"
-              value={minMetrekare}
-              onChangeText={setMinMetrekare}
-            />
-            <Text style={[s.aralikAyrac, { color: colors.textMuted }]}>—</Text>
-            <TextInput
-              style={[s.aralikInput, { backgroundColor: colors.input, borderColor: colors.inputBorder, color: colors.text }]}
-              placeholder="Max m²"
-              placeholderTextColor={colors.textMuted}
-              keyboardType="numeric"
-              value={maxMetrekare}
-              onChangeText={setMaxMetrekare}
-            />
-          </View>
 
           <TouchableOpacity
             style={s.filtreUygula}
             onPress={() => {
-              setUygulanmis({ minFiyat, maxFiyat, minMetrekare, maxMetrekare });
+              setUygulanmis({ minFiyat, maxFiyat, minMetrekare, maxMetrekare, sehir: tmpSehir.trim(), ilce: tmpIlce.trim(), oda: tmpOda });
               setFiltreMod(false);
             }}
           >
@@ -381,7 +485,8 @@ export default function TumIlanlarScreen({ route, navigation }) {
               setFiltreTip('Tümü'); setFiltreTur('Tümü');
               setMinFiyat(''); setMaxFiyat('');
               setMinMetrekare(''); setMaxMetrekare('');
-              setUygulanmis({ minFiyat: '', maxFiyat: '', minMetrekare: '', maxMetrekare: '' });
+              setTmpSehir(''); setTmpIlce(''); setTmpOda('');
+              setUygulanmis({ minFiyat: '', maxFiyat: '', minMetrekare: '', maxMetrekare: '', sehir: '', ilce: '', oda: '' });
               setFiltreMod(false);
             }}
           >
@@ -405,6 +510,8 @@ const s = StyleSheet.create({
   aracText:           { fontSize: 13, fontWeight: '600', color: '#374151' },
   aracTextAktif:      { color: '#2563eb' },
   filtreDot:          { width: 6, height: 6, borderRadius: 3, backgroundColor: '#2563eb' },
+  filtreSayi:         { minWidth: 18, height: 18, borderRadius: 9, backgroundColor: '#2563eb', justifyContent: 'center', alignItems: 'center', paddingHorizontal: 4 },
+  filtreSayiText:     { color: '#fff', fontSize: 10, fontWeight: '800' },
   kart:               { backgroundColor: '#fff', marginHorizontal: 12, marginVertical: 5, borderRadius: 16, overflow: 'hidden', elevation: 1, shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 4 },
   gorselWrap:         { position: 'relative' },
   gorsel:             { width: '100%', height: 220 },
@@ -428,6 +535,8 @@ const s = StyleSheet.create({
   bosText:            { fontSize: 16, color: '#9ca3af', fontWeight: '600' },
   modalArka:          { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)' },
   modalKutu:          { backgroundColor: '#fff', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 20 },
+  filtreModalKutu:    { backgroundColor: '#fff', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 20, maxHeight: '85%' },
+  chipGrid:           { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   modalBaslik:        { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
   modalBaslikText:    { fontSize: 17, fontWeight: '800', color: '#111827' },
   modalSecim:         { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: '#f5f5f5' },

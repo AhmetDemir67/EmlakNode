@@ -6,7 +6,7 @@ export function ThemeProvider({ children }) {
   const [tema, setTema] = useState(() => {
     const kayitli = localStorage.getItem('tema');
     if (kayitli) return kayitli;
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    return 'dark';
   });
 
   useEffect(() => {

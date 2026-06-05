@@ -19,11 +19,13 @@ export const AYDINLIK = {
   grupBaslik:    '#9ca3af',
   badge:         '#dbeafe',
   badgeText:     '#2563eb',
+  price:         '#d97706',
+  priceAlt:      '#b45309',
 };
 
 export const KARANLIK = {
-  bg:            '#0f172a',
-  card:          '#1e293b',
+  bg:            '#0a0f1e',
+  card:          '#111827',
   border:        '#1e293b',
   borderStrong:  '#334155',
   text:          '#f1f5f9',
@@ -31,11 +33,13 @@ export const KARANLIK = {
   textMuted:     '#64748b',
   input:         '#1e293b',
   inputBorder:   '#334155',
-  tabBg:         '#1e293b',
-  tabBorder:     '#334155',
-  grupBaslik:    '#64748b',
+  tabBg:         '#111827',
+  tabBorder:     '#1e293b',
+  grupBaslik:    '#475569',
   badge:         '#1e3a5f',
   badgeText:     '#93c5fd',
+  price:         '#f59e0b',
+  priceAlt:      '#fbbf24',
 };
 
 export function ThemeProvider({ children }) {
@@ -44,7 +48,7 @@ export function ThemeProvider({ children }) {
 
   useEffect(() => {
     AsyncStorage.getItem('tema').then(kayitli => {
-      setTema(kayitli || sistemTema || 'light');
+      setTema(kayitli || 'dark');
     });
   }, [sistemTema]);
 

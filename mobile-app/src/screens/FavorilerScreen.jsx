@@ -114,7 +114,7 @@ const s = StyleSheet.create({
   tipText:    { color: '#fff', fontSize: 10, fontWeight: '700' },
   icerik:     { flex: 1, padding: 12, gap: 4 },
   baslik:     { fontSize: 13, fontWeight: '700', color: '#111827', lineHeight: 18 },
-  fiyat:      { fontSize: 15, fontWeight: '900', color: '#2563eb' },
+  fiyat:      { fontSize: 15, fontWeight: '900', color: '#f59e0b' },
   konumRow:   { flexDirection: 'row', alignItems: 'center', gap: 3, marginTop: 2 },
   konumText:  { fontSize: 12, color: '#9ca3af' },
   kalp:       { padding: 14 },

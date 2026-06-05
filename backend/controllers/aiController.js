@@ -191,7 +191,41 @@ const chatbot = async (req, res) => {
   const { mesaj, gecmis = [] } = req.body;
   if (!mesaj) return res.status(400).json({ basarili: false, mesaj: 'Mesaj boş olamaz.' });
 
-  const sistemPrompt = `Sen EmlakAI adında profesyonel bir Türk emlak danışmanı asistanısın. Kullanıcılara emlak satın alma, kiralama, değerleme ve hukuki süreçler hakkında yardım ediyorsun. Türkçe, kısa ve net cevaplar ver. Eğer konu emlakla ilgili değilse kibarca yönlendirme yap.`;
+  const sistemPrompt = `Sen EmlakAI adında EmlakNode platformunun yapay zeka asistanısın.
+
+EMLAKNode UYGULAMA SAYFALARIM:
+- Ana Sayfa (/): Arama çubuğu, öne çıkan ilanlar
+- İlanlar (/ilanlar): Tüm ilanlar, filtre paneli (şehir, ilçe, tip, fiyat, oda), harita görünümü
+- İlan Detay (/ilan/:id): Galeri, özellikler, AI ulaşım analizi, mesajlaşma
+- Değerleme (/degerleme): AI ile mülk değerleme — mülk bilgisi gir, fiyat tahmini al
+- Panel (/panel): Kullanıcı paneli — sekmeler: yeni (ilan ver), ilanlar, mesajlar, bildirimler, favoriler, aramalar, uyelik
+- Giriş (/login) | Kayıt (/kayit)
+
+UYGULAMA YARDIM ÖRNEKLERİ:
+- "İlan nasıl veririm?" → /panel?sekme=yeni
+- "İlanlarımı nerede görürüm?" → /panel?sekme=ilanlar
+- "Mesajlarım nerede?" → /panel?sekme=mesajlar
+- "Favorilerime nasıl bakarım?" → /panel?sekme=favoriler
+- "Kayıtlı aramalarım?" → /panel?sekme=aramalar
+- "Değerleme nedir?" → /degerleme
+- "Profil/üyelik bilgileri?" → /panel?sekme=uyelik
+- "Haritada ara?" → /ilanlar (sağ üst Harita butonuna tıkla)
+
+YANIT FORMAT — SADECE GEÇERLİ JSON DÖNDÜR, başka hiçbir şey yazma:
+{
+  "intent": "normal" | "ilan_listele" | "sayfaya_git",
+  "cevap": "Türkçe kısa yanıt (max 4 cümle)",
+  "filtreler": { "sehir": "", "ilce": "", "tip": "", "emlak_turu": "", "min_fiyat": "", "max_fiyat": "", "oda_sayisi": "" },
+  "url": "",
+  "url_baslik": ""
+}
+
+KURALLAR:
+- intent=ilan_listele: kullanıcı ilan aramak/listelemek istiyorsa → filtreler doldur (boş bırakma)
+- intent=sayfaya_git: kullanıcı bir sayfaya gitmek veya bir özelliği kullanmak istiyorsa → url ve url_baslik doldur
+- intent=normal: genel emlak sorusu veya bilgi → sadece cevap doldur
+- filtreler.tip sadece "Satılık" veya "Kiralık" olabilir
+- Emlak dışı konularda: "Ben emlak ve EmlakNode konusunda yardımcı olabilirim" de`;
 
   const contents = [
     ...gecmis.map(m => ({ role: m.rol, parts: [{ text: m.metin }] })),
@@ -205,18 +239,29 @@ const chatbot = async (req, res) => {
       body: JSON.stringify({
         system_instruction: { parts: [{ text: sistemPrompt }] },
         contents,
-        generationConfig: { temperature: 0.7, maxOutputTokens: 8192 },
+        generationConfig: { temperature: 0.4, maxOutputTokens: 1024 },
       }),
     });
 
     if (!yanit.ok) {
-      const hata = await yanit.json();
       return res.status(502).json({ basarili: false, mesaj: 'AI servisi hata verdi.' });
     }
 
     const veri = await yanit.json();
-    const cevap = veri.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || 'Üzgünüm, bir hata oluştu.';
-    res.json({ basarili: true, cevap });
+    let metin = veri.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
+
+    metin = metin.replace(/```json\s*/gi, '').replace(/```\s*/gi, '').trim();
+    const start = metin.indexOf('{');
+    const end   = metin.lastIndexOf('}');
+
+    let sonuc;
+    try {
+      sonuc = JSON.parse(metin.slice(start, end + 1));
+    } catch {
+      sonuc = { intent: 'normal', cevap: metin || 'Üzgünüm, yanıt oluşturulamadı.' };
+    }
+
+    res.json({ basarili: true, ...sonuc });
   } catch (hata) {
     console.error('Chatbot controller hata:', hata.message);
     res.status(500).json({ basarili: false, mesaj: 'Chatbot yanıt veremedi.' });

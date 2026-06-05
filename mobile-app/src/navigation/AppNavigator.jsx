@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
-import { TouchableOpacity, StyleSheet, View } from 'react-native';
+import { TouchableOpacity, StyleSheet, View, PanResponder, Animated } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { StatusBar } from 'expo-status-bar';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
@@ -42,8 +43,14 @@ const Tab   = createBottomTabNavigator();
 const Stack = createStackNavigator();
 
 const IlanVerButon = ({ onPress }) => (
-  <TouchableOpacity style={s.merkez} onPress={onPress}>
-    <Ionicons name="add" size={30} color="#fff" />
+  <TouchableOpacity style={s.merkezWrap} onPress={onPress}>
+    <LinearGradient
+      colors={['#7c3aed', '#2563eb']}
+      start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+      style={s.merkez}
+    >
+      <Ionicons name="add" size={30} color="#fff" />
+    </LinearGradient>
   </TouchableOpacity>
 );
 
@@ -57,10 +64,38 @@ const ChatbotButon = () => {
   );
 };
 
+const TAB_SIRASI = ['Kesif', 'IlanAra', 'Mesajlar', 'Hesabim'];
+
 function TabNavigator() {
   const { tema, colors } = useTheme();
   const [okunmamis, setOkunmamis]             = useState(null);
   const [bildirimSayisi, setBildirimSayisi]   = useState(null);
+  const aktifTabRef = useRef('Kesif');
+  const fadeAnim    = useRef(new Animated.Value(1)).current;
+
+  const gecisYap = (hedef) => {
+    Animated.sequence([
+      Animated.timing(fadeAnim, { toValue: 0.3, duration: 120, useNativeDriver: true }),
+      Animated.timing(fadeAnim, { toValue: 1,   duration: 180, useNativeDriver: true }),
+    ]).start();
+    navigationRef.current?.navigate(hedef);
+  };
+
+  const swipePan = useRef(
+    PanResponder.create({
+      onMoveShouldSetPanResponder: (_, gs) =>
+        Math.abs(gs.dx) > 20 && Math.abs(gs.dx) > Math.abs(gs.dy) * 2,
+      onPanResponderRelease: (_, gs) => {
+        if (Math.abs(gs.dx) < 60) return;
+        const idx = TAB_SIRASI.indexOf(aktifTabRef.current);
+        if (gs.dx < 0 && idx < TAB_SIRASI.length - 1) {
+          gecisYap(TAB_SIRASI[idx + 1]);
+        } else if (gs.dx > 0 && idx > 0) {
+          gecisYap(TAB_SIRASI[idx - 1]);
+        }
+      },
+    })
+  ).current;
 
   const HEADER = {
     headerStyle: { backgroundColor: colors.card },
@@ -84,12 +119,19 @@ function TabNavigator() {
   }, []);
 
   return (
-    <View style={{ flex: 1 }}>
+    <Animated.View style={{ flex: 1, opacity: fadeAnim }} {...swipePan.panHandlers}>
     <Tab.Navigator
+      screenListeners={{
+        state: (e) => {
+          const routes = e.data?.state?.routes;
+          const index  = e.data?.state?.index;
+          if (routes && index !== undefined) aktifTabRef.current = routes[index].name;
+        },
+      }}
       screenOptions={({ route }) => ({
         headerShown: false,
         tabBarShowLabel: true,
-        tabBarActiveTintColor: '#2563eb',
+        tabBarActiveTintColor: tema === 'dark' ? '#f59e0b' : '#2563eb',
         tabBarInactiveTintColor: tema === 'dark' ? '#475569' : '#9ca3af',
         tabBarLabelStyle: { fontSize: 10, fontWeight: '600', marginBottom: 2 },
         tabBarStyle: {
@@ -128,7 +170,7 @@ function TabNavigator() {
       <Tab.Screen name="Hesabim"  component={HesabimScreen}  options={{ title: 'Hesabım', headerShown: false }} />
     </Tab.Navigator>
     <ChatbotButon />
-    </View>
+    </Animated.View>
   );
 }
 
@@ -172,13 +214,14 @@ export default function AppNavigator() {
 }
 
 const s = StyleSheet.create({
+  merkezWrap: {
+    marginBottom: 20,
+    shadowColor: '#7c3aed', shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.5, shadowRadius: 10, elevation: 10,
+  },
   merkez: {
     width: 58, height: 58, borderRadius: 29,
-    backgroundColor: '#2563eb',
     justifyContent: 'center', alignItems: 'center',
-    marginBottom: 20,
-    shadowColor: '#2563eb', shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4, shadowRadius: 8, elevation: 8,
   },
   chatbotBtn: {
     position: 'absolute', bottom: 80, right: 18,
